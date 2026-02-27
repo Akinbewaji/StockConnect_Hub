@@ -145,19 +145,19 @@ router.post("/demo", async (req, res) => {
     const seedData = db.transaction(() => {
       // 3. Create Demo Products
       const productStmt = db.prepare(
-        "INSERT INTO products (business_id, name, sku, category, price, cost_price, quantity, min_stock_level, unit_measurement) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO products (business_id, name, category, price, quantity) VALUES (?, ?, ?, ?, ?)"
       );
-      const cementId = productStmt.run(businessId, 'Dangote Cement 50kg', 'CEM-001', 'Building Materials', 8500, 7800, 150, 50, 'bag').lastInsertRowid;
-      const pipeId = productStmt.run(businessId, 'PVC Pipe 4 inch', 'PIP-002', 'Plumbing', 3500, 2500, 20, 30, 'piece').lastInsertRowid; // Low stock
-      const wireId = productStmt.run(businessId, 'Copper Wire 2.5mm', 'WIR-003', 'Electrical', 12000, 9500, 80, 20, 'roll').lastInsertRowid;
-      const paintId = productStmt.run(businessId, 'Emulsion Paint 20L', 'PNT-004', 'Paint', 15000, 11000, 45, 15, 'bucket').lastInsertRowid;
+      const cementId = productStmt.run(businessId, 'Dangote Cement 50kg', 'Building Materials', 8500, 150).lastInsertRowid;
+      const pipeId = productStmt.run(businessId, 'PVC Pipe 4 inch', 'Plumbing', 3500, 20).lastInsertRowid; // Low stock
+      const wireId = productStmt.run(businessId, 'Copper Wire 2.5mm', 'Electrical', 12000, 80).lastInsertRowid;
+      const paintId = productStmt.run(businessId, 'Emulsion Paint 20L', 'Paint', 15000, 45).lastInsertRowid;
 
       // 4. Create Demo Customers
       const customerStmt = db.prepare(
-        "INSERT INTO customers (business_id, name, phone, email, type) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO customers (business_id, name, phone, email) VALUES (?, ?, ?, ?)"
       );
-      const cust1Id = customerStmt.run(businessId, 'John Contractor', '08011111111', 'john@example.com', 'retail').lastInsertRowid;
-      const cust2Id = customerStmt.run(businessId, 'ABC Builders Ltd', '08022222222', 'contact@abc.com', 'wholesale').lastInsertRowid;
+      const cust1Id = customerStmt.run(businessId, 'John Contractor', '08011111111', 'john@example.com').lastInsertRowid;
+      const cust2Id = customerStmt.run(businessId, 'ABC Builders Ltd', '08022222222', 'contact@abc.com').lastInsertRowid;
 
       // 5. Create past orders for graph data
       const orderStmt = db.prepare("INSERT INTO orders (customer_id, total_amount, status, created_at) VALUES (?, ?, ?, ?)");
@@ -199,9 +199,9 @@ router.post("/demo", async (req, res) => {
       },
     });
 
-  } catch (error) {
-    console.error("Demo creation error", error);
-    res.status(500).json({ error: "Failed to create demo environment" });
+  } catch (error: any) {
+    console.error("Demo creation error", error.message, error.stack);
+    res.status(500).json({ error: "Failed to create demo environment: " + error.message });
   }
 });
 
