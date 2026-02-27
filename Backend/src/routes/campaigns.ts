@@ -42,7 +42,7 @@ router.post("/", (req: any, res) => {
 // Send campaign to customers
 router.post("/:id/send", async (req: any, res) => {
   const { id } = req.params;
-  const { customerIds, segment } = req.body; // Can send to specific customers or segment
+  const { customerIds, segment, manualNumbers } = req.body; // Can send to specific customers, segment, or manual list
   const businessId = req.user.id;
 
   try {
@@ -89,14 +89,31 @@ router.post("/:id/send", async (req: any, res) => {
       customers = stmt.all(businessId) as any[];
     }
 
-    if (customers.length === 0) {
+    if (customers.length === 0 && (!manualNumbers || manualNumbers.length === 0)) {
       return res
         .status(400)
-        .json({ error: "No customers found to send campaign" });
+        .json({ error: "No customers or manual numbers provided to send campaign" });
     }
 
-    // Format phone numbers
-    const phoneNumbers = customers.map((c) => formatPhoneNumber(c.phone));
+    // Format database phone numbers
+    let phoneNumbers = customers.map((c) => formatPhoneNumber(c.phone));
+    
+    // Validate and add manual numbers
+    if (manualNumbers && Array.isArray(manualNumbers)) {
+      manualNumbers.forEach((num: string) => {
+        if (num.trim() !== '') {
+          // Format the manual number
+          phoneNumbers.push(formatPhoneNumber(num.trim()));
+        }
+      });
+    }
+    
+    // Deduplicate phone numbers
+    phoneNumbers = [...new Set(phoneNumbers)];
+
+    if (phoneNumbers.length === 0) {
+      return res.status(400).json({ error: "No valid phone numbers to send to" });
+    }
 
     // Send based on channel
     let result: MessageResult;
@@ -123,7 +140,7 @@ router.post("/:id/send", async (req: any, res) => {
 
       res.json({
         success: true,
-        message: `Campaign sent to ${customers.length} customers`,
+        message: `Campaign sent to ${phoneNumbers.length} recipients`,
         details: result.data,
         warning: result.warning,
       });
