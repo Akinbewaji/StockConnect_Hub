@@ -115,9 +115,32 @@ export function initializeDatabase() {
       currency_unit_for_points REAL DEFAULT 100,
       point_redemption_value REAL DEFAULT 10, -- 1 point = 10 currency units
       low_stock_notifications INTEGER DEFAULT 1, -- 1 for true, 0 for false
+      phone TEXT,
+      address TEXT,
+      tax_rate REAL DEFAULT 0,
+      receipt_footer TEXT,
+      default_sender_id TEXT,
+      auto_receipt_sms INTEGER DEFAULT 0,
       FOREIGN KEY (business_id) REFERENCES users(id)
     )
   `);
+
+  // Safely add new columns to existing tables
+  try {
+    db.exec(`
+      ALTER TABLE settings ADD COLUMN phone TEXT;
+      ALTER TABLE settings ADD COLUMN address TEXT;
+      ALTER TABLE settings ADD COLUMN tax_rate REAL DEFAULT 0;
+      ALTER TABLE settings ADD COLUMN receipt_footer TEXT;
+      ALTER TABLE settings ADD COLUMN default_sender_id TEXT;
+      ALTER TABLE settings ADD COLUMN auto_receipt_sms INTEGER DEFAULT 0;
+    `);
+    console.log("Applied new schema columns to settings.");
+  } catch (e: any) {
+    if (!e.message.includes('duplicate column name')) {
+      console.log('Skipping alter table: ', e.message);
+    }
+  }
 
   console.log("Database initialized successfully");
 }

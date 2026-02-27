@@ -9,15 +9,22 @@ import {
   AlertCircle,
   Smartphone,
   Globe,
-  Mail
+  MapPin,
+  Receipt,
+  MessageSquare,
+  AlertTriangle,
+  FileText
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { authFetch } from '../../utils/api';
 
 export default function Settings() {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [wiping, setWiping] = useState(false);
+  const [showWipeModal, setShowWipeModal] = useState(false);
+  const [wipeConfirmText, setWipeConfirmText] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
@@ -58,9 +65,59 @@ export default function Settings() {
     }
   };
 
-  const handleExportData = async () => {
-    // In a real app, this would trigger a CSV download
-    alert('Exporting data to CSV... (This is a demo feature)');
+  const handleExportData = async (type: 'products' | 'customers' | 'orders') => {
+    try {
+      const response = await authFetch(`/api/settings/export/${type}`);
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Export failed');
+      }
+
+      // Convert response to blob
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create hidden download link and click it
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setMessage({ type: 'success', text: `${type} exported successfully!` });
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || `Failed to export ${type}` });
+    }
+  };
+
+  const handleWipeData = async () => {
+    if (wipeConfirmText !== 'WIPE DATA') return;
+    
+    setWiping(true);
+    try {
+      const res = await authFetch('/api/settings/wipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmText: wipeConfirmText })
+      });
+      
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'All POS transaction data has been permanently wiped.' });
+        setShowWipeModal(false);
+        setWipeConfirmText('');
+      } else {
+        throw new Error('Failed to wipe data');
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'An error occurred while wiping data.' });
+    } finally {
+      setWiping(false);
+    }
   };
 
   if (loading) {
@@ -109,7 +166,7 @@ export default function Settings() {
                 </div>
                 <input 
                   type="text" 
-                  value={settings.currency}
+                  value={settings.currency || ''}
                   onChange={e => setSettings({...settings, currency: e.target.value})}
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                   placeholder="₦, $, €"
@@ -124,11 +181,103 @@ export default function Settings() {
                 </div>
                 <input 
                   type="tel" 
+                  value={settings.phone || ''}
+                  onChange={e => setSettings({...settings, phone: e.target.value})}
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                   placeholder="+234 ..."
                 />
               </div>
             </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-sm font-medium text-gray-700">Business Address</label>
+              <div className="relative">
+                <div className="absolute left-3 top-4 text-gray-400">
+                  <MapPin size={16} />
+                </div>
+                <textarea 
+                  value={settings.address || ''}
+                  onChange={e => setSettings({...settings, address: e.target.value})}
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20"
+                  placeholder="123 Market Street, Lagos..."
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* POS & Receipts */}
+        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-50 flex items-center gap-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+              <Receipt size={20} />
+            </div>
+            <h2 className="font-bold text-gray-900">POS & Receipts</h2>
+          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">Default Tax Rate (%)</label>
+              <div className="relative">
+                <input 
+                  type="number" 
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={settings.tax_rate || ''}
+                  onChange={e => setSettings({...settings, tax_rate: parseFloat(e.target.value) || 0})}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  placeholder="e.g. 7.5"
+                />
+              </div>
+              <p className="text-xs text-gray-500">Applied automatically to POS checkouts</p>
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-sm font-medium text-gray-700">Receipt Footer Message</label>
+              <textarea 
+                value={settings.receipt_footer || ''}
+                onChange={e => setSettings({...settings, receipt_footer: e.target.value})}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20"
+                placeholder="Thank you for shopping with us! Returns accepted within 3 days with receipt."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Campaign Preferences */}
+        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-50 flex items-center gap-3">
+            <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+              <MessageSquare size={20} />
+            </div>
+            <h2 className="font-bold text-gray-900">Campaign Preferences</h2>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="space-y-1.5 w-full md:w-1/2">
+              <label className="text-sm font-medium text-gray-700">Default Africa's Talking Sender ID</label>
+              <input 
+                type="text" 
+                value={settings.default_sender_id || ''}
+                onChange={e => setSettings({...settings, default_sender_id: e.target.value})}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                placeholder="e.g. MYSTORE (Leave blank for default shortcode)"
+              />
+              <p className="text-xs text-gray-500 mt-1">Requires an approved alphanumeric Sender ID on your Africa's Talking dashboard.</p>
+            </div>
+            
+            <label className="flex items-center justify-between cursor-pointer pt-4 border-t border-gray-100">
+              <div className="space-y-0.5 pr-4">
+                <span className="text-sm font-medium text-gray-900">Automated SMS e-Receipts</span>
+                <p className="text-xs text-gray-500">Automatically send an SMS receipt to the customer's phone number upon successful POS checkout.</p>
+              </div>
+              <div className="relative inline-flex items-center shrink-0">
+                <input 
+                  type="checkbox" 
+                  checked={settings.auto_receipt_sms === 1}
+                  onChange={e => setSettings({...settings, auto_receipt_sms: e.target.checked ? 1 : 0})}
+                  className="sr-only peer" 
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              </div>
+            </label>
           </div>
         </section>
 
@@ -212,19 +361,92 @@ export default function Settings() {
             </div>
             <h2 className="font-bold text-gray-900">Data Management</h2>
           </div>
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <span className="text-sm font-medium text-gray-900">Export Inventory Data</span>
-                <p className="text-xs text-gray-500">Download all your products and stock levels as a CSV file</p>
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <FileText size={18} className="text-gray-600" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-sm font-semibold text-gray-900">Product Inventory</span>
+                  <p className="text-xs text-gray-500">Export your product catalog and stock levels</p>
+                </div>
               </div>
               <button 
                 type="button"
-                onClick={handleExportData}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-200 transition-colors"
+                onClick={() => handleExportData('products')}
+                title="Download Products CSV"
+                className="flex items-center justify-center w-8 h-8 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <Download size={16} />
-                Export CSV
+                <Download size={14} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <FileText size={18} className="text-gray-600" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-sm font-semibold text-gray-900">Customer List</span>
+                  <p className="text-xs text-gray-500">Export your registered customers and loyalty points</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => handleExportData('customers')}
+                title="Download Customers CSV"
+                className="flex items-center justify-center w-8 h-8 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Download size={14} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <FileText size={18} className="text-gray-600" />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-sm font-semibold text-gray-900">Order History</span>
+                  <p className="text-xs text-gray-500">Export all POS transaction records</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => handleExportData('orders')}
+                title="Download Orders CSV"
+                className="flex items-center justify-center w-8 h-8 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Download size={14} />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Danger Zone */}
+        <section className="bg-red-50 rounded-2xl border border-red-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-red-100 flex items-center gap-3">
+            <div className="p-2 bg-red-100 text-red-600 rounded-lg">
+              <AlertTriangle size={20} />
+            </div>
+            <h2 className="font-bold text-red-900">Danger Zone</h2>
+          </div>
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1 md:pr-10">
+                <span className="text-sm font-bold text-red-900">Wipe POS Transactions</span>
+                <p className="text-xs text-red-700 leading-relaxed">
+                  Permanently delete all Orders, Order Items, and Stock Movements. 
+                  <span className="block mt-1 font-semibold">Products and Customers will be kept. This action cannot be reversed.</span>
+                </p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowWipeModal(true)}
+                className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+              >
+                Wipe Data
               </button>
             </div>
           </div>
@@ -252,6 +474,72 @@ export default function Settings() {
           </button>
         </div>
       </form>
+
+      {/* Wipe Confirmation Modal */}
+      <AnimatePresence>
+        {showWipeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6"
+            >
+              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={32} />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Are you sure?</h2>
+              <p className="text-gray-500 text-center mb-6 text-sm">
+                This will permanently delete ALL historical order and transaction data from your application. Your products and customers will not be altered.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Type <span className="text-red-600 font-mono bg-red-50 px-2 py-0.5 rounded">WIPE DATA</span> to confirm:
+                  </label>
+                  <input
+                    type="text"
+                    value={wipeConfirmText}
+                    onChange={e => setWipeConfirmText(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none font-mono"
+                    placeholder="WIPE DATA"
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-2">
+                  <button 
+                    onClick={() => {
+                      setShowWipeModal(false);
+                      setWipeConfirmText('');
+                    }}
+                    disabled={wiping}
+                    className="flex-1 px-4 py-3 text-gray-600 font-bold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleWipeData}
+                    disabled={wipeConfirmText !== 'WIPE DATA' || wiping}
+                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                  >
+                    {wiping ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      'Nuke It'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
