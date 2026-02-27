@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../../utils/api';
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
   const [category, setCategory] = useState('');
 
   useEffect(() => {
-    const url = category ? `/api/products?category=${category}` : '/api/products';
+    const url = category ? `${API_URL}/api/products?category=${category}` : `${API_URL}/api/products`;
     fetch(url)
       .then(res => res.json())
       .then(setProducts);

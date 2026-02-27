@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { API_URL } from '../../utils/api';
 import { ArrowLeft, ShoppingCart, Check, AlertTriangle } from 'lucide-react';
 
 export default function ProductDetail() {
@@ -16,7 +17,7 @@ export default function ProductDetail() {
     // Actually, I should add the endpoint to be proper.
     
     // For now, let's just use the list endpoint and filter client side for MVP speed.
-    fetch('/api/products')
+    fetch(`${API_URL}/api/products`)
       .then(res => res.json())
       .then(products => {
         const found = products.find((p: any) => p.id === Number(id));

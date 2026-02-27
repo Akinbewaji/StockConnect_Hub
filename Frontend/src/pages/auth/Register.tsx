@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { API_URL } from "../../utils/api";
 import { Lock, Phone, User, Building2, Mail, AtSign } from "lucide-react";
 
 export default function Register() {
@@ -21,7 +22,7 @@ export default function Register() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
