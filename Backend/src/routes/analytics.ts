@@ -72,10 +72,12 @@ router.get('/summary', (req: any, res) => {
     WHERE c.business_id = ?
   `).get(businessId) as any;
   
+  const campaignCount = db.prepare('SELECT COUNT(*) as count FROM campaigns WHERE business_id = ?').get(businessId) as any;
+
   res.json({
     totalProducts: productCount.count,
     lowStock: lowStockCount.count,
-    activeCampaigns: 2, // Mock
+    activeCampaigns: campaignCount.count,
     recentOrders: orderCount.count
   });
 });
