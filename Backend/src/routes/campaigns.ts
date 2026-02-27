@@ -8,6 +8,14 @@ import {
 
 const router = Router();
 
+// Interface for message send result
+interface MessageResult {
+  success: boolean;
+  data?: any;
+  error?: any;
+  warning?: string;
+}
+
 router.get("/", (req: any, res) => {
   const businessId = req.user.id;
   const stmt = db.prepare(
@@ -91,17 +99,17 @@ router.post("/:id/send", async (req: any, res) => {
     const phoneNumbers = customers.map((c) => formatPhoneNumber(c.phone));
 
     // Send based on channel
-    let result;
+    let result: MessageResult;
     if (campaign.channel === "SMS") {
-      result = await sendSMS({
+      result = (await sendSMS({
         to: phoneNumbers,
         message: campaign.message,
-      });
+      })) as MessageResult;
     } else if (campaign.channel === "WHATSAPP") {
-      result = await sendWhatsApp({
+      result = (await sendWhatsApp({
         to: phoneNumbers,
         message: campaign.message,
-      });
+      })) as MessageResult;
     } else {
       return res.status(400).json({ error: "Invalid campaign channel" });
     }
@@ -117,7 +125,7 @@ router.post("/:id/send", async (req: any, res) => {
         success: true,
         message: `Campaign sent to ${customers.length} customers`,
         details: result.data,
-        warning: (result as any).warning,
+        warning: result.warning,
       });
     } else {
       res.status(500).json({
