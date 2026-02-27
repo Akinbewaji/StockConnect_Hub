@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, AlertTriangle, ShoppingBag, Users } from 'lucide-react';
 import { authFetch } from '../../utils/api';
@@ -108,12 +109,18 @@ export default function Dashboard() {
       <div className="space-y-3">
         <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-3">
-          <button className="p-3 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700">
+          <Link 
+            to="/admin/inventory"
+            className="p-3 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 text-center transition-colors block"
+          >
             Add Product
-          </button>
-          <button className="p-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-50">
+          </Link>
+          <Link 
+            to="/admin/campaigns"
+            className="p-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-50 text-center transition-colors block"
+          >
             Create Campaign
-          </button>
+          </Link>
         </div>
       </div>
     </div>
