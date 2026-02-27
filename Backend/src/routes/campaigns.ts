@@ -117,7 +117,7 @@ router.post("/:id/send", async (req: any, res) => {
         success: true,
         message: `Campaign sent to ${customers.length} customers`,
         details: result.data,
-        warning: result.warning,
+        warning: (result as any).warning,
       });
     } else {
       res.status(500).json({
