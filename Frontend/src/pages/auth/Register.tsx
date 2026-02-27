@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../utils/api";
-import { Lock, Phone, User, Building2, Mail, AtSign } from "lucide-react";
+import { Lock, Phone, User, Building2, Mail, AtSign, Eye, EyeOff } from "lucide-react";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -13,6 +13,7 @@ export default function Register() {
     phone: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -172,14 +173,22 @@ export default function Register() {
                 size={20}
               />
               <input
-                type="password"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                type={showPassword ? "text" : "password"}
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
           </div>
 
