@@ -8,15 +8,35 @@ export default function Dashboard() {
   const [salesData, setSalesData] = useState<any[]>([]);
 
   useEffect(() => {
-    // Fetch summary stats
-    authFetch('/api/analytics/summary')
-      .then(res => res.json())
-      .then(setStats);
+    let isMounted = true;
 
-    // Fetch sales chart data
-    authFetch('/api/analytics/sales')
-      .then(res => res.json())
-      .then(setSalesData);
+    const fetchData = async () => {
+      try {
+        const statsRes = await authFetch('/api/analytics/summary');
+        const statsData = await statsRes.json();
+        
+        const salesRes = await authFetch('/api/analytics/sales');
+        const salesJson = await salesRes.json();
+        
+        if (isMounted) {
+          setStats(statsData);
+          setSalesData(salesJson);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      }
+    };
+
+    // Initial fetch
+    fetchData();
+
+    // Set up polling interval every 5 seconds
+    const intervalId = setInterval(fetchData, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, []);
 
   if (!stats) return <div className="p-4">Loading...</div>;

@@ -8,6 +8,7 @@ export default function Login() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -53,30 +54,36 @@ export default function Login() {
         )}
 
         {/* Demo Login Quick Action */}
-        <div className="mb-6 bg-indigo-50 border border-indigo-100 rounded-lg p-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-semibold text-indigo-900">
-              Demo Account
-            </span>
+        <div className="mb-6 bg-indigo-50 border border-indigo-100 rounded-lg p-4 cursor-pointer hover:bg-indigo-100 transition-colors" onClick={async () => {
+              setIsDemoLoading(true);
+              setError("");
+              try {
+                const res = await fetch(`${API_URL}/api/auth/demo`, { method: "POST" });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Demo failed");
+                login(data.token, data.user);
+                navigate("/admin");
+              } catch (err: any) {
+                setError(err.message);
+                setIsDemoLoading(false);
+              }
+            }}>
+          <div className="flex justify-between items-center">
+            <div>
+              <span className="text-sm font-semibold text-indigo-900 block">
+                Try Demo Account
+              </span>
+              <p className="text-xs text-indigo-700 mt-1">
+                Instantly generates an active workspace with sample data
+              </p>
+            </div>
             <button
               type="button"
-              onClick={() => {
-                setIdentifier("08000000000");
-                setPassword("password123");
-              }}
-              className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition-colors"
+              disabled={isDemoLoading}
+              className="text-xs bg-indigo-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
-              Auto-fill
+              {isDemoLoading ? "Loading..." : "Enter Demo"}
             </button>
-          </div>
-          <div className="text-xs text-indigo-700 space-y-1">
-            <p>
-              <span className="font-medium">Phone/Email/Username:</span>{" "}
-              08000000000
-            </p>
-            <p>
-              <span className="font-medium">Password:</span> password123
-            </p>
           </div>
         </div>
 
