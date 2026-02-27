@@ -7,7 +7,11 @@ import {
   Plus, 
   Minus, 
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  X,
+  CreditCard,
+  Banknote,
+  Smartphone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { authFetch } from '../../utils/api';
@@ -41,6 +45,9 @@ export default function POS() {
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'cash'|'card'|'transfer'>('cash');
+  const [amountReceived, setAmountReceived] = useState<string>('');
 
   useEffect(() => {
     fetchData();
@@ -120,8 +127,11 @@ export default function POS() {
 
       if (res.ok) {
         setShowSuccess(true);
+        setShowCheckoutModal(false);
         setCart([]);
         setSelectedCustomer(null);
+        setPaymentMethod('cash');
+        setAmountReceived('');
         fetchData();
         setTimeout(() => setShowSuccess(false), 3000);
       }
@@ -316,8 +326,8 @@ export default function POS() {
               <span className="text-xl font-bold text-gray-900">{settings?.currency}{total.toLocaleString()}</span>
             </div>
             <button
-              onClick={handleCheckout}
-              disabled={cart.length === 0 || isProcessing}
+              onClick={() => setShowCheckoutModal(true)}
+              disabled={cart.length === 0}
               className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {isProcessing ? (
@@ -332,6 +342,142 @@ export default function POS() {
           </div>
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      <AnimatePresence>
+        {showCheckoutModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h2 className="text-xl font-bold text-gray-900">Checkout Summary</h2>
+                <button 
+                  onClick={() => setShowCheckoutModal(false)}
+                  className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Order Details */}
+                <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
+                  {selectedCustomer && (
+                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                      <span className="text-sm text-gray-500">Customer</span>
+                      <span className="font-semibold text-gray-900">{selectedCustomer.name}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Total Items</span>
+                    <span className="font-semibold text-gray-900">{cart.reduce((s, i) => s + i.cartQuantity, 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                    <span className="text-base font-semibold text-gray-700">Total Amount</span>
+                    <span className="text-2xl font-bold text-indigo-600">
+                      {settings?.currency}{total.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Method */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-3">Payment Method</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <button
+                      onClick={() => setPaymentMethod('cash')}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                        paymentMethod === 'cash' 
+                          ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
+                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                      }`}
+                    >
+                      <Banknote size={24} />
+                      <span className="text-xs">Cash</span>
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod('card')}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                        paymentMethod === 'card' 
+                          ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
+                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                      }`}
+                    >
+                      <CreditCard size={24} />
+                      <span className="text-xs">Card (POS)</span>
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod('transfer')}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                        paymentMethod === 'transfer' 
+                          ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
+                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                      }`}
+                    >
+                      <Smartphone size={24} />
+                      <span className="text-xs">Transfer</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Cash Calculator */}
+                {paymentMethod === 'cash' && (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                    <label className="block text-sm font-semibold text-gray-900">Amount Received</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+                        {settings?.currency}
+                      </span>
+                      <input
+                        type="number"
+                        min={total}
+                        placeholder="0.00"
+                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors text-lg font-medium"
+                        value={amountReceived}
+                        onChange={(e) => setAmountReceived(e.target.value)}
+                      />
+                    </div>
+                    {Number(amountReceived) >= total && (
+                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl border border-green-100">
+                        <span className="text-sm font-medium text-green-800">Change Due:</span>
+                        <span className="text-lg font-bold text-green-600">
+                          {settings?.currency}{(Number(amountReceived) - total).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 border-t border-gray-100 space-y-3">
+                <button
+                  onClick={handleCheckout}
+                  disabled={isProcessing || (paymentMethod === 'cash' && Number(amountReceived) < total)}
+                  className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Processing Payment...
+                    </>
+                  ) : (
+                    <>Confirm Payment of {settings?.currency}{total.toLocaleString()}</>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Success Overlay */}
       <AnimatePresence>
