@@ -1,0 +1,11 @@
+name,category,price,quantity,reorderThreshold,supplier,description
+iPhone 14 Pro,Electronics,450000,25,5,Apple Store,Latest iPhone model with advanced features
+Samsung Galaxy S23,Electronics,380000,30,5,Samsung Store,Flagship Android smartphone
+MacBook Pro M2,Electronics,850000,15,3,Apple Store,Professional laptop with M2 chip
+Dell XPS 15,Electronics,650000,20,5,Dell Store,High-performance Windows laptop
+Sony WH-1000XM5,Electronics,150000,40,10,Sony Store,Premium noise-canceling headphones
+AirPods Pro,Electronics,120000,50,15,Apple Store,Wireless earbuds with ANC
+iPad Air,Electronics,280000,35,8,Apple Store,Versatile tablet for work and play
+Samsung Tab S8,Electronics,320000,25,8,Samsung Store,Android tablet with S Pen
+LG OLED TV 55",Electronics,950000,10,2,LG Store,4K OLED television
+Sony PlayStation 5,Electronics,280000,12,3,Sony Store,Next-gen gaming console

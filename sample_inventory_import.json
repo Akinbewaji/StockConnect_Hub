@@ -1,0 +1,47 @@
+[
+  {
+    "name": "iPhone 14 Pro",
+    "category": "Electronics",
+    "price": 450000,
+    "quantity": 25,
+    "reorderThreshold": 5,
+    "supplier": "Apple Store",
+    "description": "Latest iPhone model with advanced features"
+  },
+  {
+    "name": "Samsung Galaxy S23",
+    "category": "Electronics",
+    "price": 380000,
+    "quantity": 30,
+    "reorderThreshold": 5,
+    "supplier": "Samsung Store",
+    "description": "Flagship Android smartphone"
+  },
+  {
+    "name": "MacBook Pro M2",
+    "category": "Electronics",
+    "price": 850000,
+    "quantity": 15,
+    "reorderThreshold": 3,
+    "supplier": "Apple Store",
+    "description": "Professional laptop with M2 chip"
+  },
+  {
+    "name": "Dell XPS 15",
+    "category": "Electronics",
+    "price": 650000,
+    "quantity": 20,
+    "reorderThreshold": 5,
+    "supplier": "Dell Store",
+    "description": "High-performance Windows laptop"
+  },
+  {
+    "name": "Sony WH-1000XM5",
+    "category": "Electronics",
+    "price": 150000,
+    "quantity": 40,
+    "reorderThreshold": 10,
+    "supplier": "Sony Store",
+    "description": "Premium noise-canceling headphones"
+  }
+]
