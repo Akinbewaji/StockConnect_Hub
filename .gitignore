@@ -6,9 +6,6 @@ coverage/
 *.log
 
 # Environment variables
-.env
-.env.local
-.env.production
 .env.*.local
 
 # Frontend
@@ -27,3 +24,4 @@ Backend/.env.production
 
 # Allow example files only
 !.env.example
+config.bat
