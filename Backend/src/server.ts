@@ -85,7 +85,7 @@ async function startServer() {
   app.use("/api/settings", authenticateToken, checkRole(['owner']), settingsRoutes);
 
   // Socket.io Connection
-  io.on("connection", (socket) => {
+  io.on("connection", (socket: any) => {
     console.log("🔌 New client connected:", socket.id);
     
     socket.on("disconnect", () => {
