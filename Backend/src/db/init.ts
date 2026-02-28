@@ -17,6 +17,7 @@ export function initializeDatabase() {
       name TEXT NOT NULL,
       business_name TEXT NOT NULL,
       role TEXT DEFAULT 'owner',
+      onboarded INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -138,7 +139,18 @@ export function initializeDatabase() {
     console.log("Applied new schema columns to settings.");
   } catch (e: any) {
     if (!e.message.includes('duplicate column name')) {
-      console.log('Skipping alter table: ', e.message);
+      console.log('Skipping alter table (settings): ', e.message);
+    }
+  }
+
+  try {
+    db.exec(`
+      ALTER TABLE users ADD COLUMN onboarded INTEGER DEFAULT 0;
+    `);
+    console.log("Applied onboarded column to users.");
+  } catch (e: any) {
+    if (!e.message.includes('duplicate column name')) {
+      console.log('Skipping alter table (users): ', e.message);
     }
   }
 

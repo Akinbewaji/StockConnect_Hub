@@ -36,7 +36,7 @@ export default function Register() {
       }
 
       login(data.token, data.user);
-      navigate("/admin");
+      navigate("/onboarding");
     } catch (err: any) {
       setError(err.message);
     }

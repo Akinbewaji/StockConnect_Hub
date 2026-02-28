@@ -40,6 +40,7 @@ router.post("/register", async (req, res) => {
         phone,
         email,
         username,
+        onboarded: 0,
       },
     });
   } catch (error: any) {
@@ -85,6 +86,7 @@ router.post("/login", async (req, res) => {
         phone: user.phone,
         email: user.email,
         username: user.username,
+        onboarded: user.onboarded,
       },
     });
   } catch (error) {
@@ -110,6 +112,7 @@ router.get("/me", authenticateToken, (req: any, res) => {
       businessName: user.business_name,
       phone: user.phone,
       role: user.role,
+      onboarded: user.onboarded,
       createdAt: user.created_at,
     });
   } catch (error) {
@@ -202,6 +205,57 @@ router.post("/demo", async (req, res) => {
   } catch (error: any) {
     console.error("Demo creation error", error.message, error.stack);
     res.status(500).json({ error: "Failed to create demo environment: " + error.message });
+  }
+});
+
+// Update Onboarding Status
+router.post("/onboarding", authenticateToken, async (req: any, res) => {
+  const businessId = req.user.id;
+  const { currency, phone, address, taxRate } = req.body;
+
+  try {
+    // 1. Update user onboarded status
+    db.prepare("UPDATE users SET onboarded = 1 WHERE id = ?").run(businessId);
+
+    // 2. Update settings with business info
+    const stmt = db.prepare(`
+      UPDATE settings 
+      SET currency = ?, 
+          phone = ?, 
+          address = ?, 
+          tax_rate = ?
+      WHERE business_id = ?
+    `);
+    
+    stmt.run(currency || '₦', phone || null, address || null, taxRate || 0, businessId);
+
+    res.json({ success: true, message: "Onboarding completed successfully" });
+  } catch (error) {
+    console.error("Onboarding error:", error);
+    res.status(500).json({ error: "Failed to complete onboarding" });
+  }
+});
+
+// Verify Password for Sensitive Actions
+router.post("/verify-password", authenticateToken, async (req: any, res) => {
+  const { password } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const user = db.prepare("SELECT password FROM users WHERE id = ?").get(userId) as any;
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Password verification error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

@@ -13,7 +13,8 @@ import {
   Receipt,
   MessageSquare,
   AlertTriangle,
-  FileText
+  FileText,
+  Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { authFetch } from '../../utils/api';
@@ -24,6 +25,10 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [wiping, setWiping] = useState(false);
   const [showWipeModal, setShowWipeModal] = useState(false);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [isProfileLocked, setIsProfileLocked] = useState(true);
+  const [verifyPassword, setVerifyPassword] = useState('');
+  const [verifying, setVerifying] = useState(false);
   const [wipeConfirmText, setWipeConfirmText] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -62,6 +67,33 @@ export default function Settings() {
       setMessage({ type: 'error', text: 'Error updating settings. Please try again.' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleUnlockProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifying(true);
+    setMessage(null);
+    try {
+      const res = await authFetch('/api/auth/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: verifyPassword })
+      });
+
+      if (res.ok) {
+        setIsProfileLocked(false);
+        setShowUnlockModal(false);
+        setVerifyPassword('');
+        setMessage({ type: 'success', text: 'Business profile unlocked for editing!' });
+      } else {
+        const data = await res.json();
+        throw new Error(data.error || 'Incorrect password');
+      }
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'Verification failed' });
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -150,14 +182,31 @@ export default function Settings() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Business Profile */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-              <Building2 size={20} />
+        <section className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${isProfileLocked ? 'border-amber-100 opacity-95' : 'border-gray-100'}`}>
+          <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${isProfileLocked ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}`}>
+                <Building2 size={20} />
+              </div>
+              <h2 className="font-bold text-gray-900">Business Profile</h2>
+              {isProfileLocked && (
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <Lock size={10} /> Locked
+                </span>
+              )}
             </div>
-            <h2 className="font-bold text-gray-900">Business Profile</h2>
+            {isProfileLocked && (
+              <button 
+                type="button"
+                onClick={() => setShowUnlockModal(true)}
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg transition-colors"
+              >
+                Unlock to Edit
+              </button>
+            )}
           </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className={`p-6 grid grid-cols-1 md:grid-cols-2 gap-6 relative ${isProfileLocked ? 'pointer-events-none' : ''}`}>
+            {isProfileLocked && <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-[1px] cursor-not-allowed" title="Click 'Unlock to Edit' to change these settings" />}
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700">Currency Symbol</label>
               <div className="relative">
@@ -166,9 +215,10 @@ export default function Settings() {
                 </div>
                 <input 
                   type="text" 
+                  disabled={isProfileLocked}
                   value={settings.currency || ''}
                   onChange={e => setSettings({...settings, currency: e.target.value})}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:text-gray-500"
                   placeholder="₦, $, €"
                 />
               </div>
@@ -181,9 +231,10 @@ export default function Settings() {
                 </div>
                 <input 
                   type="tel" 
+                  disabled={isProfileLocked}
                   value={settings.phone || ''}
                   onChange={e => setSettings({...settings, phone: e.target.value})}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:text-gray-500"
                   placeholder="+234 ..."
                 />
               </div>
@@ -196,8 +247,9 @@ export default function Settings() {
                 </div>
                 <textarea 
                   value={settings.address || ''}
+                  disabled={isProfileLocked}
                   onChange={e => setSettings({...settings, address: e.target.value})}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20 disabled:text-gray-500"
                   placeholder="123 Market Street, Lagos..."
                 />
               </div>
@@ -536,6 +588,74 @@ export default function Settings() {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Permission Check Modal */}
+      <AnimatePresence>
+        {showUnlockModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6"
+            >
+              <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock size={32} />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Permission Required</h2>
+              <p className="text-gray-500 text-center mb-6 text-sm">
+                To change critical business information, please verify your account password.
+              </p>
+              
+              <form onSubmit={handleUnlockProfile} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Verify Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={verifyPassword}
+                    onChange={e => setVerifyPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    placeholder="••••••••"
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-2">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowUnlockModal(false);
+                      setVerifyPassword('');
+                    }}
+                    disabled={verifying}
+                    className="flex-1 px-4 py-3 text-gray-600 font-bold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={!verifyPassword || verifying}
+                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                  >
+                    {verifying ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      'Verify & Unlock'
+                    )}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </motion.div>
         )}

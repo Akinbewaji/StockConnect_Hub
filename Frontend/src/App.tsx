@@ -13,6 +13,7 @@ import Settings from "./pages/admin/Settings";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import BusinessOnboarding from "./pages/auth/BusinessOnboarding";
 
 function TitleManager() {
   const { user } = useAuth();
@@ -29,8 +30,16 @@ function TitleManager() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+  const { isAuthenticated, user } = useAuth();
+  
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  
+  // If user is logged in but not onboarded, and not already on onboarding page
+  if (user && !user.onboarded && window.location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" />;
+  }
+
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -46,6 +55,14 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route 
+            path="/onboarding" 
+            element={
+              <ProtectedRoute>
+                <BusinessOnboarding />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Protected Admin Routes */}
           <Route
