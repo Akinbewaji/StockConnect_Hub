@@ -14,8 +14,8 @@ export default function Loyalty() {
     Promise.all([
       authFetch('/api/customers').then(res => res.json()),
       authFetch('/api/settings').then(res => res.json())
-    ]).then(([customersData, settingsData]) => {
-      setCustomers(customersData);
+    ]).then(([custsData, settingsData]) => {
+      setCustomers(custsData.data || []);
       setSettings(settingsData);
     });
   }, []);

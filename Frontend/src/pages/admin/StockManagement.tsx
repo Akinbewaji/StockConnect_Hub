@@ -44,7 +44,7 @@ export default function StockManagement() {
       ]);
       const productsData = await productsRes.json();
       const movementsData = await movementsRes.json();
-      setProducts(productsData);
+      setProducts(productsData.data || []);
       setMovements(movementsData);
     } catch (error) {
       console.error('Error fetching stock data:', error);

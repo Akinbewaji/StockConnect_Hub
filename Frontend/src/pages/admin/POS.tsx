@@ -66,9 +66,14 @@ export default function POS() {
         authFetch('/api/customers'),
         authFetch('/api/settings')
       ]);
-      setProducts(await pRes.json());
-      setCustomers(await cRes.json());
-      setSettings(await sRes.json());
+      const [pData, cData, sData] = await Promise.all([
+        pRes.json(),
+        cRes.json(),
+        sRes.json()
+      ]);
+      setProducts(pData.data || []);
+      setCustomers(cData.data || []);
+      setSettings(sData);
     } catch (error) {
       console.error('Error fetching POS data:', error);
     } finally {

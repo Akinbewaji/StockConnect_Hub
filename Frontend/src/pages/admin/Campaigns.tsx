@@ -30,8 +30,12 @@ export default function Campaigns() {
         authFetch('/api/campaigns'),
         authFetch('/api/customers')
       ]);
-      setCampaigns(await campRes.json());
-      setCustomers(await custRes.json());
+      const [campData, custData] = await Promise.all([
+        campRes.json(),
+        custRes.json()
+      ]);
+      setCampaigns(campData);
+      setCustomers(custData.data || []);
     } catch (error) {
       console.error("Failed to fetch campaign data:", error);
     }
