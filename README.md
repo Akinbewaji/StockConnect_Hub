@@ -1,45 +1,31 @@
+# StockConnect_Hub
 
-# StockConnect
+A comprehensive inventory management, point-of-sale (POS), and two-way business communication system built with React, Express, and SQLite.
 
-A comprehensive inventory management and point-of-sale (POS) system built with React, Express, and SQLite. Designed for small to medium businesses to manage products, customers, orders, and campaigns efficiently.
+## ✨ New & Advanced Features
 
-## Features
+### 💬 Two-Way Business Messaging
+- **Customer Chat**: Customers can message businesses directly from the User site.
+- **Admin Inbox**: Dedicated "Messages" tab for business owners to view and reply to customer inquiries.
+- **Real-time Notifications**: Instant message delivery powered by Socket.io.
 
-### 🏪 Inventory Management
+### 🔐 Enhanced Authentication (Premium Flow)
+- **Mandatory Email**: All customer accounts now require a verified email address.
+- **Dual-Channel OTP**: Users can choose to receive verification codes via **SMS** (Africa's Talking) or **Email**.
+- **Resend OTP**: Built-in countdown timer and retry logic for verification codes.
+- **Extended Profiles**: Capture customer delivery addresses (Street, City, State) during registration.
 
-- **Product Management**: Add, edit, and delete products with categories, prices, and stock levels
-- **Bulk Import**: Import products from CSV or JSON files with smart parsing
-- **Stock Alerts**: Automatic reorder threshold alerts for low stock items
-- **Supplier Tracking**: Track product suppliers and contact information
+### 🌍 Global Product Visibility
+- **Cross-Business Browsing**: Customers can browse products from all registered businesses on a single platform.
+- **Intelligent Routing**: Automatic filtering of inventory based on the selected business or global search.
 
-### 💰 Point of Sale (POS)
+## 🏪 Core Functionality
 
-- **Quick Sales**: Fast product selection and checkout process
-- **Real-time Inventory**: Automatic stock deduction on sale
-- **Receipt Generation**: Clear transaction records
-
-### 👥 Customer Management
-
-- **Customer Database**: Store customer contact and purchase history
-- **Loyalty Program**: Track customer loyalty points and rewards
-- **Purchase History**: View customer transaction history
-
-### 📊 Analytics & Reporting
-
-- **Sales Analytics**: Track revenue, top products, and sales trends
-- **Dashboard**: Visual overview of business performance with charts
-
-### 📢 Marketing Campaigns
-
-- **SMS Campaigns**: Integrate with Africa's Talking for bulk SMS
-- **Campaign Management**: Create and track marketing campaigns
-- **Customer Segmentation**: Target specific customer groups
-
-### 🔐 Authentication & Security
-
-- **JWT Authentication**: Secure API access
-- **Role-based Access**: Admin and user roles
-- **Password Hashing**: Secure credential storage with bcrypt
+- **Inventory Management**: Bulk import (CSV/JSON), low stock alerts, and supplier tracking.
+- **Point of Sale (POS)**: Fast checkout, real-time stock deduction, and receipt generation.
+- **Loyalty Program**: Reward repeat customers with automated point tracking.
+- **Marketing Campaigns**: Bulk SMS and WhatsApp integration for customer outreach.
+- **AI Assistant**: Built-in Gemini-powered chatbot for business insights.
 
 ## Tech Stack
 
@@ -231,4 +217,3 @@ StockConnect supports bulk importing products via CSV or JSON files. See [IMPORT
 ## License
 
 MIT License
-# StockConnect_Hub
