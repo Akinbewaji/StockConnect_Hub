@@ -3,13 +3,22 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import db from "../db/init.js";
 import { authenticateToken } from "../middleware/auth.js";
+import { registerSchema, loginSchema, onboardingSchema } from "../types/schemas.js";
 
 const router = Router();
 const SECRET_KEY = process.env.JWT_SECRET || "stockconnect-secret-key";
 
 // Register
 router.post("/register", async (req, res) => {
-  const { phone, email, username, password, name, businessName } = req.body;
+  const result = registerSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ 
+      error: "Validation failed", 
+      details: result.error.flatten().fieldErrors 
+    });
+  }
+
+  const { phone, email, username, password, name, businessName } = result.data;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -55,7 +64,15 @@ router.post("/register", async (req, res) => {
 
 // Login
 router.post("/login", async (req, res) => {
-  const { identifier, password } = req.body;
+  const result = loginSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ 
+      error: "Validation failed", 
+      details: result.error.flatten().fieldErrors 
+    });
+  }
+
+  const { identifier, password } = result.data;
 
   try {
     // Try to find user by phone, email, or username
@@ -210,8 +227,16 @@ router.post("/demo", async (req, res) => {
 
 // Update Onboarding Status
 router.post("/onboarding", authenticateToken, async (req: any, res) => {
+  const result = onboardingSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ 
+      error: "Validation failed", 
+      details: result.error.flatten().fieldErrors 
+    });
+  }
+
   const businessId = req.user.id;
-  const { currency, phone, address, taxRate } = req.body;
+  const { currency, phone, address, taxRate } = result.data;
 
   try {
     // 1. Update user onboarded status

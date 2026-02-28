@@ -32,7 +32,10 @@ export function initializeDatabase() {
       price REAL NOT NULL,
       quantity INTEGER NOT NULL DEFAULT 0,
       reorder_threshold INTEGER DEFAULT 5,
+      cost_price REAL DEFAULT 0,
       supplier TEXT,
+      supplier_phone TEXT,
+      barcode TEXT UNIQUE,
       image_url TEXT,
       business_id INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -72,10 +75,11 @@ export function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS order_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       order_id INTEGER,
-      product_id INTEGER,
+      product_id INTEGER NOT NULL,
       quantity INTEGER NOT NULL,
       unit_price REAL NOT NULL,
-      FOREIGN KEY (order_id) REFERENCES orders(id),
+      unit_cost REAL DEFAULT 0,
+      FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
       FOREIGN KEY (product_id) REFERENCES products(id)
     )
   `);
@@ -151,6 +155,32 @@ export function initializeDatabase() {
   } catch (e: any) {
     if (!e.message.includes('duplicate column name')) {
       console.log('Skipping alter table (users): ', e.message);
+    }
+  }
+
+  try {
+    db.exec(`
+      ALTER TABLE products ADD COLUMN reorder_threshold INTEGER DEFAULT 5;
+      ALTER TABLE products ADD COLUMN cost_price REAL DEFAULT 0;
+      ALTER TABLE products ADD COLUMN supplier TEXT;
+      ALTER TABLE products ADD COLUMN supplier_phone TEXT;
+      ALTER TABLE products ADD COLUMN barcode TEXT;
+    `);
+    console.log("Applied new schema columns to products.");
+  } catch (e: any) {
+    if (!e.message.includes('duplicate column name')) {
+      console.log('Skipping alter table (products): ', e.message);
+    }
+  }
+
+  try {
+    db.exec(`
+      ALTER TABLE order_items ADD COLUMN unit_cost REAL DEFAULT 0;
+    `);
+    console.log("Applied unit_cost column to order_items.");
+  } catch (e: any) {
+    if (!e.message.includes('duplicate column name')) {
+      console.log('Skipping alter table (order_items): ', e.message);
     }
   }
 

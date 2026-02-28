@@ -1,37 +1,49 @@
 import { Router } from 'express';
 import db from '../db/init';
+import { customerSchema } from "../types/schemas.js";
+import { CustomerService } from "../services/customer.service.js";
 
 const router = Router();
 
 // Get all customers
 router.get('/', (req: any, res) => {
-  const { search } = req.query;
+  const { search, page, limit } = req.query;
   const businessId = req.user.id;
   
-  let query = 'SELECT * FROM customers WHERE business_id = ?';
-  const params: any[] = [businessId];
+  const pPage = parseInt(page as string) || 1;
+  const pLimit = parseInt(limit as string) || 20;
+  const offset = (pPage - 1) * pLimit;
 
-  if (search) {
-    query += ' AND (name LIKE ? OR phone LIKE ?)';
-    params.push(`%${search}%`, `%${search}%`);
+  try {
+    const result = CustomerService.getAll(
+      businessId, 
+      pLimit, 
+      offset, 
+      search as string
+    );
+    res.json(result);
+  } catch (error) {
+    console.error("Failed to fetch customers:", error);
+    res.status(500).json({ error: 'Failed to fetch customers' });
   }
-
-  query += ' ORDER BY name ASC';
-
-  const stmt = db.prepare(query);
-  const customers = stmt.all(...params);
-  res.json(customers);
 });
 
 // Create customer
-router.post('/', (req: any, res) => {
-  const { name, phone, email } = req.body;
+router.post("/", (req: any, res) => {
+  const result = customerSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ 
+      error: "Validation failed", 
+      details: result.error.flatten().fieldErrors 
+    });
+  }
+
+  const { name, phone, email } = result.data;
   const businessId = req.user.id;
-  
+
   try {
-    const stmt = db.prepare('INSERT INTO customers (name, phone, email, business_id) VALUES (?, ?, ?, ?)');
-    const info = stmt.run(name, phone, email, businessId);
-    res.json({ id: info.lastInsertRowid, ...req.body });
+    const customerId = CustomerService.create(result.data, businessId);
+    res.json({ id: customerId, name, phone, email });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create customer' });
   }

@@ -11,10 +11,13 @@ import {
   X,
   CreditCard,
   Banknote,
-  Smartphone
+  Smartphone,
+  Barcode,
+  Scan
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { authFetch } from '../../utils/api';
+import { ReceiptService } from '../../utils/receipt';
 
 interface Product {
   id: number;
@@ -48,6 +51,8 @@ export default function POS() {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash'|'card'|'transfer'>('cash');
   const [amountReceived, setAmountReceived] = useState<string>('');
+  const [lastOrder, setLastOrder] = useState<any>(null);
+  const [barcodeInput, setBarcodeInput] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -106,6 +111,20 @@ export default function POS() {
 
   const total = cart.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0);
 
+  const handleBarcodeScan = async (code: string) => {
+    if (!code) return;
+    try {
+      const res = await authFetch(`/api/products/barcode/${code}`);
+      if (res.ok) {
+        const product = await res.json();
+        addToCart(product);
+        setBarcodeInput(''); // Clear after success
+      }
+    } catch (error) {
+      console.error('Barcode lookup failed:', error);
+    }
+  };
+
   const handleCheckout = async () => {
     if (cart.length === 0 || isProcessing) return;
     
@@ -126,6 +145,16 @@ export default function POS() {
       });
 
       if (res.ok) {
+        const orderData = await res.json();
+        setLastOrder({
+          ...orderData,
+          items: cart.map(item => ({
+            product_name: item.name,
+            quantity: item.cartQuantity,
+            unit_price: item.price
+          }))
+        });
+        
         setShowSuccess(true);
         setShowCheckoutModal(false);
         setCart([]);
@@ -133,7 +162,8 @@ export default function POS() {
         setPaymentMethod('cash');
         setAmountReceived('');
         fetchData();
-        setTimeout(() => setShowSuccess(false), 3000);
+        // Don't auto-hide success too fast if they want to print
+        // setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
       console.error('Checkout error:', error);
@@ -159,15 +189,38 @@ export default function POS() {
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-bold text-gray-900">New Sale</h1>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+            <div className="flex gap-2 items-center">
+              <div className="relative w-48">
+                <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Scan Barcode..."
+                  autoFocus
+                  className="w-full pl-10 pr-4 py-2 bg-indigo-50 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm font-medium border"
+                  value={barcodeInput}
+                  onChange={(e) => {
+                    setBarcodeInput(e.target.value);
+                    if (e.target.value.length >= 4) { // Typical barcode length
+                      handleBarcodeScan(e.target.value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleBarcodeScan(barcodeInput);
+                    }
+                  }}
+                />
+              </div>
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -498,6 +551,25 @@ export default function POS() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900">Sale Confirmed!</h2>
               <p className="text-gray-500">The order has been processed and stock updated.</p>
+              
+              <div className="flex flex-col gap-3 pt-4">
+                <button
+                  onClick={() => ReceiptService.generatePDF(lastOrder, settings)}
+                  className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-200"
+                >
+                  <Smartphone size={20} />
+                  Download Receipt (PDF)
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSuccess(false);
+                    setLastOrder(null);
+                  }}
+                  className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200"
+                >
+                  New Sale
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

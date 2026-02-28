@@ -1,67 +1,80 @@
 import { Router } from "express";
 import db from "../db/init.js";
+import { productSchema } from "../types/schemas.js";
+import { ProductService } from "../services/product.service.js";
 import { AuthRequest } from "../middleware/auth.js";
 
 const router = Router();
 
 // Get all products
 router.get("/", (req: any, res) => {
-  const { search, category } = req.query;
+  const { search, category, page, limit } = req.query;
   const businessId = req.user.id;
+  
+  const pPage = parseInt(page as string) || 1;
+  const pLimit = parseInt(limit as string) || 20;
+  const offset = (pPage - 1) * pLimit;
 
-  let query = "SELECT * FROM products WHERE business_id = ?";
-  const params: any[] = [businessId];
-
-  if (search) {
-    query += " AND (name LIKE ? OR category LIKE ?)";
-    params.push(`%${search}%`, `%${search}%`);
+  try {
+    const result = ProductService.getAll(
+      businessId, 
+      pLimit, 
+      offset, 
+      search as string, 
+      category as string
+    );
+    res.json(result);
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    res.status(500).json({ error: "Failed to fetch products" });
   }
-
-  if (category) {
-    query += " AND category = ?";
-    params.push(category);
-  }
-
-  query += " ORDER BY created_at DESC";
-
-  const stmt = db.prepare(query);
-  const products = stmt.all(...params);
-  res.json(products);
 });
 
 // Create product
 router.post("/", (req: any, res) => {
-  const {
-    name,
-    category,
-    description,
-    price,
-    quantity,
-    reorderThreshold,
-    supplier,
-    imageUrl,
-  } = req.body;
+  const businessId = req.user.id;
+  try {
+    const id = ProductService.create(req.body, businessId);
+    res.json({ id, ...req.body });
+  } catch (error: any) {
+    console.error("Failed to create product:", error);
+    res.status(500).json({ error: error.message || "Failed to create product" });
+  }
+});
+
+// Update product
+router.put("/:id", (req: any, res) => {
+  const { id } = req.params;
   const businessId = req.user.id;
 
   try {
-    const stmt = db.prepare(`
-      INSERT INTO products (name, category, description, price, quantity, reorder_threshold, supplier, image_url, business_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    const info = stmt.run(
-      name,
-      category,
-      description,
-      price,
-      quantity,
-      reorderThreshold,
-      supplier,
-      imageUrl,
-      businessId,
-    );
-    res.json({ id: info.lastInsertRowid, ...req.body });
+    const success = ProductService.update(id, req.body, businessId);
+    if (success) {
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: "Product not found" });
+    }
+  } catch (error: any) {
+    console.error("Failed to update product:", error);
+    res.status(500).json({ error: error.message || "Failed to update product" });
+  }
+});
+
+// Get product by barcode
+router.get("/barcode/:barcode", (req: any, res) => {
+  const { barcode } = req.params;
+  const businessId = req.user.id;
+
+  try {
+    const product = ProductService.getByBarcode(barcode, businessId);
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).json({ error: "Product not found" });
+    }
   } catch (error) {
-    res.status(500).json({ error: "Failed to create product" });
+    console.error("Failed to fetch product by barcode:", error);
+    res.status(500).json({ error: "Failed to fetch product" });
   }
 });
 
@@ -117,33 +130,38 @@ router.get("/movements", (req, res) => {
 });
 
 // Low stock
-router.get("/low-stock", (req: any, res) => {
-  const businessId = req.user.id;
-  const stmt = db.prepare(
-    "SELECT * FROM products WHERE business_id = ? AND quantity <= reorder_threshold",
-  );
-  const products = stmt.all(businessId);
-  res.json(products);
+router.get("/low-stock", (req: AuthRequest, res) => {
+  const businessId = req.user!.id;
+  try {
+    const products = ProductService.getLowStockProducts(businessId);
+    res.json(products);
+  } catch (error) {
+    console.error("Failed to fetch low stock products:", error);
+    res.status(500).json({ error: "Failed to fetch low stock products" });
+  }
 });
 
 // Update reorder threshold
-router.patch("/:id/threshold", (req, res) => {
+router.patch("/:id/threshold", (req: AuthRequest, res) => {
   const { id } = req.params;
   const { threshold } = req.body;
+  const businessId = req.user!.id;
+
+  if (typeof threshold !== 'number' || threshold < 0) {
+    return res.status(400).json({ error: "Invalid threshold value" });
+  }
 
   try {
-    const stmt = db.prepare(
-      "UPDATE products SET reorder_threshold = ? WHERE id = ?",
-    );
-    stmt.run(threshold, id);
+    ProductService.updateReorderThreshold(Number(id), threshold, businessId);
     res.json({ success: true });
   } catch (error) {
+    console.error("Failed to update threshold:", error);
     res.status(500).json({ error: "Failed to update threshold" });
   }
 });
 
 // Bulk import products
-router.post("/bulk-import", (req: any, res) => {
+router.post("/bulk-import", (req: AuthRequest, res) => {
   console.log("Bulk import request received");
   const { products } = req.body;
   const businessId = req.user.id;
@@ -188,19 +206,12 @@ router.post("/bulk-import", (req: any, res) => {
             return;
           }
 
-          stmt.run(
-            product.name,
-            product.category || "Uncategorized",
-            product.description || "",
-            parseFloat(product.price),
-            parseInt(product.quantity),
-            parseInt(
-              product.reorderThreshold || product.reorder_threshold || 5,
-            ),
-            product.supplier || "",
-            product.imageUrl || product.image_url || "",
-            businessId,
-          );
+          ProductService.create({
+            ...product,
+            reorderThreshold: product.reorderThreshold || product.reorder_threshold || 5,
+            costPrice: product.costPrice || product.cost_price || 0,
+            imageUrl: product.imageUrl || product.image_url || ""
+          }, businessId);
           results.success++;
         } catch (error: any) {
           results.failed++;

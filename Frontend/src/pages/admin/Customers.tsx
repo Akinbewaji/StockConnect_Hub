@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Phone, Mail, User } from 'lucide-react';
+import { Plus, Search, Phone, Mail, User, Download } from 'lucide-react';
 import { authFetch } from '../../utils/api';
+import { ReceiptService } from '../../utils/receipt';
+import { ListSkeleton } from '../../components/Skeleton';
 
 export default function Customers() {
   const [customers, setCustomers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -14,18 +20,35 @@ export default function Customers() {
     phone: '',
     email: ''
   });
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    authFetch('/api/settings')
+      .then(res => res.json())
+      .then(setSettings);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchCustomers();
+      setPage(1);
+      fetchCustomers(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const fetchCustomers = () => {
-    authFetch(`/api/customers?search=${search}`)
+  useEffect(() => {
+    fetchCustomers(page);
+  }, [page]);
+
+  const fetchCustomers = (targetPage: number = page) => {
+    setLoading(true);
+    authFetch(`/api/customers?search=${search}&page=${targetPage}&limit=${limit}`)
       .then(res => res.json())
-      .then(setCustomers);
+      .then(res => {
+        setCustomers(res.data || []);
+        setTotal(res.total || 0);
+        setLoading(false);
+      });
   };
 
   const handleAddCustomer = async (e: React.FormEvent) => {
@@ -101,8 +124,11 @@ export default function Customers() {
         />
       </div>
 
-      <div className="space-y-3">
-        {customers.map((customer) => (
+      {loading ? (
+        <ListSkeleton />
+      ) : (
+        <div className="space-y-3">
+          {customers.map((customer) => (
           <div 
             key={customer.id} 
             className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-indigo-200 transition-colors"
@@ -135,6 +161,31 @@ export default function Customers() {
           </div>
         ))}
       </div>
+      )}
+
+      {/* Pagination Controls */}
+      {total > limit && (
+        <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600">
+            Page <span className="font-semibold text-indigo-600">{page}</span> of {Math.ceil(total / limit)}
+            <span className="ml-2 text-gray-400">({total} total)</span>
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(Math.ceil(total / limit), p + 1))}
+            disabled={page >= Math.ceil(total / limit)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -253,6 +304,7 @@ export default function Customers() {
                         <th className="px-4 py-3">Items</th>
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3 text-right">Amount</th>
+                        <th className="px-4 py-3"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -285,6 +337,15 @@ export default function Customers() {
                             </select>
                           </td>
                           <td className="px-4 py-4 text-right font-bold text-gray-900">₦{order.total_amount.toLocaleString()}</td>
+                          <td className="px-4 py-4 text-right">
+                            <button
+                              onClick={() => ReceiptService.generatePDF(order, settings)}
+                              className="text-indigo-600 hover:text-indigo-800 p-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                              title="Download Receipt"
+                            >
+                              <Download size={18} />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

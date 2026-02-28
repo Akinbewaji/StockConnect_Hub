@@ -71,14 +71,59 @@ router.get('/summary', (req: any, res) => {
     JOIN customers c ON o.customer_id = c.id
     WHERE c.business_id = ?
   `).get(businessId) as any;
+
+  // Revenue & Profit Periods
+  const getRevenueForPeriod = (start: string, end: string) => {
+    return db.prepare(`
+      SELECT SUM(oi.unit_price * oi.quantity) as revenue
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      JOIN customers c ON o.customer_id = c.id
+      WHERE c.business_id = ? 
+        AND o.status != 'cancelled'
+        AND o.created_at >= ? AND o.created_at <= ?
+    `).get(businessId, start, end) as any;
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const firstDayOfMonth = new Date();
+  firstDayOfMonth.setDate(1);
+  const startOfMonth = firstDayOfMonth.toISOString().split('T')[0];
+
+  const revToday = getRevenueForPeriod(today + ' 00:00:00', today + ' 23:59:59').revenue || 0;
+  const revYesterday = getRevenueForPeriod(yesterday + ' 00:00:00', yesterday + ' 23:59:59').revenue || 0;
+  const revMonth = getRevenueForPeriod(startOfMonth + ' 00:00:00', today + ' 23:59:59').revenue || 0;
+
+  const financialStats = db.prepare(`
+    SELECT 
+      SUM(oi.unit_price * oi.quantity) as revenue,
+      SUM(oi.unit_cost * oi.quantity) as cost
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    JOIN customers c ON o.customer_id = c.id
+    WHERE c.business_id = ? AND o.status != 'cancelled'
+  `).get(businessId) as any;
   
   const campaignCount = db.prepare('SELECT COUNT(*) as count FROM campaigns WHERE business_id = ?').get(businessId) as any;
+
+  const revenue = financialStats.revenue || 0;
+  const cost = financialStats.cost || 0;
 
   res.json({
     totalProducts: productCount.count,
     lowStock: lowStockCount.count,
     activeCampaigns: campaignCount.count,
-    recentOrders: orderCount.count
+    recentOrders: orderCount.count,
+    totalRevenue: revenue,
+    totalProfit: revenue - cost,
+    profitMargin: revenue > 0 ? Math.round(((revenue - cost) / revenue) * 100) : 0,
+    trends: {
+      today: revToday,
+      yesterday: revYesterday,
+      month: revMonth,
+      dayChange: revYesterday > 0 ? Math.round(((revToday - revYesterday) / revYesterday) * 100) : 0
+    }
   });
 });
 

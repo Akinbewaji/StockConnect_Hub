@@ -11,9 +11,14 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { authFetch } from "../../utils/api";
+import { ListSkeleton } from "../../components/Skeleton";
 
 export default function Inventory() {
   const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // all, low, healthy
@@ -28,24 +33,37 @@ export default function Inventory() {
     price: "",
     quantity: "",
     reorderThreshold: "5",
+    costPrice: "",
     supplier: "",
+    supplierPhone: "",
+    barcode: "",
     imageUrl: "",
   });
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchProducts();
+      setPage(1); // Reset to first page on search/filter
+      fetchProducts(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [search, filterCategory]);
 
-  const fetchProducts = () => {
-    let url = `/api/products?search=${search}`;
+  useEffect(() => {
+    fetchProducts(page);
+  }, [page]);
+
+  const fetchProducts = (targetPage: number = page) => {
+    let url = `/api/products?search=${search}&page=${targetPage}&limit=${limit}`;
     if (filterCategory) url += `&category=${filterCategory}`;
 
+    setLoading(true);
     authFetch(url)
       .then((res) => res.json())
-      .then(setProducts);
+      .then((res) => {
+        setProducts(res.data || []);
+        setTotal(res.total || 0);
+        setLoading(false);
+      });
   };
 
   const filteredProducts = products.filter((product) => {
@@ -84,7 +102,10 @@ export default function Inventory() {
       price: "",
       quantity: "",
       reorderThreshold: "5",
+      costPrice: "",
       supplier: "",
+      supplierPhone: "",
+      barcode: "",
       imageUrl: "",
     });
   };
@@ -132,6 +153,10 @@ export default function Inventory() {
           product.reorderThreshold = value;
         } else if (header === "supplier") {
           product.supplier = value;
+        } else if (header === "supplier_phone" || header === "supplier phone") {
+          product.supplierPhone = value;
+        } else if (header === "barcode" || header === "sku" || header === "upc") {
+          product.barcode = value;
         } else if (header === "description") {
           product.description = value;
         } else if (
@@ -206,7 +231,7 @@ export default function Inventory() {
 
   const downloadTemplate = () => {
     const csvContent =
-      "name,category,price,quantity,reorderThreshold,supplier,description\nSample Product,Electronics,1000,50,10,Sample Supplier,Sample description";
+      "name,category,price,quantity,reorderThreshold,costPrice,barcode,supplier,supplierPhone,description\nSample Product,Electronics,1000,50,10,700,12345678,Sample Supplier,+23412345678,Sample description";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -280,8 +305,11 @@ export default function Inventory() {
       </div>
 
       {/* Product List */}
-      <div className="space-y-3">
-        {filteredProducts.map((product) => (
+      {loading ? (
+        <ListSkeleton />
+      ) : (
+        <div className="space-y-3">
+          {filteredProducts.map((product) => (
           <div
             key={product.id}
             className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center"
@@ -304,6 +332,11 @@ export default function Inventory() {
                   <span className="font-medium text-indigo-600">
                     ₦{product.price}
                   </span>
+                  {product.cost_price > 0 && (
+                    <span className="text-[10px] text-gray-400">
+                      Margin: {Math.round(((product.price - product.cost_price) / product.price) * 100)}%
+                    </span>
+                  )}
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${
                       product.quantity <= product.reorder_threshold
@@ -323,6 +356,31 @@ export default function Inventory() {
           </div>
         ))}
       </div>
+      )}
+
+      {/* Pagination Controls */}
+      {total > limit && (
+        <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm mt-4">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600">
+            Page <span className="font-semibold text-indigo-600">{page}</span> of {Math.ceil(total / limit)}
+            <span className="ml-2 text-gray-400">({total} total)</span>
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(Math.ceil(total / limit), p + 1))}
+            disabled={page >= Math.ceil(total / limit)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Import Modal */}
       {showImportModal && (
@@ -525,6 +583,57 @@ export default function Inventory() {
                     setNewProduct({ ...newProduct, quantity: e.target.value })
                   }
                   required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="number"
+                  placeholder="Cost Price"
+                  className="w-full p-3 border rounded-lg"
+                  value={newProduct.costPrice}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, costPrice: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Min Stock Level"
+                  className="w-full p-3 border rounded-lg"
+                  value={newProduct.reorderThreshold}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, reorderThreshold: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Barcode (Optional)"
+                  className="w-full p-3 border rounded-lg"
+                  value={newProduct.barcode}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, barcode: e.target.value })
+                  }
+                />
+                <input
+                  type="text"
+                  placeholder="Supplier Name"
+                  className="w-full p-3 border rounded-lg"
+                  value={newProduct.supplier}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, supplier: e.target.value })
+                  }
+                />
+                <input
+                  type="text"
+                  placeholder="Supplier Phone (+234...)"
+                  className="w-full p-3 border rounded-lg"
+                  value={newProduct.supplierPhone}
+                  onChange={(e) =>
+                    setNewProduct({ ...newProduct, supplierPhone: e.target.value })
+                  }
                 />
               </div>
               <div className="flex gap-3 pt-4">
