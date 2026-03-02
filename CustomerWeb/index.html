@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StockConnect - Customer Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --background: #f8fafc;
+        --primary: #2563eb;
+      }
+      body {
+        margin: 0;
+        background-color: var(--background);
+        font-family: 'Inter', -apple-system, sans-serif;
+        overflow-x: hidden;
+      }
+      #root {
+        opacity: 0;
+        transition: opacity 0.3s ease-out;
+      }
+      #root.ready {
+        opacity: 1;
+      }
+      .initial-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--background);
+        z-index: 9999;
+        transition: opacity 0.4s ease-out;
+      }
+      .pulse {
+        width: 40px;
+        height: 40px;
+        background-color: var(--primary);
+        border-radius: 12px;
+        animation: pulse-animation 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse-animation {
+        0% { transform: scale(0.95); opacity: 0.5; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+        100% { transform: scale(0.95); opacity: 0.5; }
+      }
+      .hide-loader {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="initial-loader" class="initial-loader">
+      <div class="pulse"></div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

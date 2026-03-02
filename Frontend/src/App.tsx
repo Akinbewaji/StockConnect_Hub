@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { useEffect } from "react";
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
@@ -9,6 +10,7 @@ import POS from "./pages/admin/POS";
 import Customers from "./pages/admin/Customers";
 import Loyalty from "./pages/admin/Loyalty";
 import Campaigns from "./pages/admin/Campaigns";
+import Messages from "./pages/admin/Messages";
 import Settings from "./pages/admin/Settings";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -44,9 +46,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <TitleManager />
-      <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <TitleManager />
+        <BrowserRouter>
         <Routes>
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -80,10 +83,12 @@ export default function App() {
             <Route path="customers" element={<Customers />} />
             <Route path="loyalty" element={<Loyalty />} />
             <Route path="campaigns" element={<Campaigns />} />
+            <Route path="messages" element={<Messages />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

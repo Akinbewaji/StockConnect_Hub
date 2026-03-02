@@ -43,21 +43,65 @@ export function initializeDatabase() {
     )
   `);
 
-  // Customers
+  // Customers (Extended for Self-Service)
   db.exec(`
     CREATE TABLE IF NOT EXISTS customers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       phone TEXT NOT NULL,
       email TEXT,
+      user_id INTEGER, -- Linking to users table for login
       loyalty_points INTEGER DEFAULT 0,
       business_id INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
       FOREIGN KEY (business_id) REFERENCES users(id)
     )
   `);
 
-  // Orders
+  // Addresses
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS addresses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER NOT NULL,
+      label TEXT, -- e.g., Home, Office
+      address_line1 TEXT NOT NULL,
+      address_line2 TEXT,
+      city TEXT,
+      state TEXT,
+      postal_code TEXT,
+      is_default INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Carts
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS carts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER NOT NULL,
+      business_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+      FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Cart Items
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS cart_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cart_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 1,
+      FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Orders (Extended for Customer Info)
   db.exec(`
     CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,8 +109,13 @@ export function initializeDatabase() {
       total_amount REAL NOT NULL,
       status TEXT DEFAULT 'pending', -- pending, confirmed, delivered, cancelled
       payment_status TEXT DEFAULT 'unpaid',
+      payment_method TEXT DEFAULT 'cash', -- cash, card, transfer
+      delivery_method TEXT DEFAULT 'pickup', -- pickup, delivery
+      delivery_address_id INTEGER,
+      tracking_info TEXT, -- JSON string for history/updates
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (customer_id) REFERENCES customers(id)
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (delivery_address_id) REFERENCES addresses(id)
     )
   `);
 
@@ -130,7 +179,78 @@ export function initializeDatabase() {
     )
   `);
 
+  // Chats
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS chats (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER NOT NULL,
+      business_id INTEGER NOT NULL,
+      last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (business_id) REFERENCES users(id)
+    )
+  `);
+
+  // Messages
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chat_id INTEGER NOT NULL,
+      sender_id INTEGER NOT NULL, -- user_id of either customer or business owner
+      sender_type TEXT NOT NULL, -- 'customer' or 'business'
+      text TEXT,
+      image_url TEXT,
+      read INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Notifications
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL, -- customer user_id or business user_id
+      type TEXT NOT NULL, -- order, promo, chat
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      data TEXT, -- JSON string
+      read INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  // OTPs
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS otps (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      phone TEXT NOT NULL,
+      code TEXT NOT NULL,
+      expires_at DATETIME NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+
+
   // Safely add new columns to existing tables
+  try {
+    db.exec(`
+      ALTER TABLE customers ADD COLUMN user_id INTEGER;
+      ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'cash';
+      ALTER TABLE orders ADD COLUMN delivery_method TEXT DEFAULT 'pickup';
+      ALTER TABLE orders ADD COLUMN delivery_address_id INTEGER;
+      ALTER TABLE orders ADD COLUMN tracking_info TEXT;
+    `);
+    console.log("Applied new customer/order schema columns.");
+  } catch (e: any) {
+    if (!e.message.includes('duplicate column name')) {
+      console.log('Skipping alter table: ', e.message);
+    }
+  }
+
   try {
     db.exec(`
       ALTER TABLE settings ADD COLUMN phone TEXT;
@@ -185,6 +305,49 @@ export function initializeDatabase() {
   }
 
   console.log("Database initialized successfully");
+}
+
+/**
+ * Seed a demo customer account for testing purposes.
+ * Credentials: demo@stockconnect.com / demo1234
+ * Safe to call on every startup – skips if already exists.
+ */
+export async function seedDemoData() {
+  // Use dynamic import for bcryptjs to avoid top-level await issues
+  const bcrypt = await import("bcryptjs");
+
+  const DEMO_EMAIL = "demo@stockconnect.com";
+  const DEMO_PHONE = "+2340000000001";
+  const DEMO_PASSWORD = "demo1234";
+  const DEMO_NAME = "Demo Customer";
+
+  try {
+    const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(DEMO_EMAIL);
+    if (existing) {
+      console.log("ℹ️  Demo account already exists — skipping seed.");
+      return;
+    }
+
+    const hashedPassword = await bcrypt.default.hash(DEMO_PASSWORD, 10);
+
+    const userResult = db.prepare(`
+      INSERT INTO users (username, email, phone, password, name, business_name, role)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(DEMO_EMAIL, DEMO_EMAIL, DEMO_PHONE, hashedPassword, DEMO_NAME, "Customer", "customer");
+
+    const userId = userResult.lastInsertRowid;
+
+    db.prepare(`
+      INSERT INTO customers (name, phone, email, user_id)
+      VALUES (?, ?, ?, ?)
+    `).run(DEMO_NAME, DEMO_PHONE, DEMO_EMAIL, userId);
+
+    console.log("✅ Demo account created:");
+    console.log("   Email   : demo@stockconnect.com");
+    console.log("   Password: demo1234");
+  } catch (err: any) {
+    console.error("⚠️  Demo seed failed:", err.message);
+  }
 }
 
 export default db;

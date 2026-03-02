@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Users, Megaphone, LogOut, Menu, X, Gift, ClipboardList, ShoppingCart, Settings } from 'lucide-react';
+import { LayoutDashboard, Package, Users, Megaphone, LogOut, Menu, X, Gift, ClipboardList, ShoppingCart, Settings, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ChatBot from '../components/ChatBot';
@@ -17,6 +17,7 @@ export default function AdminLayout() {
     { path: '/admin/customers', icon: Users, label: 'Customers' },
     { path: '/admin/loyalty', icon: Gift, label: 'Loyalty' },
     { path: '/admin/campaigns', icon: Megaphone, label: 'Campaigns' },
+    { path: '/admin/messages', icon: MessageSquare, label: 'Messages' },
     { path: '/admin/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -75,7 +76,7 @@ export default function AdminLayout() {
 
         {/* Mobile Navigation Menu Overlay */}
         {isMenuOpen && (
-          <div className="fixed inset-0 top-0 bg-black/50 z-[60] md:hidden" onClick={() => setIsMenuOpen(false)}>
+          <div className="fixed inset-0 top-0 bg-black/50 z-60 md:hidden" onClick={() => setIsMenuOpen(false)}>
             <div className="bg-white w-64 h-full shadow-xl flex flex-col overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">

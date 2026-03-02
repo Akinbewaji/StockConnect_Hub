@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { 
   Building2, 
   Coins, 
@@ -14,12 +15,16 @@ import {
   MessageSquare,
   AlertTriangle,
   FileText,
-  Lock
+  Lock,
+  Moon,
+  Sun,
+  Palette
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { authFetch } from '../../utils/api';
 
 export default function Settings() {
+  const { theme, toggleTheme } = useTheme();
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -476,6 +481,36 @@ export default function Settings() {
           </div>
         </section>
 
+        {/* Theme */}
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-50 dark:border-slate-700 flex items-center gap-3">
+            <div className="p-2 bg-violet-50 dark:bg-violet-900/30 text-violet-600 rounded-lg">
+              <Palette size={20} />
+            </div>
+            <h2 className="font-bold text-gray-900 dark:text-white">Appearance</h2>
+          </div>
+          <div className="p-6">
+            <label className="flex items-center justify-between cursor-pointer">
+              <div className="space-y-0.5">
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Dark Mode</span>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Switch between light and dark themes</p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${
+                  theme === 'dark'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                {theme === 'dark' ? 'Dark' : 'Light'}
+              </button>
+            </label>
+          </div>
+        </section>
+
         {/* Danger Zone */}
         <section className="bg-red-50 rounded-2xl border border-red-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-red-100 flex items-center gap-3">
@@ -534,7 +569,7 @@ export default function Settings() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, y: 20 }}
@@ -600,7 +635,7 @@ export default function Settings() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, y: 20 }}

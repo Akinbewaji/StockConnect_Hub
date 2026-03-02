@@ -3,15 +3,26 @@ import { NotificationService } from "./notification.service.js";
 
 export class ProductService {
   static getAll(
-    businessId: number, 
+    businessId?: number | string, 
     limit: number = 20, 
     offset: number = 0,
     search?: string,
     category?: string
   ) {
-    let query = "SELECT * FROM products WHERE business_id = ?";
-    let countQuery = "SELECT COUNT(*) as total FROM products WHERE business_id = ?";
-    const params: any[] = [businessId];
+    let query = "SELECT * FROM products";
+    let countQuery = "SELECT COUNT(*) as total FROM products";
+    const params: any[] = [];
+
+    if (businessId) {
+      query += " WHERE business_id = ?";
+      countQuery += " WHERE business_id = ?";
+      params.push(businessId);
+    } else {
+      // If no businessId, we might still want to filter by search/category
+      // Use WHERE 1=1 to make subsequent ANDs easier
+      query += " WHERE 1=1";
+      countQuery += " WHERE 1=1";
+    }
 
     if (search) {
       query += " AND (name LIKE ? OR category LIKE ?)";

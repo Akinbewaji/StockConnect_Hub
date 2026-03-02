@@ -5,8 +5,8 @@ const username = process.env.AFRICASTALKING_USERNAME || "sandbox";
 const apiKey = process.env.AFRICASTALKING_API_KEY || "";
 
 // Only initialize if API key is provided
-let africastalking: any = null;
-let sms: any = null;
+let africastalking: ReturnType<typeof AfricasTalking> | null = null;
+let sms: any = null; // AT SDK doesn't always provide good types for sub-modules
 
 if (apiKey && apiKey.trim() !== "") {
   africastalking = AfricasTalking({

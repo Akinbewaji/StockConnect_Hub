@@ -5,7 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
-import { initializeDatabase } from "./db/init.js";
+import { initializeDatabase, seedDemoData } from "./db/init.js";
 import { authenticateToken } from "./middleware/auth.js";
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
@@ -15,6 +15,10 @@ import campaignRoutes from "./routes/campaigns.js";
 import analyticsRoutes from "./routes/analytics.js";
 import settingsRoutes from "./routes/settings.js";
 import { checkRole } from "./middleware/role.js";
+import customerSelfRoutes from "./routes/customer.routes.js";
+import cartRoutes from "./routes/cart.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 // Load environment variables
 dotenv.config();
@@ -69,6 +73,7 @@ async function startServer() {
 
   // Initialize Database
   initializeDatabase();
+  await seedDemoData(); // Create demo account if it doesn't exist
 
   // Health check endpoint
   app.get("/health", (req, res) => {
@@ -77,7 +82,11 @@ async function startServer() {
 
   // API Routes
   app.use("/api/auth", authRoutes);
-  app.use("/api/products", authenticateToken, productRoutes);
+  app.use("/api/products", productRoutes); // Granular auth inside
+  app.use("/api/customers/self", customerSelfRoutes);
+  app.use("/api/cart/self", cartRoutes);
+  app.use("/api/chat/self", chatRoutes);
+  app.use("/api/notifications/self", notificationRoutes);
   app.use("/api/customers", authenticateToken, customerRoutes);
   app.use("/api/orders", authenticateToken, orderRoutes);
   app.use("/api/campaigns", authenticateToken, campaignRoutes);
@@ -88,6 +97,16 @@ async function startServer() {
   io.on("connection", (socket: any) => {
     console.log("🔌 New client connected:", socket.id);
     
+    socket.on("join", (room: string) => {
+      console.log(`📡 Client joined room: ${room}`);
+      socket.join(room);
+    });
+
+    socket.on("join_chat", (chatId: string | number) => {
+      console.log(`💬 Client joined chat room: chat_${chatId}`);
+      socket.join(`chat_${chatId}`);
+    });
+
     socket.on("disconnect", () => {
       console.log("🔌 Client disconnected");
     });

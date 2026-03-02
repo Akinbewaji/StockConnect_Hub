@@ -4,12 +4,20 @@ import { productSchema } from "../types/schemas.js";
 import { ProductService } from "../services/product.service.js";
 import { AuthRequest } from "../middleware/auth.js";
 
+import { authenticateToken } from "../middleware/auth.js";
+
 const router = Router();
 
-// Get all products
+// Get all products (Public for browsing)
 router.get("/", (req: any, res) => {
-  const { search, category, page, limit } = req.query;
-  const businessId = req.user.id;
+  const { search, category, page, limit, businessId: queryBusinessId } = req.query;
+  
+  // If owner, show only their products. If customer or not logged in, show all (or filtered by queryBusinessId)
+  let businessId: any = queryBusinessId;
+  
+  if (req.user?.role === 'owner') {
+    businessId = req.user.id;
+  }
   
   const pPage = parseInt(page as string) || 1;
   const pLimit = parseInt(limit as string) || 20;
@@ -31,7 +39,7 @@ router.get("/", (req: any, res) => {
 });
 
 // Create product
-router.post("/", (req: any, res) => {
+router.post("/", authenticateToken, (req: any, res) => {
   const businessId = req.user.id;
   try {
     const id = ProductService.create(req.body, businessId);
@@ -43,7 +51,7 @@ router.post("/", (req: any, res) => {
 });
 
 // Update product
-router.put("/:id", (req: any, res) => {
+router.put("/:id", authenticateToken, (req: any, res) => {
   const { id } = req.params;
   const businessId = req.user.id;
 
@@ -61,7 +69,7 @@ router.put("/:id", (req: any, res) => {
 });
 
 // Get product by barcode
-router.get("/barcode/:barcode", (req: any, res) => {
+router.get("/barcode/:barcode", authenticateToken, (req: any, res) => {
   const { barcode } = req.params;
   const businessId = req.user.id;
 
@@ -79,7 +87,7 @@ router.get("/barcode/:barcode", (req: any, res) => {
 });
 
 // Update stock
-router.post("/:id/stock", (req, res) => {
+router.post("/:id/stock", authenticateToken, (req, res) => {
   const { id } = req.params;
   const { quantity, reason } = req.body; // quantity can be positive or negative
 
@@ -104,7 +112,7 @@ router.post("/:id/stock", (req, res) => {
 });
 
 // Get stock movements
-router.get("/movements", (req, res) => {
+router.get("/movements", authenticateToken, (req, res) => {
   const { productId } = req.query;
   try {
     let query = `
