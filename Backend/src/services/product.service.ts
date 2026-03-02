@@ -7,7 +7,9 @@ export class ProductService {
     limit: number = 20, 
     offset: number = 0,
     search?: string,
-    category?: string
+    category?: string,
+    minPrice?: number,
+    maxPrice?: number
   ) {
     let query = "SELECT * FROM products";
     let countQuery = "SELECT COUNT(*) as total FROM products";
@@ -36,6 +38,18 @@ export class ProductService {
       params.push(category);
     }
 
+    if (minPrice !== undefined && !isNaN(minPrice)) {
+      query += " AND price >= ?";
+      countQuery += " AND price >= ?";
+      params.push(minPrice);
+    }
+
+    if (maxPrice !== undefined && !isNaN(maxPrice)) {
+      query += " AND price <= ?";
+      countQuery += " AND price <= ?";
+      params.push(maxPrice);
+    }
+
     query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
     const data = db.prepare(query).all(...params, limit, offset);
     const { total } = db.prepare(countQuery).get(...params) as any;
@@ -44,7 +58,12 @@ export class ProductService {
   }
 
   static getById(id: number | string) {
-    return db.prepare("SELECT * FROM products WHERE id = ?").get(id);
+    return db.prepare(`
+      SELECT p.*, u.business_name 
+      FROM products p 
+      LEFT JOIN users u ON p.business_id = u.id 
+      WHERE p.id = ?
+    `).get(id);
   }
 
   static create(data: any, businessId: number) {

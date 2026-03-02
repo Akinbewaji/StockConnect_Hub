@@ -133,6 +133,27 @@ export function initializeDatabase() {
     )
   `);
 
+  // Quotes (Custom Order Negotiations)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS quotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER NOT NULL,
+      business_id INTEGER NOT NULL,
+      product_id INTEGER NOT NULL,
+      requested_quantity INTEGER NOT NULL,
+      price REAL,
+      customer_message TEXT,
+      seller_response TEXT,
+      attachment_url TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (business_id) REFERENCES users(id),
+      FOREIGN KEY (product_id) REFERENCES products(id)
+    )
+  `);
+
   // Campaigns
   db.exec(`
     CREATE TABLE IF NOT EXISTS campaigns (
@@ -301,6 +322,17 @@ export function initializeDatabase() {
   } catch (e: any) {
     if (!e.message.includes('duplicate column name')) {
       console.log('Skipping alter table (order_items): ', e.message);
+    }
+  }
+
+  try {
+    db.exec(`
+      ALTER TABLE quotes ADD COLUMN attachment_url TEXT;
+    `);
+    console.log("Applied attachment_url column to quotes.");
+  } catch (e: any) {
+    if (!e.message.includes('duplicate column name') && !e.message.includes('no such table')) {
+      console.log('Skipping alter table (quotes): ', e.message);
     }
   }
 

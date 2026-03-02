@@ -191,12 +191,12 @@ export default function POS() {
     <div className="h-[calc(100vh-120px)] flex flex-col lg:flex-row gap-6">
       {/* Left Side: Product Selection */}
       <div className="flex-1 flex flex-col gap-4 min-h-0">
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold text-gray-900">New Sale</h1>
+            <h1 className="text-xl font-bold text-slate-900">New Sale</h1>
             <div className="flex gap-2 items-center">
               <div className="relative w-48">
-                <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="text"
                   placeholder="Scan Barcode..."
@@ -217,11 +217,11 @@ export default function POS() {
                 />
               </div>
               <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="text"
                   placeholder="Search products..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -237,11 +237,11 @@ export default function POS() {
                 key={product.id}
                 onClick={() => addToCart(product)}
                 disabled={product.quantity <= 0}
-                className={`group bg-white p-3 rounded-2xl border border-gray-100 shadow-sm hover:border-indigo-500 transition-all text-left flex flex-col h-full ${
+                className={`group bg-white p-3 rounded-2xl border border-slate-100 shadow-sm hover:border-indigo-500 transition-all text-left flex flex-col h-full ${
                   product.quantity <= 0 ? 'opacity-50 grayscale cursor-not-allowed' : ''
                 }`}
               >
-                <div className="aspect-square bg-gray-50 rounded-xl mb-3 overflow-hidden relative">
+                <div className="aspect-square bg-slate-50 rounded-xl mb-3 overflow-hidden relative">
                   <img 
                     src={`https://picsum.photos/seed/${product.id}/200/200`} 
                     alt={product.name}
@@ -258,11 +258,11 @@ export default function POS() {
                     </div>
                   )}
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm line-clamp-1">{product.name}</h3>
-                <p className="text-xs text-gray-500 mb-2">{product.category}</p>
+                <h3 className="font-bold text-slate-900 text-sm line-clamp-1">{product.name}</h3>
+                <p className="text-xs text-slate-500 mb-2">{product.category}</p>
                 <div className="mt-auto flex justify-between items-center">
                   <span className="font-bold text-indigo-600">{settings?.currency}{product.price.toLocaleString()}</span>
-                  <span className="text-[10px] text-gray-400 font-medium">{product.quantity} left</span>
+                  <span className="text-[10px] text-slate-400 font-medium">{product.quantity} left</span>
                 </div>
               </button>
             ))}
@@ -273,8 +273,8 @@ export default function POS() {
       {/* Right Side: Cart & Customer */}
       <div className="w-full lg:w-[400px] flex flex-col gap-4 min-h-0">
         {/* Customer Selection */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-          <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm">
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+          <h2 className="font-bold text-slate-900 flex items-center gap-2 text-sm">
             <User size={18} className="text-indigo-600" />
             Customer
           </h2>
@@ -293,16 +293,16 @@ export default function POS() {
             </div>
           ) : (
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input
                 type="text"
                 placeholder="Find customer..."
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm"
                 value={customerSearch}
                 onChange={(e) => setCustomerSearch(e.target.value)}
               />
               {customerSearch && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-10 max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-xl z-10 max-h-48 overflow-y-auto">
                   {filteredCustomers.map(c => (
                     <button
                       key={c.id}
@@ -310,14 +310,14 @@ export default function POS() {
                         setSelectedCustomer(c);
                         setCustomerSearch('');
                       }}
-                      className="w-full p-3 text-left hover:bg-gray-50 flex flex-col border-b border-gray-50 last:border-0"
+                      className="w-full p-3 text-left hover:bg-slate-50 flex flex-col border-b border-slate-50 last:border-0"
                     >
-                      <span className="font-bold text-sm text-gray-900">{c.name}</span>
-                      <span className="text-xs text-gray-500">{c.phone}</span>
+                      <span className="font-bold text-sm text-slate-900">{c.name}</span>
+                      <span className="text-xs text-slate-500">{c.phone}</span>
                     </button>
                   ))}
                   {filteredCustomers.length === 0 && (
-                    <div className="p-4 text-center text-xs text-gray-500 italic">No customers found</div>
+                    <div className="p-4 text-center text-xs text-slate-500 italic">No customers found</div>
                   )}
                 </div>
               )}
@@ -326,9 +326,9 @@ export default function POS() {
         </div>
 
         {/* Cart Items */}
-        <div className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-gray-50 flex justify-between items-center">
-            <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm">
+        <div className="flex-1 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-slate-50 flex justify-between items-center">
+            <h2 className="font-bold text-slate-900 flex items-center gap-2 text-sm">
               <ShoppingCart size={18} className="text-indigo-600" />
               Cart ({cart.length})
             </h2>
@@ -342,28 +342,28 @@ export default function POS() {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {cart.map(item => (
               <div key={item.id} className="flex gap-3">
-                <div className="w-12 h-12 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="w-12 h-12 bg-slate-50 rounded-lg overflow-hidden flex-shrink-0">
                   <img src={`https://picsum.photos/seed/${item.id}/100/100`} alt="" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
-                    <h4 className="text-xs font-bold text-gray-900 truncate">{item.name}</h4>
-                    <button onClick={() => removeFromCart(item.id)} className="text-gray-300 hover:text-red-500">
+                    <h4 className="text-xs font-bold text-slate-900 truncate">{item.name}</h4>
+                    <button onClick={() => removeFromCart(item.id)} className="text-slate-300 hover:text-red-500">
                       <Trash2 size={14} />
                     </button>
                   </div>
-                  <p className="text-[10px] text-gray-500 mb-2">{settings?.currency}{item.price.toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-500 mb-2">{settings?.currency}{item.price.toLocaleString()}</p>
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-1">
-                      <button onClick={() => updateQuantity(item.id, -1)} className="text-gray-400 hover:text-indigo-600">
+                    <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-2 py-1">
+                      <button onClick={() => updateQuantity(item.id, -1)} className="text-slate-400 hover:text-indigo-600">
                         <Minus size={12} />
                       </button>
                       <span className="text-xs font-bold w-4 text-center">{item.cartQuantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)} className="text-gray-400 hover:text-indigo-600">
+                      <button onClick={() => updateQuantity(item.id, 1)} className="text-slate-400 hover:text-indigo-600">
                         <Plus size={12} />
                       </button>
                     </div>
-                    <span className="text-xs font-bold text-gray-900 ml-auto">
+                    <span className="text-xs font-bold text-slate-900 ml-auto">
                       {settings?.currency}{(item.price * item.cartQuantity).toLocaleString()}
                     </span>
                   </div>
@@ -371,17 +371,17 @@ export default function POS() {
               </div>
             ))}
             {cart.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2 opacity-50">
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2 opacity-50">
                 <ShoppingCart size={40} />
                 <p className="text-xs font-medium">Your cart is empty</p>
               </div>
             )}
           </div>
 
-          <div className="p-4 bg-gray-50 space-y-4">
+          <div className="p-4 bg-slate-50 space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500 font-medium">Total Amount</span>
-              <span className="text-xl font-bold text-gray-900">{settings?.currency}{total.toLocaleString()}</span>
+              <span className="text-sm text-slate-500 font-medium">Total Amount</span>
+              <span className="text-xl font-bold text-slate-900">{settings?.currency}{total.toLocaleString()}</span>
             </div>
             <button
               onClick={() => setShowCheckoutModal(true)}
@@ -416,31 +416,31 @@ export default function POS() {
               exit={{ scale: 0.95, y: 20 }}
               className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl"
             >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 className="text-xl font-bold text-gray-900">Checkout Summary</h2>
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h2 className="text-xl font-bold text-slate-900">Checkout Summary</h2>
                 <button 
                   onClick={() => setShowCheckoutModal(false)}
-                  className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                  className="p-2 hover:bg-slate-200 rounded-full transition-colors"
                 >
-                  <X size={20} className="text-gray-500" />
+                  <X size={20} className="text-slate-500" />
                 </button>
               </div>
 
               <div className="p-6 space-y-6">
                 {/* Order Details */}
-                <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
+                <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
                   {selectedCustomer && (
-                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                      <span className="text-sm text-gray-500">Customer</span>
-                      <span className="font-semibold text-gray-900">{selectedCustomer.name}</span>
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-200">
+                      <span className="text-sm text-slate-500">Customer</span>
+                      <span className="font-semibold text-slate-900">{selectedCustomer.name}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500">Total Items</span>
-                    <span className="font-semibold text-gray-900">{cart.reduce((s, i) => s + i.cartQuantity, 0)}</span>
+                    <span className="text-slate-500">Total Items</span>
+                    <span className="font-semibold text-slate-900">{cart.reduce((s, i) => s + i.cartQuantity, 0)}</span>
                   </div>
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-                    <span className="text-base font-semibold text-gray-700">Total Amount</span>
+                  <div className="flex justify-between items-center pt-3 border-t border-slate-200">
+                    <span className="text-base font-semibold text-slate-700">Total Amount</span>
                     <span className="text-2xl font-bold text-indigo-600">
                       {settings?.currency}{total.toLocaleString()}
                     </span>
@@ -449,14 +449,14 @@ export default function POS() {
 
                 {/* Payment Method */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Payment Method</label>
+                  <label className="block text-sm font-semibold text-slate-900 mb-3">Payment Method</label>
                   <div className="grid grid-cols-3 gap-3">
                     <button
                       onClick={() => setPaymentMethod('cash')}
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                         paymentMethod === 'cash' 
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
-                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                          : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'
                       }`}
                     >
                       <Banknote size={24} />
@@ -467,7 +467,7 @@ export default function POS() {
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                         paymentMethod === 'card' 
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
-                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                          : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'
                       }`}
                     >
                       <CreditCard size={24} />
@@ -478,7 +478,7 @@ export default function POS() {
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                         paymentMethod === 'transfer' 
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
-                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                          : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'
                       }`}
                     >
                       <Smartphone size={24} />
@@ -490,16 +490,16 @@ export default function POS() {
                 {/* Cash Calculator */}
                 {paymentMethod === 'cash' && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                    <label className="block text-sm font-semibold text-gray-900">Amount Received</label>
+                    <label className="block text-sm font-semibold text-slate-900">Amount Received</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">
                         {settings?.currency}
                       </span>
                       <input
                         type="number"
                         min={total}
                         placeholder="0.00"
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors text-lg font-medium"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors text-lg font-medium"
                         value={amountReceived}
                         onChange={(e) => setAmountReceived(e.target.value)}
                       />
@@ -516,7 +516,7 @@ export default function POS() {
                 )}
               </div>
 
-              <div className="p-6 border-t border-gray-100 space-y-3">
+              <div className="p-6 border-t border-slate-100 space-y-3">
                 <button
                   onClick={handleCheckout}
                   disabled={isProcessing || (paymentMethod === 'cash' && Number(amountReceived) < total)}
@@ -554,8 +554,8 @@ export default function POS() {
               <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle size={48} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Sale Confirmed!</h2>
-              <p className="text-gray-500">The order has been processed and stock updated.</p>
+              <h2 className="text-2xl font-bold text-slate-900">Sale Confirmed!</h2>
+              <p className="text-slate-500">The order has been processed and stock updated.</p>
               
               <div className="flex flex-col gap-3 pt-4">
                 <button
@@ -570,7 +570,7 @@ export default function POS() {
                     setShowSuccess(false);
                     setLastOrder(null);
                   }}
-                  className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200"
+                  className="w-full bg-slate-100 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200"
                 >
                   New Sale
                 </button>

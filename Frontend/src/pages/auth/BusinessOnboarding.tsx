@@ -48,7 +48,7 @@ export default function BusinessOnboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -68,54 +68,54 @@ export default function BusinessOnboarding() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-gray-700">Currency Symbol</label>
+              <label className="text-sm font-semibold text-slate-700">Currency Symbol</label>
               <div className="relative">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input 
                   type="text"
                   required
                   value={formData.currency}
                   onChange={e => setFormData({...formData, currency: e.target.value})}
                   placeholder="₦, $, €"
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-gray-700">Business Phone</label>
+              <label className="text-sm font-semibold text-slate-700">Business Phone</label>
               <div className="relative">
-                <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input 
                   type="tel"
                   required
                   value={formData.phone}
                   onChange={e => setFormData({...formData, phone: e.target.value})}
                   placeholder="+234..."
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-semibold text-gray-700">Business Address</label>
+              <label className="text-sm font-semibold text-slate-700">Business Address</label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
+                <MapPin className="absolute left-3 top-3 text-slate-400" size={18} />
                 <textarea 
                   required
                   value={formData.address}
                   onChange={e => setFormData({...formData, address: e.target.value})}
                   placeholder="Full business address..."
                   rows={2}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-gray-700">Default Tax Rate (%)</label>
+              <label className="text-sm font-semibold text-slate-700">Default Tax Rate (%)</label>
               <div className="relative">
-                <Receipt className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Receipt className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input 
                   type="number"
                   step="0.01"
@@ -123,7 +123,7 @@ export default function BusinessOnboarding() {
                   max="100"
                   value={formData.taxRate}
                   onChange={e => setFormData({...formData, taxRate: parseFloat(e.target.value) || 0})}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 />
               </div>
             </div>

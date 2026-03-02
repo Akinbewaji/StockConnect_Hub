@@ -114,9 +114,9 @@ export default function StockManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Stock Management</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Stock Management</h1>
           <div className="flex items-center gap-2">
-            <p className="text-gray-500">Monitor levels and track inventory movement</p>
+            <p className="text-slate-500">Monitor levels and track inventory movement</p>
             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 rounded-full border border-green-100">
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
               <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">Live</span>
@@ -158,18 +158,18 @@ export default function StockManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Stock List */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="font-bold text-gray-900 flex items-center gap-2">
+          <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <Package size={20} className="text-indigo-600" />
                 Current Inventory
               </h2>
               <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
                   type="text"
                   placeholder="Search products..."
-                  className="w-full pl-9 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full pl-9 pr-4 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -177,7 +177,7 @@ export default function StockManagement() {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold">
+                <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold">
                   <tr>
                     <th className="px-4 py-3">Product</th>
                     <th className="px-4 py-3">Category</th>
@@ -187,11 +187,11 @@ export default function StockManagement() {
                     <th className="px-4 py-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-100">
                   {filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={product.id} className="hover:bg-slate-50 transition-colors">
                       <td 
-                        className="px-4 py-4 font-medium text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors"
+                        className="px-4 py-4 font-medium text-slate-900 cursor-pointer hover:text-indigo-600 transition-colors"
                         onClick={() => {
                           setHistoryProduct(product);
                           setShowHistoryModal(true);
@@ -200,9 +200,9 @@ export default function StockManagement() {
                       >
                         {product.name}
                       </td>
-                      <td className="px-4 py-4 text-gray-500">{product.category}</td>
-                      <td className="px-4 py-4 font-bold text-gray-900">{product.quantity}</td>
-                      <td className="px-4 py-4 text-gray-500 font-medium">{product.reorder_threshold}</td>
+                      <td className="px-4 py-4 text-slate-500">{product.category}</td>
+                      <td className="px-4 py-4 font-bold text-slate-900">{product.quantity}</td>
+                      <td className="px-4 py-4 text-slate-500 font-medium">{product.reorder_threshold}</td>
                       <td className="px-4 py-4">
                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
                           product.quantity <= product.reorder_threshold
@@ -220,7 +220,7 @@ export default function StockManagement() {
                               setShowHistoryModal(true);
                               fetchProductHistory(product.id);
                             }}
-                            className="text-gray-500 hover:text-gray-700 font-bold text-xs"
+                            className="text-slate-500 hover:text-slate-700 font-bold text-xs"
                           >
                             History
                           </button>
@@ -247,16 +247,16 @@ export default function StockManagement() {
 
         {/* Recent Movements */}
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-100">
-              <h2 className="font-bold text-gray-900 flex items-center gap-2">
+          <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-100">
+              <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <History size={20} className="text-indigo-600" />
                 Recent Movements
               </h2>
             </div>
             <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
               {movements.map((m) => (
-                <div key={m.id} className="flex items-start gap-3 pb-4 border-b border-gray-50 last:border-0">
+                <div key={m.id} className="flex items-start gap-3 pb-4 border-b border-slate-50 last:border-0">
                   <div className={`p-1.5 rounded-lg ${
                     m.change_amount > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
                   }`}>
@@ -264,21 +264,21 @@ export default function StockManagement() {
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
-                      <h4 className="text-xs font-bold text-gray-900">{m.product_name}</h4>
+                      <h4 className="text-xs font-bold text-slate-900">{m.product_name}</h4>
                       <span className={`text-[10px] font-bold ${
                         m.change_amount > 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {m.change_amount > 0 ? '+' : ''}{m.change_amount}
                       </span>
                     </div>
-                    <p className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wider">
+                    <p className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider">
                       {m.reason} • {format(new Date(m.created_at), 'MMM d, h:mm a')}
                     </p>
                   </div>
                 </div>
               ))}
               {movements.length === 0 && (
-                <p className="text-center text-xs text-gray-500 py-4">No recent movements</p>
+                <p className="text-center text-xs text-slate-500 py-4">No recent movements</p>
               )}
             </div>
           </div>
@@ -290,13 +290,13 @@ export default function StockManagement() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-2xl p-6 space-y-6">
             <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-900">Adjust Stock</h2>
-              <p className="text-gray-500">{selectedProduct.name}</p>
+              <h2 className="text-xl font-bold text-slate-900">Adjust Stock</h2>
+              <p className="text-slate-500">{selectedProduct.name}</p>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
-              <span className="text-sm text-gray-500">Current Stock</span>
-              <span className="text-xl font-bold text-gray-900">{selectedProduct.quantity}</span>
+            <div className="bg-slate-50 p-4 rounded-xl flex justify-between items-center">
+              <span className="text-sm text-slate-500">Current Stock</span>
+              <span className="text-xl font-bold text-slate-900">{selectedProduct.quantity}</span>
             </div>
 
             <form onSubmit={handleAdjustStock} className="space-y-4">
@@ -304,24 +304,24 @@ export default function StockManagement() {
                 <button
                   type="button"
                   onClick={() => setAdjustmentAmount(prev => (parseInt(prev || '0') - 1).toString())}
-                  className="p-3 border rounded-lg flex items-center justify-center hover:bg-gray-50"
+                  className="p-3 border rounded-lg flex items-center justify-center hover:bg-slate-50"
                 >
                   <Minus size={20} />
                 </button>
                 <button
                   type="button"
                   onClick={() => setAdjustmentAmount(prev => (parseInt(prev || '0') + 1).toString())}
-                  className="p-3 border rounded-lg flex items-center justify-center hover:bg-gray-50"
+                  className="p-3 border rounded-lg flex items-center justify-center hover:bg-slate-50"
                 >
                   <Plus size={20} />
                 </button>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Adjustment Amount</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Adjustment Amount</label>
                 <input
                   type="number"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center text-lg font-bold"
+                  className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center text-lg font-bold"
                   value={adjustmentAmount}
                   onChange={(e) => setAdjustmentAmount(e.target.value)}
                   placeholder="e.g. 10 or -5"
@@ -330,9 +330,9 @@ export default function StockManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Reason</label>
                 <select
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   value={adjustmentReason}
                   onChange={(e) => setAdjustmentReason(e.target.value)}
                 >
@@ -344,17 +344,17 @@ export default function StockManagement() {
                 </select>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Low Stock Threshold</label>
+              <div className="pt-4 border-t border-slate-100">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Low Stock Threshold</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="number"
-                    className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center font-bold"
+                    className="flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-center font-bold"
                     value={thresholdValue}
                     onChange={(e) => setThresholdValue(e.target.value)}
                     placeholder="Threshold"
                   />
-                  <div className="text-xs text-gray-500 max-w-[120px]">
+                  <div className="text-xs text-slate-500 max-w-[120px]">
                     Alerts trigger when stock is ≤ this value.
                   </div>
                 </div>
@@ -364,7 +364,7 @@ export default function StockManagement() {
                 <button 
                   type="button" 
                   onClick={() => setShowAdjustModal(false)}
-                  className="flex-1 p-3 text-gray-600 font-medium hover:bg-gray-50 rounded-lg"
+                  className="flex-1 p-3 text-slate-600 font-medium hover:bg-slate-50 rounded-lg"
                 >
                   Cancel
                 </button>
@@ -386,12 +386,12 @@ export default function StockManagement() {
           <div className="bg-white w-full max-w-2xl rounded-2xl p-6 space-y-6 max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Stock History</h2>
-                <p className="text-gray-500">{historyProduct.name}</p>
+                <h2 className="text-xl font-bold text-slate-900">Stock History</h2>
+                <p className="text-slate-500">{historyProduct.name}</p>
               </div>
               <button 
                 onClick={() => setShowHistoryModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <History size={24} />
               </button>
@@ -399,11 +399,11 @@ export default function StockManagement() {
 
             <div className="flex-1 overflow-y-auto pr-2">
               {historyLoading ? (
-                <div className="py-12 text-center text-gray-500">Loading history...</div>
+                <div className="py-12 text-center text-slate-500">Loading history...</div>
               ) : productHistory.length > 0 ? (
                 <div className="space-y-4">
                   {productHistory.map((m) => (
-                    <div key={m.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div key={m.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
                       <div className="flex items-center gap-4">
                         <div className={`p-2 rounded-lg ${
                           m.change_amount > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
@@ -411,8 +411,8 @@ export default function StockManagement() {
                           {m.change_amount > 0 ? <Plus size={16} /> : <Minus size={16} />}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 uppercase text-xs tracking-wider">{m.reason}</p>
-                          <p className="text-xs text-gray-500">{format(new Date(m.created_at), 'PPP p')}</p>
+                          <p className="font-bold text-slate-900 uppercase text-xs tracking-wider">{m.reason}</p>
+                          <p className="text-xs text-slate-500">{format(new Date(m.created_at), 'PPP p')}</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -426,13 +426,13 @@ export default function StockManagement() {
                   ))}
                 </div>
               ) : (
-                <div className="py-12 text-center text-gray-500">No history found for this product.</div>
+                <div className="py-12 text-center text-slate-500">No history found for this product.</div>
               )}
             </div>
 
             <button 
               onClick={() => setShowHistoryModal(false)}
-              className="w-full p-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200"
+              className="w-full p-3 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200"
             >
               Close
             </button>

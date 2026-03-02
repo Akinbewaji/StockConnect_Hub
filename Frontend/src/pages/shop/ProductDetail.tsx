@@ -29,14 +29,14 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Link to="/" className="inline-flex items-center text-gray-500 hover:text-gray-700 mb-8">
+      <Link to="/" className="inline-flex items-center text-slate-500 hover:text-slate-700 mb-8">
         <ArrowLeft size={20} className="mr-2" />
         Back to Catalog
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Image */}
-        <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
+        <div className="aspect-square bg-slate-100 rounded-2xl overflow-hidden">
           <img
             src={product.image_url || `https://picsum.photos/seed/${product.id}/800/800`}
             alt={product.name}
@@ -46,8 +46,8 @@ export default function ProductDetail() {
 
         {/* Details */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-          <p className="text-lg text-gray-500 mb-6">{product.category}</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">{product.name}</h1>
+          <p className="text-lg text-slate-500 mb-6">{product.category}</p>
           
           <div className="text-3xl font-bold text-indigo-600 mb-6">₦{product.price}</div>
 
@@ -71,14 +71,14 @@ export default function ProductDetail() {
 
           <div className="flex gap-4">
             <div className="w-32">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
               <input
                 type="number"
                 min="1"
                 max={product.quantity}
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 disabled={product.quantity <= 0}
               />
             </div>

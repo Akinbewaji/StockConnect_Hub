@@ -10,7 +10,7 @@ const router = Router();
 
 // Get all products (Public for browsing)
 router.get("/", (req: any, res) => {
-  const { search, category, page, limit, businessId: queryBusinessId } = req.query;
+  const { search, category, page, limit, businessId: queryBusinessId, minPrice, maxPrice } = req.query;
   
   // If owner, show only their products. If customer or not logged in, show all (or filtered by queryBusinessId)
   let businessId: any = queryBusinessId;
@@ -29,7 +29,9 @@ router.get("/", (req: any, res) => {
       pLimit, 
       offset, 
       search as string, 
-      category as string
+      category as string,
+      minPrice ? Number(minPrice) : undefined,
+      maxPrice ? Number(maxPrice) : undefined
     );
     res.json(result);
   } catch (error) {

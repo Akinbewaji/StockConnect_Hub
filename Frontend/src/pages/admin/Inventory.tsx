@@ -244,7 +244,7 @@ export default function Inventory() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Inventory</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowImportModal(true)}
@@ -266,13 +266,13 @@ export default function Inventory() {
       <div className="space-y-3">
         <div className="relative">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             size={20}
           />
           <input
             type="text"
             placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -280,7 +280,7 @@ export default function Inventory() {
 
         <div className="flex gap-2 overflow-x-auto pb-1">
           <select
-            className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
           >
@@ -293,7 +293,7 @@ export default function Inventory() {
           </select>
 
           <select
-            className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
@@ -312,10 +312,10 @@ export default function Inventory() {
           {filteredProducts.map((product) => (
           <div
             key={product.id}
-            className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center"
+            className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center"
           >
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
+              <div className="h-16 w-16 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200">
                 <img
                   src={
                     product.image_url ||
@@ -326,14 +326,14 @@ export default function Inventory() {
                 />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                <p className="text-sm text-gray-500">{product.category}</p>
+                <h3 className="font-semibold text-slate-900">{product.name}</h3>
+                <p className="text-sm text-slate-500">{product.category}</p>
                 <div className="mt-1 flex items-center gap-3">
                   <span className="font-medium text-indigo-600">
                     ₦{product.price}
                   </span>
                   {product.cost_price > 0 && (
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-[10px] text-slate-400">
                       Margin: {Math.round(((product.price - product.cost_price) / product.price) * 100)}%
                     </span>
                   )}
@@ -350,7 +350,7 @@ export default function Inventory() {
                 </div>
               </div>
             </div>
-            <button className="text-gray-400 hover:text-gray-600">
+            <button className="text-slate-400 hover:text-slate-600">
               <MoreVertical size={20} />
             </button>
           </div>
@@ -360,22 +360,22 @@ export default function Inventory() {
 
       {/* Pagination Controls */}
       {total > limit && (
-        <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm mt-4">
+        <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-100 shadow-sm mt-4">
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-slate-600">
             Page <span className="font-semibold text-indigo-600">{page}</span> of {Math.ceil(total / limit)}
-            <span className="ml-2 text-gray-400">({total} total)</span>
+            <span className="ml-2 text-slate-400">({total} total)</span>
           </span>
           <button
             onClick={() => setPage(p => Math.min(Math.ceil(total / limit), p + 1))}
             disabled={page >= Math.ceil(total / limit)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>
@@ -394,18 +394,18 @@ export default function Inventory() {
                   setImportFile(null);
                   setImportResults(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X size={24} />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-900 mb-2">
+              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                <h3 className="font-semibold text-indigo-900 mb-2">
                   Instructions
                 </h3>
-                <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                <ul className="text-sm text-indigo-800 space-y-1 list-disc list-inside">
                   <li>Upload a CSV or JSON file with product data</li>
                   <li>Required fields: name, price, quantity</li>
                   <li>
@@ -416,7 +416,7 @@ export default function Inventory() {
                 </ul>
                 <button
                   onClick={downloadTemplate}
-                  className="mt-3 flex items-center gap-2 text-blue-700 hover:text-blue-900 font-medium"
+                  className="mt-3 flex items-center gap-2 text-indigo-700 hover:text-indigo-900 font-medium"
                 >
                   <Download size={16} />
                   Download CSV Template
@@ -424,17 +424,17 @@ export default function Inventory() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Select File (CSV or JSON)
                 </label>
                 <input
                   type="file"
                   accept=".csv,.json"
                   onChange={handleFileSelect}
-                  className="w-full p-3 border rounded-lg text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                  className="w-full p-3 border rounded-lg text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
                 />
                 {importFile && (
-                  <p className="mt-2 text-sm text-gray-600">
+                  <p className="mt-2 text-sm text-slate-600">
                     Selected: {importFile.name}
                   </p>
                 )}
@@ -490,14 +490,14 @@ export default function Inventory() {
                     setImportFile(null);
                     setImportResults(null);
                   }}
-                  className="flex-1 p-3 text-gray-600 font-medium border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="flex-1 p-3 text-slate-600 font-medium border border-slate-300 rounded-lg hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleImport}
                   disabled={!importFile || importing}
-                  className="flex-1 p-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 p-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {importing ? (
                     <>
@@ -544,17 +544,17 @@ export default function Inventory() {
                 required
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
                   Product Image
                 </label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  className="w-full p-2 border rounded-lg text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  className="w-full p-2 border rounded-lg text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                 />
                 {newProduct.imageUrl && (
-                  <div className="mt-2 h-20 w-20 rounded-lg overflow-hidden border border-gray-200">
+                  <div className="mt-2 h-20 w-20 rounded-lg overflow-hidden border border-slate-200">
                     <img
                       src={newProduct.imageUrl}
                       alt="Preview"
@@ -640,7 +640,7 @@ export default function Inventory() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 p-3 text-gray-600 font-medium"
+                  className="flex-1 p-3 text-slate-600 font-medium"
                 >
                   Cancel
                 </button>

@@ -46,28 +46,28 @@ export default function Cart() {
   const total = cart?.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
       <div className="flex items-center justify-center h-[calc(100-4rem)]">
-        <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
+        <Loader2 className="animate-spin h-8 w-8 text-indigo-600" />
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-slate-50 pb-12">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <h1 className="text-3xl font-bold font-outfit text-gray-900 mb-8">Shopping Cart</h1>
+        <h1 className="text-3xl font-bold font-outfit text-slate-900 mb-8">Shopping Cart</h1>
 
         {!cart || cart.items.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-            <div className="inline-flex items-center justify-center p-4 bg-gray-50 rounded-full text-gray-400 mb-4">
+          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
+            <div className="inline-flex items-center justify-center p-4 bg-slate-50 rounded-full text-slate-400 mb-4">
               <ShoppingBag className="h-12 w-12" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">Your cart is empty</h2>
-            <p className="text-gray-500 mt-2 mb-8">Looks like you haven't added anything to your cart yet.</p>
-            <Link to="/" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-all">
+            <h2 className="text-xl font-semibold text-slate-900">Your cart is empty</h2>
+            <p className="text-slate-500 mt-2 mb-8">Looks like you haven't added anything to your cart yet.</p>
+            <Link to="/" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition-all">
               Go Shopping
             </Link>
           </div>
@@ -79,39 +79,39 @@ export default function Cart() {
                 <motion.div 
                   key={item.id}
                   layout
-                  className="bg-white rounded-2xl p-4 flex items-center space-x-4 shadow-sm border border-gray-100"
+                  className="bg-white rounded-2xl p-4 flex items-center space-x-4 shadow-sm border border-slate-100"
                 >
-                  <div className="h-24 w-24 bg-gray-50 rounded-xl flex-shrink-0 overflow-hidden">
+                  <div className="h-24 w-24 bg-slate-50 rounded-xl flex-shrink-0 overflow-hidden">
                     {item.image_url ? (
                       <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <div className="w-full h-full flex items-center justify-center text-slate-300">
                         <ShoppingBag className="h-8 w-8" />
                       </div>
                     )}
                   </div>
                   <div className="flex-grow">
-                    <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                    <p className="text-blue-600 font-bold mt-1">₦{item.price.toLocaleString()}</p>
+                    <h3 className="font-semibold text-slate-900">{item.name}</h3>
+                    <p className="text-indigo-600 font-bold mt-1">₦{item.price.toLocaleString()}</p>
                   </div>
-                  <div className="flex items-center space-x-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
+                  <div className="flex items-center space-x-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
                     <button 
                       onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
                     <span className="font-semibold w-8 text-center">{item.quantity}</span>
                     <button 
                       onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
                   <button 
                     onClick={() => handleRemoveItem(item.id)}
-                    className="p-3 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-3 text-slate-400 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>
@@ -121,29 +121,29 @@ export default function Cart() {
 
             {/* Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 sticky top-24">
+                <h2 className="text-xl font-bold text-slate-900 mb-6">Order Summary</h2>
                 <div className="space-y-4 mb-6">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-slate-600">
                     <span>Subtotal</span>
                     <span>₦{total.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-slate-600">
                     <span>Delivery</span>
                     <span className="text-green-600 font-medium">Calculated at checkout</span>
                   </div>
-                  <div className="border-t border-gray-100 pt-4 flex justify-between font-bold text-xl text-gray-900">
+                  <div className="border-t border-slate-100 pt-4 flex justify-between font-bold text-xl text-slate-900">
                     <span>Total</span>
                     <span>₦{total.toLocaleString()}</span>
                   </div>
                 </div>
                 <button 
                   onClick={() => navigate('/checkout')}
-                  className="w-full flex items-center justify-center px-6 py-4 border border-transparent text-base font-bold rounded-2xl text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                  className="w-full flex items-center justify-center px-6 py-4 border border-transparent text-base font-bold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
                 >
                   Proceed to Checkout <ArrowRight className="ml-2 h-5 w-5" />
                 </button>
-                <div className="mt-6 flex items-center justify-center space-x-2 text-xs text-gray-400">
+                <div className="mt-6 flex items-center justify-center space-x-2 text-xs text-slate-400">
                   <ShieldCheck className="h-4 w-4" />
                   <span>Secure Checkout with Africa's Talking OTP</span>
                 </div>

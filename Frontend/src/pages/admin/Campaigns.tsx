@@ -115,7 +115,7 @@ export default function Campaigns() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Campaigns</h1>
         <button 
           onClick={() => setShowCreateModal(true)}
           className="bg-indigo-600 text-white p-2 rounded-full shadow-lg"
@@ -126,23 +126,23 @@ export default function Campaigns() {
 
       <div className="space-y-3">
         {campaigns.map((campaign) => (
-          <div key={campaign.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          <div key={campaign.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
             <div className="flex justify-between items-start mb-2">
               <div>
-                <h3 className="font-semibold text-gray-900">{campaign.name}</h3>
+                <h3 className="font-semibold text-slate-900">{campaign.name}</h3>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  campaign.channel === 'SMS' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                  campaign.channel === 'SMS' ? 'bg-indigo-100 text-indigo-700' : 'bg-green-100 text-green-700'
                 }`}>
                   {campaign.channel}
                 </span>
               </div>
               <span className={`text-xs font-medium px-2 py-1 rounded ${
-                campaign.status === 'sent' ? 'bg-gray-100 text-gray-600' : 'bg-yellow-50 text-yellow-600'
+                campaign.status === 'sent' ? 'bg-slate-100 text-slate-600' : 'bg-yellow-50 text-yellow-600'
               }`}>
                 {campaign.status.toUpperCase()}
               </span>
             </div>
-            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100">
+            <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
               "{campaign.message}"
             </p>
             <div className="mt-3 flex justify-end">
@@ -166,7 +166,7 @@ export default function Campaigns() {
             <h2 className="text-xl font-bold">Create Campaign</h2>
             <form onSubmit={handleCreateCampaign} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Campaign Name</label>
                 <input
                   type="text"
                   className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
@@ -176,7 +176,7 @@ export default function Campaigns() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Channel</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Channel</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
@@ -184,7 +184,7 @@ export default function Campaigns() {
                     className={`p-3 rounded-lg border flex items-center justify-center gap-2 ${
                       newCampaign.channel === 'SMS' 
                         ? 'bg-indigo-50 border-indigo-200 text-indigo-700' 
-                        : 'border-gray-200 text-gray-600'
+                        : 'border-slate-200 text-slate-600'
                     }`}
                   >
                     <MessageSquare size={18} /> SMS
@@ -195,7 +195,7 @@ export default function Campaigns() {
                     className={`p-3 rounded-lg border flex items-center justify-center gap-2 ${
                       newCampaign.channel === 'WHATSAPP' 
                         ? 'bg-green-50 border-green-200 text-green-700' 
-                        : 'border-gray-200 text-gray-600'
+                        : 'border-slate-200 text-slate-600'
                     }`}
                   >
                     <MessageSquare size={18} /> WhatsApp
@@ -203,7 +203,7 @@ export default function Campaigns() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Message</label>
                 <textarea
                   className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 h-32 resize-none"
                   value={newCampaign.message}
@@ -216,7 +216,7 @@ export default function Campaigns() {
                 <button 
                   type="button" 
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 p-3 text-gray-600 font-medium hover:bg-gray-50 rounded-lg"
+                  className="flex-1 p-3 text-slate-600 font-medium hover:bg-slate-50 rounded-lg"
                 >
                   Cancel
                 </button>
@@ -251,7 +251,7 @@ export default function Campaigns() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-3">Audience Selection</label>
+                  <label className="block text-sm font-bold text-slate-900 mb-3">Audience Selection</label>
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <button
                       type="button"
@@ -259,7 +259,7 @@ export default function Campaigns() {
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                         sendMethod === 'all' 
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
-                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                          : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'
                       }`}
                     >
                       <UsersIcon size={24} />
@@ -271,7 +271,7 @@ export default function Campaigns() {
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                         sendMethod === 'select' 
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
-                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                          : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'
                       }`}
                     >
                       <Users size={24} />
@@ -283,7 +283,7 @@ export default function Campaigns() {
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                         sendMethod === 'manual' 
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold' 
-                          : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                          : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'
                       }`}
                     >
                       <Edit3 size={24} />
@@ -292,7 +292,7 @@ export default function Campaigns() {
                   </div>
 
                   {sendMethod === 'all' && (
-                    <div className="bg-blue-50 p-3 rounded-lg flex items-start gap-2 text-sm text-blue-800">
+                    <div className="bg-indigo-50 p-3 rounded-lg flex items-start gap-2 text-sm text-indigo-800">
                       <AlertCircle size={16} className="mt-0.5 shrink-0" />
                       <p>This will send the {selectedCampaign.channel} campaign to all {customers.length} registered customers in your database.</p>
                     </div>
@@ -300,40 +300,40 @@ export default function Campaigns() {
 
                   {sendMethod === 'select' && (
                     <div className="space-y-2">
-                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Select Customers</p>
-                       <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+                       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Select Customers</p>
+                       <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
                          {customers.map(c => (
-                           <label key={c.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer">
+                           <label key={c.id} className="flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer">
                              <input 
                                type="checkbox" 
                                checked={selectedCustomerIds.includes(c.id)}
                                onChange={() => toggleCustomerSelection(c.id)}
-                               className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                               className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                              />
                              <div>
-                               <p className="text-sm font-medium text-gray-900">{c.name}</p>
-                               <p className="text-xs text-gray-500">{c.phone}</p>
+                               <p className="text-sm font-medium text-slate-900">{c.name}</p>
+                               <p className="text-xs text-slate-500">{c.phone}</p>
                              </div>
                            </label>
                          ))}
-                         {customers.length === 0 && <div className="p-4 text-sm text-gray-500 text-center">No customers available.</div>}
+                         {customers.length === 0 && <div className="p-4 text-sm text-slate-500 text-center">No customers available.</div>}
                        </div>
                     </div>
                   )}
 
                   {(sendMethod === 'manual' || sendMethod === 'select') && (
                     <div className="mt-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                         {sendMethod === 'select' ? "Plus Additional Numbers (Optional)" : "Enter Phone Numbers"}
                       </p>
                       <textarea
-                        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                        className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
                         placeholder="e.g. 08012345678, +2349012345678, 07080000000"
                         rows={3}
                         value={manualNumbersInput}
                         onChange={e => setManualNumbersInput(e.target.value)}
                       />
-                      <p className="text-xs text-gray-500 mt-1">Separate multiple numbers with commas.</p>
+                      <p className="text-xs text-slate-500 mt-1">Separate multiple numbers with commas.</p>
                     </div>
                   )}
                 </div>
@@ -341,7 +341,7 @@ export default function Campaigns() {
                 <div className="flex gap-3 pt-2">
                   <button 
                     onClick={() => setShowSendModal(false)}
-                    className="flex-1 p-3 text-gray-600 font-medium hover:bg-gray-50 rounded-lg transition-colors border border-gray-200"
+                    className="flex-1 p-3 text-slate-600 font-medium hover:bg-slate-50 rounded-lg transition-colors border border-slate-200"
                   >
                     Cancel
                   </button>
@@ -377,14 +377,14 @@ export default function Campaigns() {
                   </div>
                 )}
                 <div>
-                  <h3 className={`text-xl font-bold ${sendResult.success ? 'text-gray-900' : 'text-red-600'}`}>
+                  <h3 className={`text-xl font-bold ${sendResult.success ? 'text-slate-900' : 'text-red-600'}`}>
                     {sendResult.success ? 'Success!' : 'Campaign Failed'}
                   </h3>
-                  <p className="text-gray-600 mt-2">{sendResult.message}</p>
+                  <p className="text-slate-600 mt-2">{sendResult.message}</p>
                 </div>
                 <button 
                   onClick={() => setShowSendModal(false)}
-                  className="mt-6 px-6 py-2 bg-gray-100 font-medium text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="mt-6 px-6 py-2 bg-slate-100 font-medium text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
                 >
                   Close
                 </button>

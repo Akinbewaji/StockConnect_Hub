@@ -6,6 +6,11 @@ export const authService = {
     return response.data;
   },
 
+  getSellerProfile: async (id: number | string) => {
+    const response = await api.get(`/auth/seller/${id}`);
+    return response.data;
+  },
+
   login: async (identifier: string, password: string) => {
     const response = await api.post('/customers/self/login', { identifier, password });
     if (response.data.token) {

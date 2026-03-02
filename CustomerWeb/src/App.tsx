@@ -11,7 +11,9 @@ import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import Chat from './pages/Chat';
 import ProductDetails from './pages/ProductDetails';
+import SellerProfile from './pages/SellerProfile';
 import Settings from './pages/Settings';
+import OrderConfirmation from './pages/OrderConfirmation';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!authService.isAuthenticated()) {
@@ -29,6 +31,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetails />} />
+            <Route path="/seller/:id" element={<SellerProfile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
@@ -41,6 +44,12 @@ function App() {
             <Route path="/checkout" element={
               <ProtectedRoute>
                 <Checkout />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/order-confirmation" element={
+              <ProtectedRoute>
+                <OrderConfirmation />
               </ProtectedRoute>
             } />
             

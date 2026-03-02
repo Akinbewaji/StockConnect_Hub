@@ -24,7 +24,7 @@ export default function Settings() {
         {user && (
           <section className="bg-(--bg-surface) rounded-2xl border border-(--border) overflow-hidden shadow-sm">
             <div className="p-5 border-b border-(--border) flex items-center gap-3">
-              <div className="p-2 bg-blue-50 text-blue-600 dark:bg-blue-900/30 rounded-xl">
+              <div className="p-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 rounded-xl">
                 <User size={18} />
               </div>
               <h2 className="font-bold text-(--foreground)">Account</h2>
@@ -64,7 +64,7 @@ export default function Settings() {
                 onClick={toggleTheme}
                 aria-label="Toggle theme"
                 className={`relative flex items-center w-16 h-8 rounded-full transition-colors duration-300 focus:outline-none ${
-                  theme === 'dark' ? 'bg-indigo-600' : 'bg-gray-200'
+                  theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-200'
                 }`}
               >
                 <span
@@ -88,12 +88,12 @@ export default function Settings() {
                 onClick={() => theme !== 'light' && toggleTheme()}
                 className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                   theme === 'light'
-                    ? 'border-blue-600 bg-blue-50'
+                    ? 'border-indigo-600 bg-indigo-50'
                     : 'border-(--border) bg-(--bg-surface-2)'
                 }`}
               >
-                <Sun size={16} className={theme === 'light' ? 'text-blue-600' : 'text-(--foreground) opacity-60'} />
-                <span className={`text-sm font-bold ${theme === 'light' ? 'text-blue-600' : 'text-(--foreground) opacity-60'}`}>
+                <Sun size={16} className={theme === 'light' ? 'text-indigo-600' : 'text-(--foreground) opacity-60'} />
+                <span className={`text-sm font-bold ${theme === 'light' ? 'text-indigo-600' : 'text-(--foreground) opacity-60'}`}>
                   Light
                 </span>
               </button>

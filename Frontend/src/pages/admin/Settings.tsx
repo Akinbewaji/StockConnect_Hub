@@ -168,8 +168,8 @@ export default function Settings() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500">Manage your business profile and application preferences</p>
+        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+        <p className="text-slate-500">Manage your business profile and application preferences</p>
       </div>
 
       {message && (
@@ -187,13 +187,13 @@ export default function Settings() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Business Profile */}
-        <section className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${isProfileLocked ? 'border-amber-100 opacity-95' : 'border-gray-100'}`}>
-          <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+        <section className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${isProfileLocked ? 'border-amber-100 opacity-95' : 'border-slate-100'}`}>
+          <div className="p-6 border-b border-slate-50 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg ${isProfileLocked ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}`}>
                 <Building2 size={20} />
               </div>
-              <h2 className="font-bold text-gray-900">Business Profile</h2>
+              <h2 className="font-bold text-slate-900">Business Profile</h2>
               {isProfileLocked && (
                 <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase tracking-wider">
                   <Lock size={10} /> Locked
@@ -213,9 +213,9 @@ export default function Settings() {
           <div className={`p-6 grid grid-cols-1 md:grid-cols-2 gap-6 relative ${isProfileLocked ? 'pointer-events-none' : ''}`}>
             {isProfileLocked && <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-[1px] cursor-not-allowed" title="Click 'Unlock to Edit' to change these settings" />}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Currency Symbol</label>
+              <label className="text-sm font-medium text-slate-700">Currency Symbol</label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                   <Globe size={16} />
                 </div>
                 <input 
@@ -223,15 +223,15 @@ export default function Settings() {
                   disabled={isProfileLocked}
                   value={settings.currency || ''}
                   onChange={e => setSettings({...settings, currency: e.target.value})}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:text-gray-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:text-slate-500"
                   placeholder="₦, $, €"
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Business Phone</label>
+              <label className="text-sm font-medium text-slate-700">Business Phone</label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                   <Smartphone size={16} />
                 </div>
                 <input 
@@ -239,22 +239,22 @@ export default function Settings() {
                   disabled={isProfileLocked}
                   value={settings.phone || ''}
                   onChange={e => setSettings({...settings, phone: e.target.value})}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:text-gray-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:text-slate-500"
                   placeholder="+234 ..."
                 />
               </div>
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-medium text-gray-700">Business Address</label>
+              <label className="text-sm font-medium text-slate-700">Business Address</label>
               <div className="relative">
-                <div className="absolute left-3 top-4 text-gray-400">
+                <div className="absolute left-3 top-4 text-slate-400">
                   <MapPin size={16} />
                 </div>
                 <textarea 
                   value={settings.address || ''}
                   disabled={isProfileLocked}
                   onChange={e => setSettings({...settings, address: e.target.value})}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20 disabled:text-gray-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20 disabled:text-slate-500"
                   placeholder="123 Market Street, Lagos..."
                 />
               </div>
@@ -263,16 +263,16 @@ export default function Settings() {
         </section>
 
         {/* POS & Receipts */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex items-center gap-3">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-50 flex items-center gap-3">
+            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
               <Receipt size={20} />
             </div>
-            <h2 className="font-bold text-gray-900">POS & Receipts</h2>
+            <h2 className="font-bold text-slate-900">POS & Receipts</h2>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Default Tax Rate (%)</label>
+              <label className="text-sm font-medium text-slate-700">Default Tax Rate (%)</label>
               <div className="relative">
                 <input 
                   type="number" 
@@ -281,18 +281,18 @@ export default function Settings() {
                   max="100"
                   value={settings.tax_rate || ''}
                   onChange={e => setSettings({...settings, tax_rate: parseFloat(e.target.value) || 0})}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                   placeholder="e.g. 7.5"
                 />
               </div>
-              <p className="text-xs text-gray-500">Applied automatically to POS checkouts</p>
+              <p className="text-xs text-slate-500">Applied automatically to POS checkouts</p>
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-medium text-gray-700">Receipt Footer Message</label>
+              <label className="text-sm font-medium text-slate-700">Receipt Footer Message</label>
               <textarea 
                 value={settings.receipt_footer || ''}
                 onChange={e => setSettings({...settings, receipt_footer: e.target.value})}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20"
                 placeholder="Thank you for shopping with us! Returns accepted within 3 days with receipt."
               />
             </div>
@@ -300,30 +300,30 @@ export default function Settings() {
         </section>
 
         {/* Campaign Preferences */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex items-center gap-3">
+        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-50 flex items-center gap-3">
             <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
               <MessageSquare size={20} />
             </div>
-            <h2 className="font-bold text-gray-900">Campaign Preferences</h2>
+            <h2 className="font-bold text-slate-900">Campaign Preferences</h2>
           </div>
           <div className="p-6 space-y-6">
             <div className="space-y-1.5 w-full md:w-1/2">
-              <label className="text-sm font-medium text-gray-700">Default Africa's Talking Sender ID</label>
+              <label className="text-sm font-medium text-slate-700">Default Africa's Talking Sender ID</label>
               <input 
                 type="text" 
                 value={settings.default_sender_id || ''}
                 onChange={e => setSettings({...settings, default_sender_id: e.target.value})}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 placeholder="e.g. MYSTORE (Leave blank for default shortcode)"
               />
-              <p className="text-xs text-gray-500 mt-1">Requires an approved alphanumeric Sender ID on your Africa's Talking dashboard.</p>
+              <p className="text-xs text-slate-500 mt-1">Requires an approved alphanumeric Sender ID on your Africa's Talking dashboard.</p>
             </div>
             
-            <label className="flex items-center justify-between cursor-pointer pt-4 border-t border-gray-100">
+            <label className="flex items-center justify-between cursor-pointer pt-4 border-t border-slate-100">
               <div className="space-y-0.5 pr-4">
-                <span className="text-sm font-medium text-gray-900">Automated SMS e-Receipts</span>
-                <p className="text-xs text-gray-500">Automatically send an SMS receipt to the customer's phone number upon successful POS checkout.</p>
+                <span className="text-sm font-medium text-slate-900">Automated SMS e-Receipts</span>
+                <p className="text-xs text-slate-500">Automatically send an SMS receipt to the customer's phone number upon successful POS checkout.</p>
               </div>
               <div className="relative inline-flex items-center shrink-0">
                 <input 
@@ -332,51 +332,51 @@ export default function Settings() {
                   onChange={e => setSettings({...settings, auto_receipt_sms: e.target.checked ? 1 : 0})}
                   className="sr-only peer" 
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
               </div>
             </label>
           </div>
         </section>
 
         {/* Loyalty Program */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex items-center gap-3">
+        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-50 flex items-center gap-3">
             <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
               <Coins size={20} />
             </div>
-            <h2 className="font-bold text-gray-900">Loyalty Program</h2>
+            <h2 className="font-bold text-slate-900">Loyalty Program</h2>
           </div>
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Points Awarded</label>
+                <label className="text-sm font-medium text-slate-700">Points Awarded</label>
                 <input 
                   type="number" 
                   value={settings.loyalty_points_per_unit}
                   onChange={e => setSettings({...settings, loyalty_points_per_unit: parseInt(e.target.value)})}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Per Amount Spent ({settings.currency})</label>
+                <label className="text-sm font-medium text-slate-700">Per Amount Spent ({settings.currency})</label>
                 <input 
                   type="number" 
                   value={settings.currency_unit_for_points}
                   onChange={e => setSettings({...settings, currency_unit_for_points: parseFloat(e.target.value)})}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Redemption Value ({settings.currency} per Point)</label>
+                <label className="text-sm font-medium text-slate-700">Redemption Value ({settings.currency} per Point)</label>
                 <input 
                   type="number" 
                   value={settings.point_redemption_value}
                   onChange={e => setSettings({...settings, point_redemption_value: parseFloat(e.target.value)})}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 />
               </div>
             </div>
-            <p className="text-xs text-gray-500 italic">
+            <p className="text-xs text-slate-500 italic">
               Currently: Customers earn {settings.loyalty_points_per_unit} point(s) for every {settings.currency}{settings.currency_unit_for_points} spent. 
               Each point is worth {settings.currency}{settings.point_redemption_value} during redemption.
             </p>
@@ -384,18 +384,18 @@ export default function Settings() {
         </section>
 
         {/* Notifications */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex items-center gap-3">
+        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-50 flex items-center gap-3">
             <div className="p-2 bg-rose-50 text-rose-600 rounded-lg">
               <Bell size={20} />
             </div>
-            <h2 className="font-bold text-gray-900">Notifications</h2>
+            <h2 className="font-bold text-slate-900">Notifications</h2>
           </div>
           <div className="p-6">
             <label className="flex items-center justify-between cursor-pointer">
               <div className="space-y-0.5">
-                <span className="text-sm font-medium text-gray-900">Low Stock Alerts</span>
-                <p className="text-xs text-gray-500">Receive in-app notifications when products drop below threshold</p>
+                <span className="text-sm font-medium text-slate-900">Low Stock Alerts</span>
+                <p className="text-xs text-slate-500">Receive in-app notifications when products drop below threshold</p>
               </div>
               <div className="relative inline-flex items-center">
                 <input 
@@ -404,76 +404,76 @@ export default function Settings() {
                   onChange={e => setSettings({...settings, low_stock_notifications: e.target.checked ? 1 : 0})}
                   className="sr-only peer" 
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
               </div>
             </label>
           </div>
         </section>
 
         {/* Data Management */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex items-center gap-3">
+        <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-50 flex items-center gap-3">
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
               <Download size={20} />
             </div>
-            <h2 className="font-bold text-gray-900">Data Management</h2>
+            <h2 className="font-bold text-slate-900">Data Management</h2>
           </div>
           <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <FileText size={18} className="text-gray-600" />
+                  <FileText size={18} className="text-slate-600" />
                 </div>
                 <div className="space-y-0.5">
-                  <span className="text-sm font-semibold text-gray-900">Product Inventory</span>
-                  <p className="text-xs text-gray-500">Export your product catalog and stock levels</p>
+                  <span className="text-sm font-semibold text-slate-900">Product Inventory</span>
+                  <p className="text-xs text-slate-500">Export your product catalog and stock levels</p>
                 </div>
               </div>
               <button 
                 type="button"
                 onClick={() => handleExportData('products')}
                 title="Download Products CSV"
-                className="flex items-center justify-center w-8 h-8 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-center w-8 h-8 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <Download size={14} />
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <FileText size={18} className="text-gray-600" />
+                  <FileText size={18} className="text-slate-600" />
                 </div>
                 <div className="space-y-0.5">
-                  <span className="text-sm font-semibold text-gray-900">Customer List</span>
-                  <p className="text-xs text-gray-500">Export your registered customers and loyalty points</p>
+                  <span className="text-sm font-semibold text-slate-900">Customer List</span>
+                  <p className="text-xs text-slate-500">Export your registered customers and loyalty points</p>
                 </div>
               </div>
               <button 
                 type="button"
                 onClick={() => handleExportData('customers')}
                 title="Download Customers CSV"
-                className="flex items-center justify-center w-8 h-8 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-center w-8 h-8 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <Download size={14} />
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <FileText size={18} className="text-gray-600" />
+                  <FileText size={18} className="text-slate-600" />
                 </div>
                 <div className="space-y-0.5">
-                  <span className="text-sm font-semibold text-gray-900">Order History</span>
-                  <p className="text-xs text-gray-500">Export all POS transaction records</p>
+                  <span className="text-sm font-semibold text-slate-900">Order History</span>
+                  <p className="text-xs text-slate-500">Export all POS transaction records</p>
                 </div>
               </div>
               <button 
                 type="button"
                 onClick={() => handleExportData('orders')}
                 title="Download Orders CSV"
-                className="flex items-center justify-center w-8 h-8 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-center w-8 h-8 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <Download size={14} />
               </button>
@@ -482,18 +482,18 @@ export default function Settings() {
         </section>
 
         {/* Theme */}
-        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-50 dark:border-slate-700 flex items-center gap-3">
+        <section className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-50 dark:border-slate-700 flex items-center gap-3">
             <div className="p-2 bg-violet-50 dark:bg-violet-900/30 text-violet-600 rounded-lg">
               <Palette size={20} />
             </div>
-            <h2 className="font-bold text-gray-900 dark:text-white">Appearance</h2>
+            <h2 className="font-bold text-slate-900 dark:text-white">Appearance</h2>
           </div>
           <div className="p-6">
             <label className="flex items-center justify-between cursor-pointer">
               <div className="space-y-0.5">
-                <span className="text-sm font-medium text-gray-900 dark:text-white">Dark Mode</span>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Switch between light and dark themes</p>
+                <span className="text-sm font-medium text-slate-900 dark:text-white">Dark Mode</span>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Switch between light and dark themes</p>
               </div>
               <button
                 type="button"
@@ -501,7 +501,7 @@ export default function Settings() {
                 className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${
                   theme === 'dark'
                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
                 {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
@@ -543,7 +543,7 @@ export default function Settings() {
           <button 
             type="button"
             onClick={fetchSettings}
-            className="px-6 py-2.5 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors"
+            className="px-6 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition-colors"
           >
             Reset
           </button>
@@ -580,21 +580,21 @@ export default function Settings() {
               <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle size={32} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Are you sure?</h2>
-              <p className="text-gray-500 text-center mb-6 text-sm">
+              <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Are you sure?</h2>
+              <p className="text-slate-500 text-center mb-6 text-sm">
                 This will permanently delete ALL historical order and transaction data from your application. Your products and customers will not be altered.
               </p>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Type <span className="text-red-600 font-mono bg-red-50 px-2 py-0.5 rounded">WIPE DATA</span> to confirm:
                   </label>
                   <input
                     type="text"
                     value={wipeConfirmText}
                     onChange={e => setWipeConfirmText(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none font-mono"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none font-mono"
                     placeholder="WIPE DATA"
                   />
                 </div>
@@ -606,7 +606,7 @@ export default function Settings() {
                       setWipeConfirmText('');
                     }}
                     disabled={wiping}
-                    className="flex-1 px-4 py-3 text-gray-600 font-bold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                    className="flex-1 px-4 py-3 text-slate-600 font-bold bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                   >
                     Cancel
                   </button>
@@ -646,14 +646,14 @@ export default function Settings() {
               <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Lock size={32} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Permission Required</h2>
-              <p className="text-gray-500 text-center mb-6 text-sm">
+              <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Permission Required</h2>
+              <p className="text-slate-500 text-center mb-6 text-sm">
                 To change critical business information, please verify your account password.
               </p>
               
               <form onSubmit={handleUnlockProfile} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Verify Password
                   </label>
                   <input
@@ -661,7 +661,7 @@ export default function Settings() {
                     required
                     value={verifyPassword}
                     onChange={e => setVerifyPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                     placeholder="••••••••"
                   />
                 </div>
@@ -674,7 +674,7 @@ export default function Settings() {
                       setVerifyPassword('');
                     }}
                     disabled={verifying}
-                    className="flex-1 px-4 py-3 text-gray-600 font-bold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                    className="flex-1 px-4 py-3 text-slate-600 font-bold bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                   >
                     Cancel
                   </button>

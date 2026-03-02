@@ -22,14 +22,14 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-slate-50 flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto shrink-0">
-        <div className="p-6 border-b border-gray-100 flex items-center gap-3">
+      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 sticky top-0 h-screen overflow-y-auto shrink-0">
+        <div className="p-6 border-b border-slate-100 flex items-center gap-3">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
             SC
           </div>
-          <span className="font-bold text-gray-900 truncate">{user?.businessName || 'StockConnect'}</span>
+          <span className="font-bold text-slate-900 truncate">{user?.businessName || 'StockConnect'}</span>
         </div>
         
         <nav className="flex-1 p-4 space-y-1">
@@ -40,7 +40,7 @@ export default function AdminLayout() {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 location.pathname === item.path
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
               <item.icon size={20} />
@@ -49,7 +49,7 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-slate-100">
           <button
             onClick={logout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors"
@@ -62,14 +62,14 @@ export default function AdminLayout() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile Header */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-50 md:hidden">
+        <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-50 md:hidden">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
               SC
             </div>
-            <span className="font-semibold text-gray-900">{user?.businessName || 'StockConnect'}</span>
+            <span className="font-semibold text-slate-900">{user?.businessName || 'StockConnect'}</span>
           </div>
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </header>
@@ -78,14 +78,14 @@ export default function AdminLayout() {
         {isMenuOpen && (
           <div className="fixed inset-0 top-0 bg-black/50 z-60 md:hidden" onClick={() => setIsMenuOpen(false)}>
             <div className="bg-white w-64 h-full shadow-xl flex flex-col overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
                     SC
                   </div>
-                  <span className="font-bold text-gray-900">Menu</span>
+                  <span className="font-bold text-slate-900">Menu</span>
                 </div>
-                <button onClick={() => setIsMenuOpen(false)} className="p-1 text-gray-400 hover:text-gray-600">
+                <button onClick={() => setIsMenuOpen(false)} className="p-1 text-slate-400 hover:text-slate-600">
                   <X size={20} />
                 </button>
               </div>
@@ -98,7 +98,7 @@ export default function AdminLayout() {
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
                       location.pathname === item.path
                         ? 'bg-indigo-50 text-indigo-600'
-                        : 'text-gray-600 hover:bg-gray-50'
+                        : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     <item.icon size={20} />
@@ -125,13 +125,13 @@ export default function AdminLayout() {
         <ChatBot />
 
         {/* Bottom Navigation (Mobile Only) */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 flex justify-around items-center md:hidden z-40">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-2 flex justify-around items-center md:hidden z-40">
           {navItems.slice(0, 5).map((item) => (
             <Link
               key={item.path}
               to={item.path}
               className={`flex flex-col items-center gap-1 p-2 rounded-lg ${
-                location.pathname === item.path ? 'text-indigo-600' : 'text-gray-500'
+                location.pathname === item.path ? 'text-indigo-600' : 'text-slate-500'
               }`}
             >
               <item.icon size={24} />

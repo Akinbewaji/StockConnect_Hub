@@ -137,6 +137,36 @@ router.get("/me", authenticateToken, (req: any, res) => {
   }
 });
 
+// Get Public Seller Profile
+router.get("/seller/:id", (req: any, res) => {
+  const { id } = req.params;
+  try {
+    const user = db.prepare(
+      "SELECT id, name, business_name, phone, email, created_at FROM users WHERE id = ? AND role = 'owner'"
+    ).get(id) as any;
+
+    if (!user) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const settings = db.prepare(
+      "SELECT address FROM settings WHERE business_id = ?"
+    ).get(id) as any;
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      businessName: user.business_name,
+      phone: user.phone,
+      email: user.email,
+      joinedAt: user.created_at,
+      address: settings?.address || null
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Create Demo Account
 router.post("/demo", async (req, res) => {
   try {

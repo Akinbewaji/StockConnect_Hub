@@ -53,84 +53,84 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
       
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
               <DollarSign size={20} />
             </div>
-            <span className="text-sm text-gray-500">Revenue</span>
+            <span className="text-sm text-slate-500">Revenue</span>
           </div>
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold text-gray-900">₦{stats.totalRevenue?.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-slate-900">₦{stats.totalRevenue?.toLocaleString()}</p>
             <div className={`text-xs font-bold px-2 py-1 rounded-full ${stats.trends?.dayChange >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
               {stats.trends?.dayChange >= 0 ? '+' : ''}{stats.trends?.dayChange}%
             </div>
           </div>
-          <p className="text-[10px] text-gray-400 mt-1">Vs yesterday (₦{stats.trends?.yesterday?.toLocaleString()})</p>
+          <p className="text-[10px] text-slate-400 mt-1">Vs yesterday (₦{stats.trends?.yesterday?.toLocaleString()})</p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 border-l-4 border-l-green-500">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-green-50 text-green-600 rounded-lg">
               <PieChart size={20} />
             </div>
-            <span className="text-sm text-gray-500">Profit</span>
+            <span className="text-sm text-slate-500">Profit</span>
           </div>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold text-green-600">₦{stats.totalProfit?.toLocaleString()}</p>
             <span className="text-[10px] font-bold text-green-500">{stats.profitMargin}% Margin</span>
           </div>
-          <p className="text-[10px] text-gray-400 mt-1">This month: ₦{stats.trends?.month?.toLocaleString()}</p>
+          <p className="text-[10px] text-slate-400 mt-1">This month: ₦{stats.trends?.month?.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
               <ShoppingBag size={20} />
             </div>
-            <span className="text-sm text-gray-500">Products</span>
+            <span className="text-sm text-slate-500">Products</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats.totalProducts}</p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-red-50 text-red-600 rounded-lg">
               <AlertTriangle size={20} />
             </div>
-            <span className="text-sm text-gray-500">Low Stock</span>
+            <span className="text-sm text-slate-500">Low Stock</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.lowStock}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats.lowStock}</p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-green-50 text-green-600 rounded-lg">
               <TrendingUp size={20} />
             </div>
-            <span className="text-sm text-gray-500">Total Orders</span>
+            <span className="text-sm text-slate-500">Total Orders</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.recentOrders}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats.recentOrders}</p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
               <Users size={20} />
             </div>
-            <span className="text-sm text-gray-500">Campaigns</span>
+            <span className="text-sm text-slate-500">Campaigns</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{stats.activeCampaigns}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats.activeCampaigns}</p>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Weekly Sales</h2>
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Weekly Sales</h2>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={salesData}>
@@ -146,7 +146,7 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Link 
             to="/admin/pos"
@@ -157,21 +157,21 @@ export default function Dashboard() {
           </Link>
           <Link 
             to="/admin/inventory"
-            className="flex flex-col items-center gap-2 p-4 bg-white border border-gray-100 text-gray-700 rounded-2xl font-bold text-sm hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm"
+            className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm"
           >
             <Plus size={24} className="text-indigo-600" />
             <span>Add Product</span>
           </Link>
           <Link 
             to="/admin/customers"
-            className="flex flex-col items-center gap-2 p-4 bg-white border border-gray-100 text-gray-700 rounded-2xl font-bold text-sm hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm"
+            className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm"
           >
             <Users size={24} className="text-indigo-600" />
             <span>Add Customer</span>
           </Link>
           <Link 
             to="/admin/campaigns"
-            className="flex flex-col items-center gap-2 p-4 bg-white border border-gray-100 text-gray-700 rounded-2xl font-bold text-sm hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm"
+            className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm"
           >
             <TrendingUp size={24} className="text-indigo-600" />
             <span>Campaign</span>

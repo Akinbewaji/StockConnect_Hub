@@ -37,7 +37,7 @@ export default function Home() {
         <button 
           onClick={() => setCategory('')}
           className={`px-4 py-2 rounded-full whitespace-nowrap ${
-            category === '' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            category === '' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
           }`}
         >
           All Products
@@ -47,7 +47,7 @@ export default function Home() {
             key={cat}
             onClick={() => setCategory(cat)}
             className={`px-4 py-2 rounded-full whitespace-nowrap ${
-              category === cat ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              category === cat ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             {cat}
@@ -58,8 +58,8 @@ export default function Home() {
       {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((product) => (
-          <Link to={`/product/${product.id}`} key={product.id} className="group relative bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="aspect-square bg-gray-100 relative overflow-hidden">
+          <Link to={`/product/${product.id}`} key={product.id} className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="aspect-square bg-slate-100 relative overflow-hidden">
               <img
                 src={product.image_url || `https://picsum.photos/seed/${product.id}/400/400`}
                 alt={product.name}
@@ -72,10 +72,10 @@ export default function Home() {
               )}
             </div>
             <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">{product.name}</h3>
-              <p className="text-sm text-gray-500 mb-3">{product.category}</p>
+              <h3 className="text-lg font-semibold text-slate-900 mb-1">{product.name}</h3>
+              <p className="text-sm text-slate-500 mb-3">{product.category}</p>
               <div className="flex items-center justify-between">
-                <span className="text-xl font-bold text-gray-900">₦{product.price}</span>
+                <span className="text-xl font-bold text-slate-900">₦{product.price}</span>
                 <button className="text-indigo-600 font-medium hover:text-indigo-700">
                   View Details
                 </button>
