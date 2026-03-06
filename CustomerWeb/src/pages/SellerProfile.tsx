@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Store, MapPin, Phone, Mail, Package, ShieldCheck, Truck } from 'lucide-react';
+import { Store, MapPin, Phone, Mail, Package, ShieldCheck, Truck, MessageSquarePlus } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import ChatWidget from '../components/ChatWidget';
 import { authService } from '../services/auth.service';
 import { productService } from '../services/product.service';
 
@@ -18,6 +19,7 @@ export default function SellerProfile() {
   const [seller, setSeller] = useState<SellerProfileData | null>(null);
   const [products, setProducts] = useState<Array<{ id: number; name: string; price: number; image_url: string; category: string; }>>([]);
   const [loading, setLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -128,8 +130,12 @@ export default function SellerProfile() {
           </div>
           
           <div className="flex items-center md:border-l border-slate-100 md:pl-8">
-            <button className="w-full md:w-auto bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover-lift btn-press shadow-lg shadow-indigo-200 flex items-center justify-center">
-              Chat Box
+            <button 
+              onClick={() => setIsChatOpen(true)}
+              className="w-full md:w-auto bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 flex items-center justify-center transition-all transform hover:-translate-y-1"
+            >
+              <MessageSquarePlus className="h-5 w-5 mr-2" />
+              Chat with Seller
             </button>
           </div>
         </div>
@@ -185,6 +191,15 @@ export default function SellerProfile() {
           )}
         </div>
       </div>
+      
+      {/* Floating Chat Widget */}
+      {isChatOpen && seller && (
+        <ChatWidget 
+          businessId={Number(id)}
+          businessName={seller.businessName}
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
     </div>
   );
 }
