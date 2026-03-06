@@ -140,7 +140,7 @@ router.get("/movements", authenticateToken, (req, res) => {
 });
 
 // Low stock
-router.get("/low-stock", (req: AuthRequest, res) => {
+router.get("/low-stock", authenticateToken, (req: AuthRequest, res) => {
   const businessId = req.user!.id;
   try {
     const products = ProductService.getLowStockProducts(businessId);
@@ -152,7 +152,7 @@ router.get("/low-stock", (req: AuthRequest, res) => {
 });
 
 // Update reorder threshold
-router.patch("/:id/threshold", (req: AuthRequest, res) => {
+router.patch("/:id/threshold", authenticateToken, (req: AuthRequest, res) => {
   const { id } = req.params;
   const { threshold } = req.body;
   const businessId = req.user!.id;
@@ -171,7 +171,7 @@ router.patch("/:id/threshold", (req: AuthRequest, res) => {
 });
 
 // Bulk import products
-router.post("/bulk-import", (req: AuthRequest, res) => {
+router.post("/bulk-import", authenticateToken, (req: AuthRequest, res) => {
   console.log("Bulk import request received");
   const { products } = req.body;
   const businessId = req.user.id;
