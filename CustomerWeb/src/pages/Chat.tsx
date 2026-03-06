@@ -1,64 +1,86 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { chatService } from '../services/chat.service';
 import { authService } from '../services/auth.service';
 import Navbar from '../components/Navbar';
 import { Send, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 
+interface ChatMessage {
+  id: number;
+  chat_id: number;
+  sender_id: number;
+  sender_type: 'customer' | 'business';
+  text: string;
+  created_at: string;
+  read: number;
+}
+
+interface ChatRoom {
+  id: number;
+  customer_id: number;
+  business_id: number;
+  business_name: string;
+  business_owner_name?: string;
+  last_message_at: string;
+}
+
 export default function Chat() {
-  const [chats, setChats] = useState<any[]>([]);
-  const [selectedChat, setSelectedChat] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [chats, setChats] = useState<ChatRoom[]>([]);
+  const [selectedChat, setSelectedChat] = useState<ChatRoom | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const user = authService.getCurrentUser();
 
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
   useEffect(() => {
-    loadChats();
+    const fetchChats = async () => {
+      try {
+        const data = await chatService.getChats();
+        setChats(data);
+        if (data.length > 0) setSelectedChat(data[0]);
+      } catch {
+        console.error("Failed to load chats");
+      }
+    };
+    fetchChats();
   }, []);
 
   useEffect(() => {
     if (selectedChat) {
-      loadMessages(selectedChat.id);
+      const fetchMessages = async () => {
+        try {
+          const data = await chatService.getMessages(selectedChat.id);
+          setMessages(data);
+        } catch {
+          console.error("Failed to load messages");
+        }
+      };
+      fetchMessages();
+
       // Setup socket
       const socket = chatService.initSocket(user.id);
-      socket.on('new_message', (msg: any) => {
+      socket.emit('join_chat', selectedChat.id);
+
+      const handleNewMessage = (msg: ChatMessage) => {
         if (msg.chat_id === selectedChat.id) {
           setMessages(prev => [...prev, msg]);
         }
-      });
+      };
+
+      socket.on('new_message', handleNewMessage);
       return () => {
-        socket.off('new_message');
+        socket.off('new_message', handleNewMessage);
       };
     }
-  }, [selectedChat]);
+  }, [selectedChat, user.id]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const loadChats = async () => {
-    try {
-      const data = await chatService.getChats();
-      setChats(data);
-      if (data.length > 0) setSelectedChat(data[0]);
-    } catch (error) {
-      console.error("Failed to load chats");
-    }
-  };
-
-  const loadMessages = async (chatId: number) => {
-    try {
-      const data = await chatService.getMessages(chatId);
-      setMessages(data);
-    } catch (error) {
-      console.error("Failed to load messages");
-    }
-  };
+  }, [messages, scrollToBottom]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +93,7 @@ export default function Chat() {
       });
       setMessages(prev => [...prev, sentMsg]);
       setNewMessage('');
-    } catch (error) {
+    } catch {
       console.error("Failed to send message");
     }
   };
@@ -79,7 +101,7 @@ export default function Chat() {
   return (
     <div className="h-screen bg-slate-50 flex flex-col">
       <Navbar />
-      <div className="flex-grow flex overflow-hidden">
+      <div className="grow flex overflow-hidden">
         {/* Chat List */}
         <div className="w-80 bg-white border-r border-slate-100 overflow-y-auto hidden md:block">
           <div className="p-4 border-b border-slate-50">
@@ -105,7 +127,7 @@ export default function Chat() {
         </div>
 
         {/* Chat Window */}
-        <div className="flex-grow flex flex-col bg-white">
+        <div className="grow flex flex-col bg-white">
           {selectedChat ? (
             <>
               {/* Header */}
@@ -120,7 +142,7 @@ export default function Chat() {
               </div>
 
               {/* Messages */}
-              <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50">
+              <div className="grow overflow-y-auto p-4 space-y-4 bg-slate-50">
                 {messages.map((msg, i) => (
                   <div 
                     key={msg.id || i}
@@ -157,7 +179,7 @@ export default function Chat() {
               </form>
             </>
           ) : (
-            <div className="flex-grow flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+            <div className="grow flex flex-col items-center justify-center text-slate-400 p-8 text-center">
               <MessageSquare className="h-16 w-16 mb-4 opacity-20" />
               <h3 className="text-lg font-semibold text-slate-900">Select a chat to start messaging</h3>
               <p className="max-w-xs mt-2">Communicate directly with business owners about your orders and materials.</p>

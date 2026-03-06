@@ -1,7 +1,17 @@
 import api from './api';
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+// Extract the base API URL (e.g., https://stockconnect-hub.onrender.com/api)
+const API_BASE_URL = api.defaults.baseURL || 'http://localhost:5000/api';
+
+// Derive the socket URL by stripping the '/api' suffix
+let SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+if (!SOCKET_URL) {
+  SOCKET_URL = API_BASE_URL.endsWith('/api') 
+    ? API_BASE_URL.slice(0, -4) 
+    : API_BASE_URL;
+}
+
 let socket: Socket | null = null;
 
 export const chatService = {

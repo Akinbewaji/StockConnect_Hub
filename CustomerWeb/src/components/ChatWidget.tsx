@@ -66,6 +66,9 @@ export default function ChatWidget({ businessId, businessName, onClose }: ChatWi
     if (activeChatId) {
       const socket = chatService.initSocket(user.id);
       
+      // Explicitly tell the backend we are opening this specific chat room
+      socket.emit('join_chat', activeChatId);
+      
       const handleNewMessage = (msg: ChatMessage) => {
         if (msg.chat_id === activeChatId) {
           setMessages(prev => [...prev, msg]);
