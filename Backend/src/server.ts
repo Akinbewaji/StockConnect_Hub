@@ -55,14 +55,23 @@ async function startServer() {
   app.use("/api/", limiter);
 
   // 3. CORS Configuration
-  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
+  const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:5173",
+    "https://stock-connect-hub.vercel.app"
   ];
 
   app.use(
     cors({
-      origin: "*",
+      origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,

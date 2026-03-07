@@ -10,15 +10,15 @@ router.get('/sales', async (req: any, res) => {
   // SQLite date('now', '-6 days') gives us the start date.
   const stmt = db.prepare(`
     SELECT 
-      date(o.created_at) as sale_date,
+      o.created_at::date as sale_date,
       SUM(o.total_amount) as total_sales
     FROM orders o
     JOIN customers c ON o.customer_id = c.id
     WHERE c.business_id = ? 
-      AND o.created_at >= date('now', '-6 days')
+      AND o.created_at >= CURRENT_DATE - INTERVAL '6 days'
       AND o.status != 'cancelled'
-    GROUP BY date(o.created_at)
-    ORDER BY date(o.created_at) ASC
+    GROUP BY o.created_at::date
+    ORDER BY o.created_at::date ASC
   `);
   
   const rawData = (await stmt.all(businessId)) as { sale_date: string, total_sales: number }[];
