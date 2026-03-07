@@ -1,7 +1,6 @@
 import { Router } from "express";
 import db from "../db/init.js";
 import { authenticateToken } from "../middleware/auth.js";
-import fetch from "node-fetch";
 
 const router = Router();
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || "";
