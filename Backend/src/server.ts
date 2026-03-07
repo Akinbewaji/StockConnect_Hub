@@ -29,6 +29,10 @@ let io: Server;
 
 async function startServer() {
   const app = express();
+  
+  // Trust proxy for Render/Vercel (needed for express-rate-limit)
+  app.set('trust proxy', 1);
+
   const httpServer = createServer(app);
   
   io = new Server(httpServer, {
