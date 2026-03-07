@@ -20,6 +20,7 @@ import cartRoutes from "./routes/cart.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import subscriptionRoutes from "./routes/subscriptions.js";
+import maintenanceRoutes from "./routes/maintenance.routes.js";
 
 // Load environment variables
 dotenv.config();
@@ -103,6 +104,7 @@ async function startServer() {
   app.use("/api/analytics", authenticateToken, analyticsRoutes);
   app.use("/api/subscriptions", authenticateToken, subscriptionRoutes);
   app.use("/api/settings", authenticateToken, checkRole(['owner']), settingsRoutes);
+  app.use("/api/maintenance", authenticateToken, checkRole(['owner']), maintenanceRoutes);
 
   // Socket.io Connection
   io.on("connection", (socket: any) => {

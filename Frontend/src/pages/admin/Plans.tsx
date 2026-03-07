@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, Zap, Crown, Shield, Rocket } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authFetch } from '../../utils/api';
@@ -56,6 +57,7 @@ const PLANS = [
 
 export default function Plans() {
   const { user, updateUser } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -72,7 +74,13 @@ export default function Plans() {
   }, []);
 
   const handleUpgrade = (plan: any) => {
-    if (plan.id === 'free') return;
+    if (plan.id === 'free') {
+        // If they want to downgrade to free or just select it
+        // We might want to allow this if they are currently on pro? 
+        // For now, let's just keep it simple.
+        return;
+    }
+    
     if (user?.plan?.toLowerCase() === plan.id) {
        alert("You are already on this plan!");
        return;
@@ -81,7 +89,7 @@ export default function Plans() {
     setLoading(plan.id);
     
     const handler = PaystackPop.setup({
-      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_placeholder', // Use test key placeholder
+      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_placeholder',
       email: user?.email || `${user?.username}@stockconnect.com`,
       amount: plan.price * 100, // Amount in kobo
       currency: 'NGN',
@@ -100,6 +108,7 @@ export default function Plans() {
           if (data.success) {
             updateUser(data.user);
             setMessage({ type: 'success', text: `Successfully upgraded to ${plan.name}!` });
+            setTimeout(() => navigate('/admin'), 2000);
           } else {
             throw new Error(data.error || 'Verification failed');
           }
@@ -120,16 +129,15 @@ export default function Plans() {
   return (
     <div className="max-w-6xl mx-auto space-y-12 pb-20">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-slate-900">Choose Your Plan</h1>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-          Scale your hardware business with powerful inventory and marketing tools.
-          Select the tier that fits your growth.
+        <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Choose Your Plan</h1>
+        <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          Scale your hardware business with tools designed for Nigerian SMEs. No hidden fees.
         </p>
       </div>
 
       {message && (
         <div className={`p-4 rounded-xl text-center font-medium ${
-          message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+          message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'
         }`}>
           {message.text}
         </div>
@@ -137,15 +145,17 @@ export default function Plans() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {PLANS.map((plan) => {
-          const isCurrent = user?.plan?.toLowerCase() === plan.id;
           const Icon = plan.icon;
-          
+          const isCurrent = user?.plan?.toLowerCase() === plan.id;
+
           return (
             <motion.div
               key={plan.id}
               whileHover={{ y: -5 }}
               className={`relative bg-white rounded-3xl p-8 border-2 transition-all flex flex-col ${
-                plan.popular ? 'border-indigo-600 shadow-xl shadow-indigo-100 scale-105 z-10' : 'border-slate-100 shadow-sm'
+                plan.popular 
+                  ? 'border-indigo-600 shadow-2xl shadow-indigo-100 ring-4 ring-indigo-50' 
+                  : 'border-slate-100 shadow-xl'
               }`}
             >
               {plan.popular && (
@@ -154,74 +164,82 @@ export default function Plans() {
                 </div>
               )}
 
-              <div className="space-y-6 flex-1">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-                  plan.color === 'amber' ? 'bg-amber-50 text-amber-600' : 
-                  plan.color === 'indigo' ? 'bg-indigo-50 text-indigo-600' : 
-                  'bg-slate-50 text-slate-600'
-                }`}>
-                  <Icon size={28} />
+              <div className="mb-8">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 bg-${plan.color}-100 text-${plan.color}-600`}>
+                  <Icon size={24} />
                 </div>
+                <h3 className="text-2xl font-bold text-slate-900">{plan.name}</h3>
+                <p className="text-slate-500 mt-2 text-sm">{plan.description}</p>
+                <div className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-slate-900">₦{plan.price.toLocaleString()}</span>
+                  <span className="text-slate-500">/month</span>
+                </div>
+              </div>
 
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">{plan.name}</h3>
-                  <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-slate-900">₦{plan.price.toLocaleString()}</span>
-                    <span className="text-slate-500 font-medium">/month</span>
+              <div className="space-y-4 mb-8 flex-1">
+                {plan.features.map((feature, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="mt-1 w-5 h-5 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                    <span className="text-slate-600 text-sm leading-relaxed">{feature}</span>
                   </div>
-                  <p className="mt-4 text-slate-500 text-sm leading-relaxed">
-                    {plan.description}
-                  </p>
-                </div>
-
-                <ul className="space-y-4 pt-4">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-slate-600">
-                      <div className="mt-1 p-0.5 rounded-full bg-green-50 text-green-500">
-                        <Check size={12} strokeWidth={4} />
-                      </div>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                ))}
               </div>
 
-              <div className="mt-10">
-                <button
-                  onClick={() => handleUpgrade(plan)}
-                  disabled={isCurrent || plan.id === 'free' || (loading !== null)}
-                  className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${
-                    isCurrent 
-                      ? 'bg-slate-100 text-slate-400 cursor-default'
-                      : plan.id === 'free'
-                        ? 'bg-slate-100 text-slate-400 cursor-default'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100'
-                  }`}
-                >
-                  {loading === plan.id ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    isCurrent ? 'Current Plan' : 'Select Plan'
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={() => handleUpgrade(plan)}
+                disabled={isCurrent || (loading === plan.id) || (plan.id === 'free' && !isCurrent)}
+                className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${
+                  isCurrent 
+                    ? 'bg-slate-100 text-slate-400 cursor-default'
+                    : plan.id === 'free'
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100'
+                }`}
+              >
+                {loading === plan.id ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : isCurrent ? (
+                  'Current Plan'
+                ) : (
+                  'Select Plan'
+                )}
+              </button>
             </motion.div>
           );
         })}
       </div>
 
-      <div className="bg-slate-900 rounded-3xl p-12 text-white relative overflow-hidden">
-        <div className="relative z-10 max-w-2xl">
-          <h2 className="text-3xl font-bold mb-4">Enterprise Customization?</h2>
-          <p className="text-slate-400 mb-8">
-            Need more than 2,000 SMS credits or custom integrations for your hardware franchise? 
-            We offer tailored solutions for large-scale operations across Nigeria.
-          </p>
-          <button className="flex items-center gap-2 bg-white text-slate-900 px-8 py-3 rounded-xl font-bold hover:bg-slate-100 transition-colors">
-            Contact Enterprise Sales <Shield size={20} />
-          </button>
+      {/* Trust Badges */}
+      <div className="pt-12 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-slate-100">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600">
+            <Shield size={20} />
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">Secure Payment</h4>
+            <p className="text-xs text-slate-500">Fast and encrypted via Paystack</p>
+          </div>
         </div>
-        <div className="absolute right-0 bottom-0 opacity-10 blur-3xl w-96 h-96 bg-indigo-500 rounded-full -mr-20 -mb-20"></div>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600">
+            <Rocket size={20} />
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">Instant Activation</h4>
+            <p className="text-xs text-slate-500">Features unlocked immediately</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600">
+            <Zap size={20} />
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">Cancel Anytime</h4>
+            <p className="text-xs text-slate-500">No long-term contracts</p>
+          </div>
+        </div>
       </div>
     </div>
   );

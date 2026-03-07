@@ -1,5 +1,6 @@
 import db from "../db/init.js";
 import { NotificationService } from "./notification.service.js";
+import { ReceiptService } from "./receipt.service.js"; // Fixed extension
 import { io } from "../server.js";
 
 export class OrderService {
@@ -68,6 +69,9 @@ export class OrderService {
     };
 
     const orderId = await transaction();
+    
+    // Send receipts asynchronously to both ends
+    ReceiptService.sendReceipts(orderId, businessId).catch(console.error);
     
     // Emit real-time update
     if (io) {

@@ -104,6 +104,7 @@ export async function initializeDatabase() {
         email VARCHAR(255),
         user_id INTEGER,
         loyalty_points INTEGER DEFAULT 0,
+        loyalty_points_claimed INTEGER DEFAULT 0,
         business_id INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,

@@ -157,13 +157,37 @@ export default function Settings() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
+  const [fullResetConfirmText, setFullResetConfirmText] = useState('');
+  const [showFullResetModal, setShowFullResetModal] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  // ... (keep fetchSettings etc.)
+
+  const handleFullReset = async () => {
+    if (fullResetConfirmText !== 'RESET ALL') return;
+    
+    setResetting(true);
+    try {
+      const res = await authFetch('/api/maintenance/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmText: fullResetConfirmText })
+      });
+      
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'All business data (stock, loyalty, orders) has been reset to zero.' });
+        setShowFullResetModal(false);
+        setFullResetConfirmText('');
+        fetchSettings(); // Refresh UI
+      } else {
+        throw new Error('Failed to reset data');
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'An error occurred while resetting data.' });
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -520,20 +544,20 @@ export default function Settings() {
             <h2 className="font-bold text-red-900">Danger Zone</h2>
           </div>
           <div className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-6 border-t border-red-100">
               <div className="space-y-1 md:pr-10">
-                <span className="text-sm font-bold text-red-900">Wipe POS Transactions</span>
+                <span className="text-sm font-bold text-red-900">Full Business Reset</span>
                 <p className="text-xs text-red-700 leading-relaxed">
-                  Permanently delete all Orders, Order Items, and Stock Movements. 
-                  <span className="block mt-1 font-semibold">Products and Customers will be kept. This action cannot be reversed.</span>
+                  Reset EVERYTHING. This will zero out all product stock levels, clear all customer loyalty points, and delete all sales history. 
+                  <span className="block mt-1 font-semibold underline">Your product names and customer profiles will be preserved, but all activity will be zeroed.</span>
                 </p>
               </div>
               <button 
                 type="button"
-                onClick={() => setShowWipeModal(true)}
-                className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+                onClick={() => setShowFullResetModal(true)}
+                className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-200 transition-all"
               >
-                Wipe Data
+                Reset Attributes
               </button>
             </div>
           </div>
@@ -563,8 +587,11 @@ export default function Settings() {
       </form>
 
       {/* Wipe Confirmation Modal */}
+      {/* ... (existing wipe modal) ... */}
+
+      {/* Full Reset Confirmation Modal */}
       <AnimatePresence>
-        {showWipeModal && (
+        {showFullResetModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -577,48 +604,50 @@ export default function Settings() {
               exit={{ scale: 0.95, y: 20 }}
               className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6"
             >
-              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle size={32} />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Are you sure?</h2>
+              <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Full Reset Required?</h2>
               <p className="text-slate-500 text-center mb-6 text-sm">
-                This will permanently delete ALL historical order and transaction data from your application. Your products and customers will not be altered.
+                This will zero out all stock levels, clear all loyalty points, and delete ALL transaction history. Product names and customer contact details will remain.
               </p>
               
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Type <span className="text-red-600 font-mono bg-red-50 px-2 py-0.5 rounded">WIPE DATA</span> to confirm:
+                    Type <span className="text-red-600 font-mono bg-red-50 px-2 py-0.5 rounded">RESET ALL</span> to confirm:
                   </label>
                   <input
                     type="text"
-                    value={wipeConfirmText}
-                    onChange={e => setWipeConfirmText(e.target.value)}
+                    value={fullResetConfirmText}
+                    onChange={e => setFullResetConfirmText(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none font-mono"
-                    placeholder="WIPE DATA"
+                    placeholder="RESET ALL"
                   />
                 </div>
                 
                 <div className="flex gap-3 pt-2">
                   <button 
+                    type="button"
                     onClick={() => {
-                      setShowWipeModal(false);
-                      setWipeConfirmText('');
+                      setShowFullResetModal(false);
+                      setFullResetConfirmText('');
                     }}
-                    disabled={wiping}
+                    disabled={resetting}
                     className="flex-1 px-4 py-3 text-slate-600 font-bold bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                   >
                     Cancel
                   </button>
                   <button 
-                    onClick={handleWipeData}
-                    disabled={wipeConfirmText !== 'WIPE DATA' || wiping}
+                    type="button"
+                    onClick={handleFullReset}
+                    disabled={fullResetConfirmText !== 'RESET ALL' || resetting}
                     className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                   >
-                    {wiping ? (
+                    {resetting ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
-                      'Nuke It'
+                      'Reset Now'
                     )}
                   </button>
                 </div>
