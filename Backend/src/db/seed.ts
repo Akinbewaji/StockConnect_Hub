@@ -17,20 +17,20 @@ async function runSeed() {
 
   for (const s of sellers) {
     try {
-      const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(s.email) as { id: number } | undefined;
+      const existing = (await (await db.prepare("SELECT id FROM users WHERE email = ?")).get(s.email)) as { id: number } | undefined;
       if (existing) {
         sellerIds[s.business_name] = existing.id;
         continue;
       }
-      const result = db.prepare(`
+      const result = await (await db.prepare(`
         INSERT INTO users (username, email, phone, password, name, business_name, role, onboarded)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(s.username, s.email, s.phone, defaultPassword, s.name, s.business_name, s.role, s.onboarded);
+      `)).run(s.username, s.email, s.phone, defaultPassword, s.name, s.business_name, s.role, s.onboarded);
       sellerIds[s.business_name] = result.lastInsertRowid as number;
       console.log(`✅ Created Seller: ${s.business_name}`);
       
       // Seed seller settings
-      db.prepare(`INSERT INTO settings (business_id, currency, phone) VALUES (?, '₦', ?)`).run(result.lastInsertRowid, s.phone);
+      await (await db.prepare(`INSERT INTO settings (business_id, currency, phone) VALUES (?, '₦', ?)`)).run(result.lastInsertRowid, s.phone);
     } catch (e: any) {
       console.log(`⚠️ Skiped Seller ${s.business_name}: ${e.message}`);
     }
@@ -47,26 +47,26 @@ async function runSeed() {
 
   for (const b of buyers) {
     try {
-      const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(b.email) as { id: number } | undefined;
+      const existing = (await (await db.prepare("SELECT id FROM users WHERE email = ?")).get(b.email)) as { id: number } | undefined;
       let userId;
       if (existing) {
         userId = existing.id;
       } else {
-        const result = db.prepare(`
+        const result = await (await db.prepare(`
           INSERT INTO users (username, email, phone, password, name, business_name, role, onboarded)
           VALUES (?, ?, ?, ?, ?, ?, 'customer', 1)
-        `).run(b.username, b.email, b.phone, defaultPassword, b.name, b.business_name);
+        `)).run(b.username, b.email, b.phone, defaultPassword, b.name, b.business_name);
         userId = result.lastInsertRowid as number;
         console.log(`✅ Created Buyer User: ${b.name}`);
       }
       buyerIds[b.name] = userId;
 
       // Ensure customer profile exists
-      const existingCust = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(userId) as { id: number } | undefined;
+      const existingCust = (await (await db.prepare("SELECT id FROM customers WHERE user_id = ?")).get(userId)) as { id: number } | undefined;
       if (!existingCust) {
-        const custResult = db.prepare(`
+        const custResult = await (await db.prepare(`
           INSERT INTO customers (name, phone, email, user_id) VALUES (?, ?, ?, ?)
-        `).run(b.name, b.phone, b.email, userId);
+        `)).run(b.name, b.phone, b.email, userId);
         customerProfileIds[b.name] = custResult.lastInsertRowid as number;
       } else {
         customerProfileIds[b.name] = existingCust.id;
@@ -102,10 +102,10 @@ async function runSeed() {
   ];
 
   if (techHavenId && buildCorpId && globalSupplyId) {
-    const existingProducts = db.prepare("SELECT count(*) as count FROM products").get() as any;
+    const existingProducts = await (await db.prepare("SELECT count(*) as count FROM products")).get() as any;
     // Forcing seed to insert new complete product records to fix display issues
     if (true) {
-      const insertProduct = db.prepare(`
+      const insertProduct = await db.prepare(`
         INSERT INTO products (name, category, price, quantity, supplier, business_id)
         VALUES (?, ?, ?, ?, ?, ?)
       `);
@@ -113,9 +113,9 @@ async function runSeed() {
       let pCount = 0;
       for (const p of products) {
         // Prevent duplicate by name
-        const exists = db.prepare("SELECT id FROM products WHERE name = ? AND business_id = ?").get(p.name, p.bid);
+        const exists = (await db.prepare("SELECT id FROM products WHERE name = ? AND business_id = ?").get(p.name, p.bid));
         if (!exists) {
-          insertProduct.run(p.name, p.category, p.price, p.qty, p.supplier, p.bid);
+          await insertProduct.run(p.name, p.category, p.price, p.qty, p.supplier, p.bid);
           pCount++;
         }
       }
@@ -129,12 +129,12 @@ async function runSeed() {
   const aliceId = customerProfileIds["Alice Procurement"];
   
   if (aliceId && techHavenId) {
-    const existingQuotes = db.prepare("SELECT count(*) as count FROM quotes WHERE customer_id = ?").get(aliceId) as any;
+    const existingQuotes = await (await db.prepare("SELECT count(*) as count FROM quotes WHERE customer_id = ?")).get(aliceId) as any;
     if (existingQuotes.count === 0) {
       // Find a product ID for Alice to request quote
       const macbook = db.prepare("SELECT id FROM products WHERE name = 'MacBook Pro M3 Max'").get() as any;
       if (macbook) {
-        db.prepare(`
+        await db.prepare(`
           INSERT INTO quotes (customer_id, business_id, product_id, requested_quantity, customer_message, attachment_url, status)
           VALUES (?, ?, ?, ?, ?, ?, 'pending')
         `).run(aliceId, techHavenId, macbook.id, 50, "We need 50 units for our new engineering team. Please review the attached specs.", "https://example.com/specs.pdf");
@@ -148,7 +148,7 @@ async function runSeed() {
      if (existingQuotes.count === 0) {
        const drill = db.prepare("SELECT id FROM products WHERE name = 'DeWalt 20V Max Drill'").get() as any;
        if (drill) {
-         db.prepare(`
+         await db.prepare(`
            INSERT INTO quotes (customer_id, business_id, product_id, requested_quantity, price, customer_message, seller_response, status)
            VALUES (?, ?, ?, ?, ?, ?, ?, 'responded')
          `).run(aliceId, buildCorpId, drill.id, 100, 110000, "Interested in wholesale pricing for 100 drills.", "We can offer a discount to 110k per unit for this volume.");

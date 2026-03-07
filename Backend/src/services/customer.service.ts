@@ -1,7 +1,7 @@
 import db from "../db/init.js";
 
 export class CustomerService {
-  static getAll(
+  static async getAll(
     businessId: number, 
     limit: number = 20, 
     offset: number = 0,
@@ -18,8 +18,8 @@ export class CustomerService {
     }
 
     query += " ORDER BY name ASC LIMIT ? OFFSET ?";
-    const data = db.prepare(query).all(...params, limit, offset);
-    const { total } = db.prepare(countQuery).get(...params) as any;
+    const data = (await (await db.prepare(query)).all(...params, limit, offset)) as any[];
+    const { total } = (await (await db.prepare(countQuery)).get(...params)) as any;
     
     return { data, total };
   }
@@ -28,21 +28,21 @@ export class CustomerService {
     return db.prepare("SELECT * FROM customers WHERE id = ?").get(id);
   }
 
-  static create(data: any, businessId: number) {
+  static async create(data: any, businessId: number) {
     const { name, phone, email } = data;
-    const stmt = db.prepare(
-      "INSERT INTO customers (name, phone, email, business_id) VALUES (?, ?, ?, ?)"
+    const stmt = await db.prepare(
+      "INSERT INTO customers (business_id, name, phone, email) VALUES (?, ?, ?, ?)",
     );
-    const info = stmt.run(name, phone, email, businessId);
+    const info = await stmt.run(businessId, data.name, data.phone, data.email);
     return info.lastInsertRowid;
   }
 
-  static update(id: number | string, data: any) {
+  static async update(id: number | string, data: any) {
     const { name, phone, email } = data;
-    const stmt = db.prepare(
+    const stmt = await db.prepare(
       "UPDATE customers SET name = ?, phone = ?, email = ? WHERE id = ?"
     );
-    const info = stmt.run(name, phone, email, id);
-    return info.changes > 0;
+    const info = await stmt.run(name, phone, email, id);
+    return (info.changes ?? 0) > 0;
   }
 }

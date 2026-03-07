@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import db from '../db/init';
+import db from '../db/init.js';
 import { customerSchema } from "../types/schemas.js";
 import { CustomerService } from "../services/customer.service.js";
 
 const router = Router();
 
 // Get all customers
-router.get('/', (req: any, res) => {
+router.get('/', async (req: any, res) => {
   const { search, page, limit } = req.query;
   const businessId = req.user.id;
   
@@ -15,7 +15,7 @@ router.get('/', (req: any, res) => {
   const offset = (pPage - 1) * pLimit;
 
   try {
-    const result = CustomerService.getAll(
+    const result = await CustomerService.getAll(
       businessId, 
       pLimit, 
       offset, 
@@ -29,7 +29,7 @@ router.get('/', (req: any, res) => {
 });
 
 // Create customer
-router.post("/", (req: any, res) => {
+router.post("/", async (req: any, res) => {
   const result = customerSchema.safeParse(req.body);
   if (!result.success) {
     return res.status(400).json({ 
@@ -42,7 +42,7 @@ router.post("/", (req: any, res) => {
   const businessId = req.user.id;
 
   try {
-    const customerId = CustomerService.create(result.data, businessId);
+    const customerId = await CustomerService.create(result.data, businessId);
     res.json({ id: customerId, name, phone, email });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create customer' });
@@ -50,34 +50,36 @@ router.post("/", (req: any, res) => {
 });
 
 // Get customer details with orders
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const customerStmt = db.prepare('SELECT * FROM customers WHERE id = ?');
-    const customer = customerStmt.get(id);
+    const customerStmt = await db.prepare('SELECT * FROM customers WHERE id = ?');
+    const customer = await customerStmt.get(id);
     
     if (!customer) {
       return res.status(404).json({ error: 'Customer not found' });
     }
 
-    const ordersStmt = db.prepare(`
+    const ordersStmt = await db.prepare(`
       SELECT * FROM orders 
       WHERE customer_id = ? 
       ORDER BY created_at DESC
     `);
-    const orders = ordersStmt.all(id);
+    const orders = await ordersStmt.all(id) as any[];
 
     // Fetch items for each order
-    const ordersWithItems = orders.map((order: any) => {
-      const itemsStmt = db.prepare(`
-        SELECT oi.*, p.name as product_name 
-        FROM order_items oi
-        JOIN products p ON oi.product_id = p.id
-        WHERE oi.order_id = ?
-      `);
-      const items = itemsStmt.all(order.id);
-      return { ...order, items };
-    });
+    const ordersWithItems = await Promise.all(
+      orders.map(async (order: any) => {
+        const itemsStmt = await db.prepare(`
+          SELECT oi.*, p.name as product_name 
+          FROM order_items oi
+          JOIN products p ON oi.product_id = p.id
+          WHERE oi.order_id = ?
+        `);
+        const items = await itemsStmt.all(order.id);
+        return { ...order, items };
+      })
+    );
 
     res.json({ ...customer, orders: ordersWithItems });
   } catch (error) {

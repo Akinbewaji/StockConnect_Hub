@@ -17,10 +17,10 @@ export async function requestQuote(req: any, res: Response) {
     const product = db.prepare("SELECT business_id, name FROM products WHERE id = ?").get(productId) as any;
     if (!product) return res.status(404).json({ error: "Product not found" });
 
-    const result = db.prepare(`
+    const result = await (await db.prepare(`
       INSERT INTO quotes (customer_id, business_id, product_id, requested_quantity, customer_message, attachment_url, status)
       VALUES (?, ?, ?, ?, ?, ?, 'pending')
-    `).run(customer.id, product.business_id, productId, requestedQuantity, message, attachmentUrl || null);
+    `)).run(customer.id, product.business_id, productId, requestedQuantity, message, attachmentUrl || null);
 
     const quoteId = result.lastInsertRowid;
 

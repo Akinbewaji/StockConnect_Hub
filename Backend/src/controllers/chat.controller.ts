@@ -96,9 +96,10 @@ export async function sendMessage(req: any, res: Response) {
           .get(customer.id, businessIdValue) as any;
         
         if (!chat) {
-          const result = db.prepare("INSERT INTO chats (customer_id, business_id) VALUES (?, ?)")
-            .run(customer.id, businessIdValue);
-          activeChatId = result.lastInsertRowid;
+          const newChatId = (await (await db.prepare(
+      "INSERT INTO chats (customer_id, business_id) VALUES (?, ?)",
+    )).run(customer.id, businessIdValue)).lastInsertRowid;
+          activeChatId = newChatId;
         } else {
           activeChatId = chat.id;
         }
@@ -112,35 +113,32 @@ export async function sendMessage(req: any, res: Response) {
       businessIdValue = req.user.id;
       
       if (!activeChatId) {
-        // Business can't easily start chat without customerId
         if (!bodyCustomerId) return res.status(400).json({ error: "Customer ID required to start chat" });
         
-        let chat = db.prepare("SELECT id FROM chats WHERE customer_id = ? AND business_id = ?")
-          .get(bodyCustomerId, businessIdValue) as any;
+        let chat = (await (await db.prepare("SELECT id FROM chats WHERE customer_id = ? AND business_id = ?")).get(bodyCustomerId, businessIdValue)) as any;
           
         if (!chat) {
-          const result = db.prepare("INSERT INTO chats (customer_id, business_id) VALUES (?, ?)")
-            .run(bodyCustomerId, businessIdValue);
+          const result = await (await db.prepare("INSERT INTO chats (customer_id, business_id) VALUES (?, ?)")).run(bodyCustomerId, businessIdValue);
           activeChatId = result.lastInsertRowid;
         } else {
           activeChatId = chat.id;
         }
       } else {
         // Verify chat belongs to business
-        const chat = db.prepare("SELECT business_id, customer_id FROM chats WHERE id = ?").get(activeChatId) as any;
+        const chat = (await (await db.prepare("SELECT business_id, customer_id FROM chats WHERE id = ?")).get(activeChatId)) as any;
         if (!chat || chat.business_id !== businessIdValue) return res.status(403).json({ error: "Unauthorized" });
       }
     }
 
-    const messageResult = db.prepare(`
-      INSERT INTO messages (chat_id, sender_id, sender_type, text)
-      VALUES (?, ?, ?, ?)
-    `).run(activeChatId, req.user.id, senderType, text);
+    const messageResult = await (await db.prepare(
+      "INSERT INTO messages (chat_id, sender_id, sender_type, text) VALUES (?, ?, ?, ?)",
+    )).run(activeChatId, req.user.id, senderType, text);
+    const messageId = messageResult.lastInsertRowid;
 
-    db.prepare("UPDATE chats SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?").run(activeChatId);
+    await (await db.prepare("UPDATE chats SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?")).run(activeChatId);
 
     const message = {
-      id: messageResult.lastInsertRowid,
+      id: messageId,
       chat_id: activeChatId,
       sender_id: req.user.id,
       sender_type: senderType,

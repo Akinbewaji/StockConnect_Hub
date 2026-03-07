@@ -1,19 +1,19 @@
 import { Router } from 'express';
-import db from '../db/init';
+import db from '../db/init.js';
 
 const router = Router();
 
 // Get settings
-router.get('/', (req: any, res) => {
+router.get('/', async (req: any, res) => {
   const businessId = req.user.id;
   try {
     let settings = db.prepare('SELECT * FROM settings WHERE business_id = ?').get(businessId);
     
     if (!settings) {
       // Initialize default settings if not exists
-      const stmt = db.prepare('INSERT INTO settings (business_id) VALUES (?)');
-      stmt.run(businessId);
-      settings = db.prepare('SELECT * FROM settings WHERE business_id = ?').get(businessId);
+      const stmt = await db.prepare('INSERT INTO settings (business_id) VALUES (?)');
+      await stmt.run(businessId);
+      settings = await db.prepare('SELECT * FROM settings WHERE business_id = ?').get(businessId);
     }
     
     res.json(settings);
@@ -78,7 +78,7 @@ router.patch('/', (req: any, res) => {
 });
 
 // Export Data (Products, Customers, Orders) to CSV
-router.get('/export/:type', (req: any, res) => {
+router.get('/export/:type', async (req: any, res) => {
   const businessId = req.user.id;
   const { type } = req.params;
 
@@ -87,13 +87,13 @@ router.get('/export/:type', (req: any, res) => {
     let filename = '';
 
     if (type === 'products') {
-      data = db.prepare('SELECT id, name, category, price, quantity FROM products WHERE business_id = ?').all(businessId);
+      data = (await db.prepare('SELECT id, name, category, price, quantity FROM products WHERE business_id = ?').all(businessId)) as any[];
       filename = 'products.csv';
     } else if (type === 'customers') {
-      data = db.prepare('SELECT id, name, phone, email, loyalty_points FROM customers WHERE business_id = ?').all(businessId);
+      data = (await db.prepare('SELECT id, name, phone, email, loyalty_points FROM customers WHERE business_id = ?').all(businessId)) as any[];
       filename = 'customers.csv';
     } else if (type === 'orders') {
-      data = db.prepare('SELECT id, total_amount, status, payment_status, created_at FROM orders WHERE customer_id IN (SELECT id FROM customers WHERE business_id = ?)').all(businessId);
+      data = (await db.prepare('SELECT id, total_amount, status, payment_status, created_at FROM orders WHERE customer_id IN (SELECT id FROM customers WHERE business_id = ?)').all(businessId)) as any[];
       filename = 'orders.csv';
     } else {
       return res.status(400).json({ error: 'Invalid export type. Must be products, customers, or orders.' });
@@ -130,7 +130,7 @@ router.get('/export/:type', (req: any, res) => {
 });
 
 // Danger Zone: Wipe POS Data
-router.post('/wipe', (req: any, res) => {
+router.post('/wipe', async (req: any, res) => {
   const businessId = req.user.id;
   // Extra layer of protection checking body word
   if (req.body.confirmText !== 'WIPE DATA') {
@@ -138,24 +138,27 @@ router.post('/wipe', (req: any, res) => {
   }
 
   try {
-    db.transaction(() => {
+    const transaction = async () => {
       // Find all customer IDs for the business to restrict order deletion safely
-      const customerStmt = db.prepare('SELECT id FROM customers WHERE business_id = ?');
-      const customerIds = customerStmt.all(businessId).map((c: any) => c.id);
+      const customerStmt = await db.prepare('SELECT id FROM customers WHERE business_id = ?');
+      const customers = (await customerStmt.all(businessId)) as any[];
+      const customerIds = customers.map(c => c.id);
 
       if (customerIds.length > 0) {
         const placeholders = customerIds.map(() => '?').join(',');
         
         // Delete order items for those orders
-        db.prepare(`DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE customer_id IN (${placeholders}))`).run(...customerIds);
+        await db.prepare(`DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE customer_id IN (${placeholders}))`).run(...customerIds);
         
         // Delete orders
-        db.prepare(`DELETE FROM orders WHERE customer_id IN (${placeholders})`).run(...customerIds);
+        await db.prepare(`DELETE FROM orders WHERE customer_id IN (${placeholders})`).run(...customerIds);
       }
       
       // Delete stock movements for products belonging to the business
-      db.prepare(`DELETE FROM stock_movements WHERE product_id IN (SELECT id FROM products WHERE business_id = ?)`).run(businessId);
-    })();
+      await db.prepare(`DELETE FROM stock_movements WHERE product_id IN (SELECT id FROM products WHERE business_id = ?)`).run(businessId);
+    };
+    
+    await transaction();
     
     res.json({ success: true, message: 'All POS transaction data wiped successfully.' });
   } catch (error) {

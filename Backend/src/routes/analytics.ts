@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import db from '../db/init';
+import db from '../db/init.js';
 
 const router = Router();
 
-router.get('/sales', (req: any, res) => {
+router.get('/sales', async (req: any, res) => {
   const businessId = req.user.id;
 
   // We want to return the last 7 days including today.
@@ -21,7 +21,7 @@ router.get('/sales', (req: any, res) => {
     ORDER BY date(o.created_at) ASC
   `);
   
-  const rawData = stmt.all(businessId) as { sale_date: string, total_sales: number }[];
+  const rawData = (await stmt.all(businessId)) as { sale_date: string, total_sales: number }[];
 
   // Generate the last 7 days array to ensure days with 0 sales are included
   const last7Days: { dateStr: string; name: string; sales: number }[] = [];
@@ -59,22 +59,22 @@ router.get('/sales', (req: any, res) => {
   res.json(formattedData);
 });
 
-router.get('/summary', (req: any, res) => {
+router.get('/summary', async (req: any, res) => {
   const businessId = req.user.id;
   
-  const productCount = db.prepare('SELECT COUNT(*) as count FROM products WHERE business_id = ?').get(businessId) as any;
-  const lowStockCount = db.prepare('SELECT COUNT(*) as count FROM products WHERE business_id = ? AND quantity <= reorder_threshold').get(businessId) as any;
+  const productCount = (await db.prepare('SELECT COUNT(*) as count FROM products WHERE business_id = ?').get(businessId)) as any;
+  const lowStockCount = (await db.prepare('SELECT COUNT(*) as count FROM products WHERE business_id = ? AND quantity <= reorder_threshold').get(businessId)) as any;
   
-  const orderCount = db.prepare(`
+  const orderCount = (await db.prepare(`
     SELECT COUNT(*) as count 
     FROM orders o
     JOIN customers c ON o.customer_id = c.id
     WHERE c.business_id = ?
-  `).get(businessId) as any;
+  `).get(businessId)) as any;
 
   // Revenue & Profit Periods
-  const getRevenueForPeriod = (start: string, end: string) => {
-    return db.prepare(`
+  const getRevenueForPeriod = async (start: string, end: string) => {
+    return (await db.prepare(`
       SELECT SUM(oi.unit_price * oi.quantity) as revenue
       FROM order_items oi
       JOIN orders o ON oi.order_id = o.id
@@ -82,7 +82,7 @@ router.get('/summary', (req: any, res) => {
       WHERE c.business_id = ? 
         AND o.status != 'cancelled'
         AND o.created_at >= ? AND o.created_at <= ?
-    `).get(businessId, start, end) as any;
+    `).get(businessId, start, end)) as any;
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -91,11 +91,11 @@ router.get('/summary', (req: any, res) => {
   firstDayOfMonth.setDate(1);
   const startOfMonth = firstDayOfMonth.toISOString().split('T')[0];
 
-  const revToday = getRevenueForPeriod(today + ' 00:00:00', today + ' 23:59:59').revenue || 0;
-  const revYesterday = getRevenueForPeriod(yesterday + ' 00:00:00', yesterday + ' 23:59:59').revenue || 0;
-  const revMonth = getRevenueForPeriod(startOfMonth + ' 00:00:00', today + ' 23:59:59').revenue || 0;
+  const revToday = (await getRevenueForPeriod(today + ' 00:00:00', today + ' 23:59:59')).revenue || 0;
+  const revYesterday = (await getRevenueForPeriod(yesterday + ' 00:00:00', yesterday + ' 23:59:59')).revenue || 0;
+  const revMonth = (await getRevenueForPeriod(startOfMonth + ' 00:00:00', today + ' 23:59:59')).revenue || 0;
 
-  const financialStats = db.prepare(`
+  const financialStats = (await db.prepare(`
     SELECT 
       SUM(oi.unit_price * oi.quantity) as revenue,
       SUM(oi.unit_cost * oi.quantity) as cost
@@ -103,9 +103,9 @@ router.get('/summary', (req: any, res) => {
     JOIN orders o ON oi.order_id = o.id
     JOIN customers c ON o.customer_id = c.id
     WHERE c.business_id = ? AND o.status != 'cancelled'
-  `).get(businessId) as any;
+  `).get(businessId)) as any;
   
-  const campaignCount = db.prepare('SELECT COUNT(*) as count FROM campaigns WHERE business_id = ?').get(businessId) as any;
+  const campaignCount = (await db.prepare('SELECT COUNT(*) as count FROM campaigns WHERE business_id = ?').get(businessId)) as any;
 
   const revenue = financialStats.revenue || 0;
   const cost = financialStats.cost || 0;

@@ -1,0 +1,16 @@
+src/controllers/chat.controller.ts(125,33): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/db/seed.ts(20,24): error TS2352: Conversion of type 'Promise<any>' to type '{ id: number; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'id' is missing in type 'Promise<any>' but required in type '{ id: number; }'.
+src/db/seed.ts(29,43): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/db/seed.ts(33,103): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/db/seed.ts(50,24): error TS2352: Conversion of type 'Promise<any>' to type '{ id: number; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'id' is missing in type 'Promise<any>' but required in type '{ id: number; }'.
+src/db/seed.ts(59,25): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/db/seed.ts(65,28): error TS2352: Conversion of type 'Promise<any>' to type '{ id: number; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'id' is missing in type 'Promise<any>' but required in type '{ id: number; }'.
+src/db/seed.ts(70,49): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/customers.ts(71,36): error TS2339: Property 'map' does not exist on type 'Promise<any[]>'.
+src/routes/products.ts(62,9): error TS2801: This condition will always return true since this 'Promise<boolean | 0 | null>' is always defined.
+src/scripts/create_demo_user.ts(30,31): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/scripts/create_demo_user.ts(38,39): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/customer.service.ts(46,12): error TS18047: 'info.changes' is possibly 'null'.

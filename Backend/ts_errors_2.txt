@@ -1,0 +1,67 @@
+src/controllers/cart.controller.ts(49,27): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/controllers/chat.controller.ts(101,33): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/controllers/chat.controller.ts(124,33): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/controllers/chat.controller.ts(143,25): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/controllers/customer.controller.ts(37,31): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/controllers/customer.controller.ts(45,39): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/controllers/order.customer.controller.ts(25,19): error TS2339: Property 'length' does not exist on type 'Promise<any[]>'.
+src/controllers/order.customer.controller.ts(30,35): error TS2339: Property 'reduce' does not exist on type 'Promise<any[]>'.
+src/controllers/order.customer.controller.ts(33,28): error TS2339: Property 'transaction' does not exist on type '{ prepare: (sql: string) => { get: (...params: any[]) => Promise<any>; all: (...params: any[]) => Promise<any[]>; run: (...params: any[]) => Promise<{ lastInsertRowid: any; changes: number | null; }>; }; exec: (sql: string) => Promise<...>; }'.
+src/controllers/order.customer.controller.ts(40,35): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/controllers/order.customer.controller.ts(43,26): error TS2352: Conversion of type 'Promise<any[]>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Promise<any[]>' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+src/controllers/quote.controller.ts(25,28): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/db/seed.ts(20,24): error TS2352: Conversion of type 'Promise<any>' to type '{ id: number; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'id' is missing in type 'Promise<any>' but required in type '{ id: number; }'.
+src/db/seed.ts(29,43): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/db/seed.ts(33,103): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/db/seed.ts(50,24): error TS2352: Conversion of type 'Promise<any>' to type '{ id: number; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'id' is missing in type 'Promise<any>' but required in type '{ id: number; }'.
+src/db/seed.ts(59,25): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/db/seed.ts(65,28): error TS2352: Conversion of type 'Promise<any>' to type '{ id: number; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'id' is missing in type 'Promise<any>' but required in type '{ id: number; }'.
+src/db/seed.ts(70,49): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/analytics.ts(24,19): error TS2352: Conversion of type 'Promise<any[]>' to type '{ sale_date: string; total_sales: number; }[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Promise<any[]>' is missing the following properties from type '{ sale_date: string; total_sales: number; }[]': length, pop, push, concat, and 29 more.
+src/routes/auth.ts(38,18): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(46,18): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(190,33): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(195,25): error TS2339: Property 'transaction' does not exist on type '{ prepare: (sql: string) => { get: (...params: any[]) => Promise<any>; all: (...params: any[]) => Promise<any[]>; run: (...params: any[]) => Promise<{ lastInsertRowid: any; changes: number | null; }>; }; exec: (sql: string) => Promise<...>; }'.
+src/routes/auth.ts(200,108): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(201,91): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(202,96): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(203,93): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(209,106): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(210,106): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(221,83): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(227,84): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/auth.ts(231,84): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/campaigns.ts(36,25): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/routes/campaigns.ts(68,19): error TS2352: Conversion of type 'Promise<any[]>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Promise<any[]>' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+src/routes/campaigns.ts(83,19): error TS2352: Conversion of type 'Promise<any[]>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Promise<any[]>' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+src/routes/campaigns.ts(89,19): error TS2352: Conversion of type 'Promise<any[]>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Promise<any[]>' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+src/routes/customers.ts(71,36): error TS2339: Property 'map' does not exist on type 'Promise<any[]>'.
+src/routes/products.ts(104,28): error TS2339: Property 'transaction' does not exist on type '{ prepare: (sql: string) => { get: (...params: any[]) => Promise<any>; all: (...params: any[]) => Promise<any[]>; run: (...params: any[]) => Promise<{ lastInsertRowid: any; changes: number | null; }>; }; exec: (sql: string) => Promise<...>; }'.
+src/routes/products.ts(201,28): error TS2339: Property 'transaction' does not exist on type '{ prepare: (sql: string) => { get: (...params: any[]) => Promise<any>; all: (...params: any[]) => Promise<any[]>; run: (...params: any[]) => Promise<{ lastInsertRowid: any; changes: number | null; }>; }; exec: (sql: string) => Promise<...>; }'.
+src/routes/settings.ts(90,7): error TS2740: Type 'Promise<any[]>' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+src/routes/settings.ts(93,7): error TS2740: Type 'Promise<any[]>' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+src/routes/settings.ts(96,7): error TS2740: Type 'Promise<any[]>' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.
+src/routes/settings.ts(141,8): error TS2339: Property 'transaction' does not exist on type '{ prepare: (sql: string) => { get: (...params: any[]) => Promise<any>; all: (...params: any[]) => Promise<any[]>; run: (...params: any[]) => Promise<{ lastInsertRowid: any; changes: number | null; }>; }; exec: (sql: string) => Promise<...>; }'.
+src/routes/settings.ts(144,56): error TS2339: Property 'map' does not exist on type 'Promise<any[]>'.
+src/scripts/create_demo_user.ts(30,31): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/scripts/create_demo_user.ts(38,39): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/customer.service.ts(37,17): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/customer.service.ts(46,17): error TS2339: Property 'changes' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/order.service.ts(29,28): error TS2339: Property 'transaction' does not exist on type '{ prepare: (sql: string) => { get: (...params: any[]) => Promise<any>; all: (...params: any[]) => Promise<any[]>; run: (...params: any[]) => Promise<{ lastInsertRowid: any; changes: number | null; }>; }; exec: (sql: string) => Promise<...>; }'.
+src/services/order.service.ts(33,28): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/order.service.ts(81,14): error TS2339: Property 'changes' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/order.service.ts(85,17): error TS2339: Property 'changes' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/product.service.ts(88,17): error TS2339: Property 'lastInsertRowid' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/product.service.ts(114,14): error TS2339: Property 'changes' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/product.service.ts(118,17): error TS2339: Property 'changes' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/product.service.ts(140,17): error TS2339: Property 'changes' does not exist on type 'Promise<{ lastInsertRowid: any; changes: number | null; }>'.
+src/services/webpush.service.ts(46,29): error TS2352: Conversion of type 'Promise<any[]>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Promise<any[]>' is missing the following properties from type 'any[]': length, pop, push, concat, and 29 more.

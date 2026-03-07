@@ -53,12 +53,12 @@ router.post("/", authenticateToken, (req: any, res) => {
 });
 
 // Update product
-router.put("/:id", authenticateToken, (req: any, res) => {
+router.put("/:id", authenticateToken, async (req: any, res) => {
   const { id } = req.params;
   const businessId = req.user.id;
 
   try {
-    const success = ProductService.update(id, req.body, businessId);
+    const success = await ProductService.update(id, req.body, businessId);
     if (success) {
       res.json({ success: true });
     } else {
@@ -70,13 +70,31 @@ router.put("/:id", authenticateToken, (req: any, res) => {
   }
 });
 
+// Delete product
+router.delete("/:id", authenticateToken, async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const businessId = req.user!.id;
+
+  try {
+    const deleteRes = await ProductService.delete(id);
+    if (deleteRes) {
+      res.json({ message: "Product deleted successfully" });
+    } else {
+      res.status(404).json({ error: "Product not found" });
+    }
+  } catch (error: any) {
+    console.error("Failed to delete product:", error);
+    res.status(500).json({ error: error.message || "Failed to delete product" });
+  }
+});
+
 // Get product by barcode
-router.get("/barcode/:barcode", authenticateToken, (req: any, res) => {
+router.get("/barcode/:barcode", authenticateToken, async (req: any, res) => {
   const { barcode } = req.params;
   const businessId = req.user.id;
 
   try {
-    const product = ProductService.getByBarcode(barcode, businessId);
+    const product = await ProductService.getByBarcode(barcode, businessId);
     if (product) {
       res.json(product);
     } else {
@@ -89,7 +107,7 @@ router.get("/barcode/:barcode", authenticateToken, (req: any, res) => {
 });
 
 // Update stock
-router.post("/:id/stock", authenticateToken, (req, res) => {
+router.post("/:id/stock", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { quantity, reason } = req.body; // quantity can be positive or negative
 
@@ -101,12 +119,12 @@ router.post("/:id/stock", authenticateToken, (req, res) => {
       "INSERT INTO stock_movements (product_id, change_amount, reason) VALUES (?, ?, ?)",
     );
 
-    const transaction = db.transaction(() => {
-      updateStmt.run(quantity, id);
-      logStmt.run(id, quantity, reason || "adjustment");
-    });
+    const transaction = async () => {
+      await updateStmt.run(quantity, id);
+      await logStmt.run(id, quantity, reason || "adjustment");
+    };
 
-    transaction();
+    await transaction();
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: "Failed to update stock" });
@@ -171,7 +189,7 @@ router.patch("/:id/threshold", authenticateToken, (req: AuthRequest, res) => {
 });
 
 // Bulk import products
-router.post("/bulk-import", authenticateToken, (req: AuthRequest, res) => {
+router.post("/bulk-import", authenticateToken, async (req: AuthRequest, res) => {
   console.log("Bulk import request received");
   const { products } = req.body;
   const businessId = req.user.id;
@@ -198,8 +216,9 @@ router.post("/bulk-import", authenticateToken, (req: AuthRequest, res) => {
       errors: [] as any[],
     };
 
-    const transaction = db.transaction(() => {
-      products.forEach((product, index) => {
+    const transaction = async () => {
+      for (let index = 0; index < products.length; index++) {
+        const product = products[index];
         try {
           // Validate required fields
           if (
@@ -213,7 +232,7 @@ router.post("/bulk-import", authenticateToken, (req: AuthRequest, res) => {
               error: "Missing required fields (name, price, quantity)",
               data: product,
             });
-            return;
+            continue;
           }
 
           ProductService.create({
@@ -231,10 +250,10 @@ router.post("/bulk-import", authenticateToken, (req: AuthRequest, res) => {
             data: product,
           });
         }
-      });
-    });
+      }
+    };
 
-    transaction();
+    await transaction();
     console.log("Import results:", results);
     res.json(results);
   } catch (error: any) {

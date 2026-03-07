@@ -22,26 +22,26 @@ async function createDemoUser() {
 
     // 1. Create a user entry
     const hashedPassword = await bcrypt.hash(demoData.password, 10);
-    const userResult = db.prepare(`
+    const userResult = await (await db.prepare(`
       INSERT INTO users (username, email, phone, password, name, business_name, role)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(demoData.email, demoData.email, formattedPhone, hashedPassword, demoData.name, 'Customer', 'customer');
+    `)).run(demoData.email, demoData.email, formattedPhone, hashedPassword, demoData.name, 'Customer', 'customer');
 
     const userId = userResult.lastInsertRowid;
 
     // 2. Create customer entry
-    const customerResult = db.prepare(`
+    const customerResult = await (await db.prepare(`
       INSERT INTO customers (name, phone, email, user_id)
       VALUES (?, ?, ?, ?)
-    `).run(demoData.name, formattedPhone, demoData.email, userId);
+    `)).run(demoData.name, formattedPhone, demoData.email, userId);
 
     const customerId = customerResult.lastInsertRowid;
 
     // 3. Add address
-    db.prepare(`
+    await (await db.prepare(`
       INSERT INTO addresses (customer_id, label, address_line1, city, state, is_default)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(customerId, 'Home', demoData.address.street, demoData.address.city, demoData.address.state, 1);
+    `)).run(customerId, 'Home', demoData.address.street, demoData.address.city, demoData.address.state, 1);
 
     console.log("✅ Demo customer created successfully!");
     console.log(`📧 Email: ${demoData.email}`);

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import db from '../db/init';
+import db from '../db/init.js';
 import { orderSchema } from "../types/schemas.js";
 import { OrderService } from "../services/order.service.js";
 

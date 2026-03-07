@@ -1,0 +1,62 @@
+
+> stockconnect-backend@1.0.0 start
+> node dist/server.js
+
+[dotenv@17.3.1] injecting env (4) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+⚠️  Africa's Talking API key not configured. SMS and WhatsApp features will not work.
+   Please set AFRICASTALKING_API_KEY in your .env file
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+Connecting to PostgreSQL...
+(node:11200) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+⚠️  Demo seed failed: error: relation "users" does not exist
+    at C:\Users\HP\Desktop\gomycode\Africa's Talking\StockConnect\Backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.get (file:///C:/Users/HP/Desktop/gomycode/Africa's%20Talking/StockConnect/Backend/dist/db/init.js:24:32)
+    at async seedDemoData (file:///C:/Users/HP/Desktop/gomycode/Africa's%20Talking/StockConnect/Backend/dist/db/init.js:295:26)
+    at async startServer (file:///C:/Users/HP/Desktop/gomycode/Africa's%20Talking/StockConnect/Backend/dist/server.js:62:5) {
+  length: 104,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '16',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+node:events:496
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 5000
+}
+
+Node.js v22.18.0

@@ -16,23 +16,23 @@ interface MessageResult {
   warning?: string;
 }
 
-router.get("/", (req: any, res) => {
+router.get("/", async (req: any, res) => {
   const businessId = req.user.id;
-  const stmt = db.prepare(
+  const stmt = await db.prepare(
     "SELECT * FROM campaigns WHERE business_id = ? ORDER BY created_at DESC",
   );
-  const campaigns = stmt.all(businessId);
+  const campaigns = await stmt.all(businessId);
   res.json(campaigns);
 });
 
-router.post("/", (req: any, res) => {
+router.post("/", async (req: any, res) => {
   const { name, message, channel } = req.body;
   const businessId = req.user.id;
   try {
-    const stmt = db.prepare(
+    const stmt = await db.prepare(
       "INSERT INTO campaigns (name, message, channel, business_id) VALUES (?, ?, ?, ?)",
     );
-    const info = stmt.run(name, message, channel, businessId);
+    const info = await stmt.run(name, message, channel, businessId);
     res.json({ id: info.lastInsertRowid, ...req.body });
   } catch (error) {
     res.status(500).json({ error: "Failed to create campaign" });
@@ -47,10 +47,10 @@ router.post("/:id/send", async (req: any, res) => {
 
   try {
     // Get campaign details
-    const campaignStmt = db.prepare(
+    const campaignStmt = await db.prepare(
       "SELECT * FROM campaigns WHERE id = ? AND business_id = ?",
     );
-    const campaign = campaignStmt.get(id, businessId) as any;
+    const campaign = (await campaignStmt.get(id, businessId)) as any;
 
     if (!campaign) {
       return res.status(404).json({ error: "Campaign not found" });
@@ -62,10 +62,10 @@ router.post("/:id/send", async (req: any, res) => {
     if (customerIds && customerIds.length > 0) {
       // Send to specific customers
       const placeholders = customerIds.map(() => "?").join(",");
-      const stmt = db.prepare(
+      const stmt = await db.prepare(
         `SELECT phone FROM customers WHERE id IN (${placeholders}) AND business_id = ?`,
       );
-      customers = stmt.all(...customerIds, businessId) as any[];
+      customers = (await stmt.all(...customerIds, businessId)) as any[];
     } else if (segment) {
       // Send to segmented customers
       let query = "SELECT phone FROM customers WHERE business_id = ?";
@@ -79,14 +79,14 @@ router.post("/:id/send", async (req: any, res) => {
         // Send to all customers
       }
 
-      const stmt = db.prepare(query);
-      customers = stmt.all(...params) as any[];
+      const stmt = await db.prepare(query);
+      customers = (await stmt.all(...params)) as any[];
     } else {
       // Send to all customers by default
-      const stmt = db.prepare(
+      const stmt = await db.prepare(
         "SELECT phone FROM customers WHERE business_id = ?",
       );
-      customers = stmt.all(businessId) as any[];
+      customers = (await stmt.all(businessId)) as any[];
     }
 
     if (customers.length === 0 && (!manualNumbers || manualNumbers.length === 0)) {
@@ -133,10 +133,10 @@ router.post("/:id/send", async (req: any, res) => {
 
     if (result.success) {
       // Update campaign status to sent
-      const updateStmt = db.prepare(
+      const updateStmt = await db.prepare(
         "UPDATE campaigns SET status = ? WHERE id = ?",
       );
-      updateStmt.run("sent", id);
+      await updateStmt.run("sent", id);
 
       res.json({
         success: true,

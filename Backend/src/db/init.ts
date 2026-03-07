@@ -1,351 +1,312 @@
-import Database from "better-sqlite3";
-import path from "path";
-import fs from "fs";
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const dbPath = path.resolve("stockconnect.db");
-const db = new Database(dbPath);
+// Initialize PostgreSQL Pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' 
+    ? { rejectUnauthorized: false } // Required for Render/Neon etc
+    : process.env.DATABASE_URL?.includes('neon') ? { rejectUnauthorized: false } : false
+});
 
-export function initializeDatabase() {
-  // Users (Business Owners)
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE,
-      email TEXT UNIQUE,
-      phone TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      name TEXT NOT NULL,
-      business_name TEXT NOT NULL,
-      role TEXT DEFAULT 'owner',
-      onboarded INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+/**
+ * SQLite compatibility wrapper.
+ * Because all controllers are heavily tightly-coupled to better-sqlite3
+ * syntax (`db.prepare("..").get()`), this helper translates SQLite '?' parameters
+ * to PostgreSQL '$1, $2' parameters and executes them!
+ */
+export const db = {
+  prepare: (sql: string) => {
+    // Convert all `?` markers into `$1`, `$2`, `$3` automatically
+    let paramIndex = 1;
+    const pgSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
 
-  // Products
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      category TEXT NOT NULL,
-      description TEXT,
-      price REAL NOT NULL,
-      quantity INTEGER NOT NULL DEFAULT 0,
-      reorder_threshold INTEGER DEFAULT 5,
-      cost_price REAL DEFAULT 0,
-      supplier TEXT,
-      supplier_phone TEXT,
-      barcode TEXT UNIQUE,
-      image_url TEXT,
-      business_id INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (business_id) REFERENCES users(id)
-    )
-  `);
-
-  // Customers (Extended for Self-Service)
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS customers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      email TEXT,
-      user_id INTEGER, -- Linking to users table for login
-      loyalty_points INTEGER DEFAULT 0,
-      business_id INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id),
-      FOREIGN KEY (business_id) REFERENCES users(id)
-    )
-  `);
-
-  // Addresses
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS addresses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id INTEGER NOT NULL,
-      label TEXT, -- e.g., Home, Office
-      address_line1 TEXT NOT NULL,
-      address_line2 TEXT,
-      city TEXT,
-      state TEXT,
-      postal_code TEXT,
-      is_default INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
-    )
-  `);
-
-  // Carts
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS carts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id INTEGER NOT NULL,
-      business_id INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
-      FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `);
-
-  // Cart Items
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS cart_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      cart_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      quantity INTEGER NOT NULL DEFAULT 1,
-      FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-    )
-  `);
-
-  // Orders (Extended for Customer Info)
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id INTEGER,
-      total_amount REAL NOT NULL,
-      status TEXT DEFAULT 'pending', -- pending, confirmed, delivered, cancelled
-      payment_status TEXT DEFAULT 'unpaid',
-      payment_method TEXT DEFAULT 'cash', -- cash, card, transfer
-      delivery_method TEXT DEFAULT 'pickup', -- pickup, delivery
-      delivery_address_id INTEGER,
-      tracking_info TEXT, -- JSON string for history/updates
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (customer_id) REFERENCES customers(id),
-      FOREIGN KEY (delivery_address_id) REFERENCES addresses(id)
-    )
-  `);
-
-  // Order Items
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS order_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_id INTEGER,
-      product_id INTEGER NOT NULL,
-      quantity INTEGER NOT NULL,
-      unit_price REAL NOT NULL,
-      unit_cost REAL DEFAULT 0,
-      FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
-      FOREIGN KEY (product_id) REFERENCES products(id)
-    )
-  `);
-
-  // Quotes (Custom Order Negotiations)
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS quotes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id INTEGER NOT NULL,
-      business_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      requested_quantity INTEGER NOT NULL,
-      price REAL,
-      customer_message TEXT,
-      seller_response TEXT,
-      attachment_url TEXT,
-      status TEXT DEFAULT 'pending',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (customer_id) REFERENCES customers(id),
-      FOREIGN KEY (business_id) REFERENCES users(id),
-      FOREIGN KEY (product_id) REFERENCES products(id)
-    )
-  `);
-
-  // Campaigns
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS campaigns (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      message TEXT NOT NULL,
-      channel TEXT NOT NULL, -- SMS, WHATSAPP
-      status TEXT DEFAULT 'draft', -- draft, sent
-      business_id INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (business_id) REFERENCES users(id)
-    )
-  `);
-
-  // Stock Movements
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS stock_movements (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id INTEGER,
-      change_amount INTEGER NOT NULL,
-      reason TEXT, -- adjustment, sale, restock
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id)
-    )
-  `);
-
-  // Settings
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS settings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      business_id INTEGER,
-      currency TEXT DEFAULT '₦',
-      loyalty_points_per_unit INTEGER DEFAULT 1,
-      currency_unit_for_points REAL DEFAULT 100,
-      point_redemption_value REAL DEFAULT 10, -- 1 point = 10 currency units
-      low_stock_notifications INTEGER DEFAULT 1, -- 1 for true, 0 for false
-      phone TEXT,
-      address TEXT,
-      tax_rate REAL DEFAULT 0,
-      receipt_footer TEXT,
-      default_sender_id TEXT,
-      auto_receipt_sms INTEGER DEFAULT 0,
-      FOREIGN KEY (business_id) REFERENCES users(id)
-    )
-  `);
-
-  // Chats
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS chats (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id INTEGER NOT NULL,
-      business_id INTEGER NOT NULL,
-      last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (customer_id) REFERENCES customers(id),
-      FOREIGN KEY (business_id) REFERENCES users(id)
-    )
-  `);
-
-  // Messages
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      chat_id INTEGER NOT NULL,
-      sender_id INTEGER NOT NULL, -- user_id of either customer or business owner
-      sender_type TEXT NOT NULL, -- 'customer' or 'business'
-      text TEXT,
-      image_url TEXT,
-      read INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
-    )
-  `);
-
-  // Notifications
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS notifications (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL, -- customer user_id or business user_id
-      type TEXT NOT NULL, -- order, promo, chat
-      title TEXT NOT NULL,
-      body TEXT NOT NULL,
-      data TEXT, -- JSON string
-      read INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `);
-
-  // OTPs
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS otps (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      phone TEXT NOT NULL,
-      code TEXT NOT NULL,
-      expires_at DATETIME NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-
-
-  // Safely add new columns to existing tables
-  try {
-    db.exec(`
-      ALTER TABLE customers ADD COLUMN user_id INTEGER;
-      ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'cash';
-      ALTER TABLE orders ADD COLUMN delivery_method TEXT DEFAULT 'pickup';
-      ALTER TABLE orders ADD COLUMN delivery_address_id INTEGER;
-      ALTER TABLE orders ADD COLUMN tracking_info TEXT;
-    `);
-    console.log("Applied new customer/order schema columns.");
-  } catch (e: any) {
-    if (!e.message.includes('duplicate column name')) {
-      console.log('Skipping alter table: ', e.message);
-    }
+    return {
+      get: async (...params: any[]) => {
+        const result = await pool.query(pgSql, params);
+        return result.rows[0];
+      },
+      all: async (...params: any[]) => {
+        const result = await pool.query(pgSql, params);
+        return result.rows;
+      },
+      run: async (...params: any[]) => {
+        const result = await pool.query(pgSql, params);
+        return {
+          lastInsertRowid: result.rows.length ? result.rows[0].id : null,
+          changes: result.rowCount
+        };
+      }
+    };
+  },
+  exec: async (sql: string) => {
+    return await pool.query(sql);
   }
+};
 
+export async function initializeDatabase() {
+  console.log("Connecting to PostgreSQL...");
+  
   try {
-    db.exec(`
-      ALTER TABLE settings ADD COLUMN phone TEXT;
-      ALTER TABLE settings ADD COLUMN address TEXT;
-      ALTER TABLE settings ADD COLUMN tax_rate REAL DEFAULT 0;
-      ALTER TABLE settings ADD COLUMN receipt_footer TEXT;
-      ALTER TABLE settings ADD COLUMN default_sender_id TEXT;
-      ALTER TABLE settings ADD COLUMN auto_receipt_sms INTEGER DEFAULT 0;
+    // Users (Business Owners)
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255) UNIQUE,
+        email VARCHAR(255) UNIQUE,
+        phone VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        business_name VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'owner',
+        onboarded INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
     `);
-    console.log("Applied new schema columns to settings.");
-  } catch (e: any) {
-    if (!e.message.includes('duplicate column name')) {
-      console.log('Skipping alter table (settings): ', e.message);
-    }
-  }
 
-  try {
-    db.exec(`
-      ALTER TABLE users ADD COLUMN onboarded INTEGER DEFAULT 0;
+    // Products
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        category VARCHAR(255) NOT NULL,
+        description TEXT,
+        price NUMERIC NOT NULL,
+        quantity INTEGER NOT NULL DEFAULT 0,
+        reorder_threshold INTEGER DEFAULT 5,
+        cost_price NUMERIC DEFAULT 0,
+        supplier VARCHAR(255),
+        supplier_phone VARCHAR(255),
+        barcode VARCHAR(255) UNIQUE,
+        image_url TEXT,
+        business_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
+      )
     `);
-    console.log("Applied onboarded column to users.");
-  } catch (e: any) {
-    if (!e.message.includes('duplicate column name')) {
-      console.log('Skipping alter table (users): ', e.message);
-    }
-  }
 
-  try {
-    db.exec(`
-      ALTER TABLE products ADD COLUMN reorder_threshold INTEGER DEFAULT 5;
-      ALTER TABLE products ADD COLUMN cost_price REAL DEFAULT 0;
-      ALTER TABLE products ADD COLUMN supplier TEXT;
-      ALTER TABLE products ADD COLUMN supplier_phone TEXT;
-      ALTER TABLE products ADD COLUMN barcode TEXT;
+    // Customers (Extended for Self-Service)
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        phone VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        user_id INTEGER,
+        loyalty_points INTEGER DEFAULT 0,
+        business_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
+      )
     `);
-    console.log("Applied new schema columns to products.");
-  } catch (e: any) {
-    if (!e.message.includes('duplicate column name')) {
-      console.log('Skipping alter table (products): ', e.message);
-    }
-  }
 
-  try {
-    db.exec(`
-      ALTER TABLE order_items ADD COLUMN unit_cost REAL DEFAULT 0;
+    // Addresses
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS addresses (
+        id SERIAL PRIMARY KEY,
+        customer_id INTEGER NOT NULL,
+        label VARCHAR(255),
+        address_line1 VARCHAR(255) NOT NULL,
+        address_line2 VARCHAR(255),
+        city VARCHAR(255),
+        state VARCHAR(255),
+        postal_code VARCHAR(255),
+        is_default INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+      )
     `);
-    console.log("Applied unit_cost column to order_items.");
-  } catch (e: any) {
-    if (!e.message.includes('duplicate column name')) {
-      console.log('Skipping alter table (order_items): ', e.message);
-    }
-  }
 
-  try {
-    db.exec(`
-      ALTER TABLE quotes ADD COLUMN attachment_url TEXT;
+    // Carts
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS carts (
+        id SERIAL PRIMARY KEY,
+        customer_id INTEGER NOT NULL,
+        business_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
+      )
     `);
-    console.log("Applied attachment_url column to quotes.");
-  } catch (e: any) {
-    if (!e.message.includes('duplicate column name') && !e.message.includes('no such table')) {
-      console.log('Skipping alter table (quotes): ', e.message);
-    }
-  }
 
-  console.log("Database initialized successfully");
+    // Cart Items
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS cart_items (
+        id SERIAL PRIMARY KEY,
+        cart_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL DEFAULT 1,
+        FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Orders (Extended for Customer Info)
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        customer_id INTEGER,
+        total_amount NUMERIC NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        payment_status VARCHAR(50) DEFAULT 'unpaid',
+        payment_method VARCHAR(50) DEFAULT 'cash',
+        delivery_method VARCHAR(50) DEFAULT 'pickup',
+        delivery_address_id INTEGER,
+        tracking_info TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+        FOREIGN KEY (delivery_address_id) REFERENCES addresses(id) ON DELETE SET NULL
+      )
+    `);
+
+    // Order Items
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER,
+        product_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL,
+        unit_price NUMERIC NOT NULL,
+        unit_cost NUMERIC DEFAULT 0,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+      )
+    `);
+
+    // Quotes (Custom Order Negotiations)
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS quotes (
+        id SERIAL PRIMARY KEY,
+        customer_id INTEGER NOT NULL,
+        business_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        requested_quantity INTEGER NOT NULL,
+        price NUMERIC,
+        customer_message TEXT,
+        seller_response TEXT,
+        attachment_url TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Campaigns
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS campaigns (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        channel VARCHAR(50) NOT NULL,
+        status VARCHAR(50) DEFAULT 'draft',
+        business_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Stock Movements
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS stock_movements (
+        id SERIAL PRIMARY KEY,
+        product_id INTEGER,
+        change_amount INTEGER NOT NULL,
+        reason VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Settings
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS settings (
+        id SERIAL PRIMARY KEY,
+        business_id INTEGER,
+        currency VARCHAR(10) DEFAULT '₦',
+        loyalty_points_per_unit INTEGER DEFAULT 1,
+        currency_unit_for_points NUMERIC DEFAULT 100,
+        point_redemption_value NUMERIC DEFAULT 10,
+        low_stock_notifications INTEGER DEFAULT 1,
+        phone VARCHAR(255),
+        address TEXT,
+        tax_rate NUMERIC DEFAULT 0,
+        receipt_footer TEXT,
+        default_sender_id VARCHAR(255),
+        auto_receipt_sms INTEGER DEFAULT 0,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Chats
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS chats (
+        id SERIAL PRIMARY KEY,
+        customer_id INTEGER NOT NULL,
+        business_id INTEGER NOT NULL,
+        last_message_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Messages
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        chat_id INTEGER NOT NULL,
+        sender_id INTEGER NOT NULL,
+        sender_type VARCHAR(50) NOT NULL,
+        text TEXT,
+        image_url TEXT,
+        read INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Notifications
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        body TEXT NOT NULL,
+        data TEXT,
+        read INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // OTPs
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS otps (
+        id SERIAL PRIMARY KEY,
+        phone VARCHAR(255) NOT NULL,
+        code VARCHAR(10) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log("PostgreSQL Database initialized successfully!");
+  } catch (err: any) {
+    console.error("Failed to initialize database schemas: ", err);
+  }
 }
 
 /**
- * Seed a demo customer account for testing purposes.
- * Credentials: demo@stockconnect.com / demo1234
- * Safe to call on every startup – skips if already exists.
+ * Seed a demo customer account for testing purposes safely.
  */
 export async function seedDemoData() {
-  // Use dynamic import for bcryptjs to avoid top-level await issues
   const bcrypt = await import("bcryptjs");
 
   const DEMO_EMAIL = "demo@stockconnect.com";
@@ -354,7 +315,7 @@ export async function seedDemoData() {
   const DEMO_NAME = "Demo Customer";
 
   try {
-    const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(DEMO_EMAIL);
+    const existing = await db.prepare("SELECT id FROM users WHERE email = ?").get(DEMO_EMAIL);
     if (existing) {
       console.log("ℹ️  Demo account already exists — skipping seed.");
       return;
@@ -362,23 +323,24 @@ export async function seedDemoData() {
 
     const hashedPassword = await bcrypt.default.hash(DEMO_PASSWORD, 10);
 
-    const userResult = db.prepare(`
+    // Using returning id to mimic lastInsertRowid
+    const userResult = await pool.query(`
       INSERT INTO users (username, email, phone, password, name, business_name, role)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(DEMO_EMAIL, DEMO_EMAIL, DEMO_PHONE, hashedPassword, DEMO_NAME, "Customer", "customer");
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
+    `, [DEMO_EMAIL, DEMO_EMAIL, DEMO_PHONE, hashedPassword, DEMO_NAME, "Customer", "customer"]);
 
-    const userId = userResult.lastInsertRowid;
+    const userId = userResult.rows[0].id;
 
-    db.prepare(`
+    await pool.query(`
       INSERT INTO customers (name, phone, email, user_id)
-      VALUES (?, ?, ?, ?)
-    `).run(DEMO_NAME, DEMO_PHONE, DEMO_EMAIL, userId);
+      VALUES ($1, $2, $3, $4)
+    `, [DEMO_NAME, DEMO_PHONE, DEMO_EMAIL, userId]);
 
     console.log("✅ Demo account created:");
     console.log("   Email   : demo@stockconnect.com");
     console.log("   Password: demo1234");
   } catch (err: any) {
-    console.error("⚠️  Demo seed failed:", err.message);
+    console.error("⚠️  Demo seed failed:", err);
   }
 }
 

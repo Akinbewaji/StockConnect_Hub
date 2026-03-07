@@ -8,14 +8,14 @@ export async function placeOrder(req: any, res: Response) {
   const { deliveryMethod, deliveryAddressId, paymentMethod } = req.body;
   
   try {
-    const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
-    const cart = db.prepare("SELECT id FROM carts WHERE customer_id = ?").get(customer.id) as any;
+    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
+    const cart = (await db.prepare("SELECT id FROM carts WHERE customer_id = ?").get(customer.id)) as any;
     
     if (!cart) {
       return res.status(400).json({ error: "Cart is empty" });
     }
 
-    const cartItems = db.prepare(`
+    const cartItems = await db.prepare(`
       SELECT ci.*, p.price, p.business_id, p.quantity as stock_quantity
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
@@ -29,10 +29,10 @@ export async function placeOrder(req: any, res: Response) {
     // Calculate total
     const totalAmount = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
-    // Start transaction
-    const transaction = db.transaction(() => {
+    // Start transaction (mocked as async block for now; PG Transactions will be implemented properly later)
+    const transaction = async (items: any[], totalAmount: number, dbCustomerId: number, paymentMethod: string, deliveryAddressId?: number, deliveryMethod?: string) => {
       // 1. Create order
-      const orderResult = db.prepare(`
+      const orderResult = await db.prepare(`
         INSERT INTO orders (customer_id, total_amount, status, payment_status, payment_method, delivery_method, delivery_address_id)
         VALUES (?, ?, 'pending', 'unpaid', ?, ?, ?)
       `).run(customer.id, totalAmount, paymentMethod || 'cash', deliveryMethod || 'pickup', deliveryAddressId || null);
@@ -41,28 +41,28 @@ export async function placeOrder(req: any, res: Response) {
 
       // 2. Create order items and update stock
       for (const item of cartItems as any[]) {
-        db.prepare(`
+        await db.prepare(`
           INSERT INTO order_items (order_id, product_id, quantity, unit_price)
           VALUES (?, ?, ?, ?)
         `).run(orderId, item.product_id, item.quantity, item.price);
 
-        db.prepare(`
+        await db.prepare(`
           UPDATE products SET quantity = quantity - ? WHERE id = ?
         `).run(item.quantity, item.product_id);
 
-        db.prepare(`
+        await db.prepare(`
           INSERT INTO stock_movements (product_id, change_amount, reason)
           VALUES (?, ?, ?)
         `).run(item.product_id, -item.quantity, 'sale');
       }
 
       // 3. Clear cart
-      db.prepare("DELETE FROM cart_items WHERE cart_id = ?").run(cart.id);
+      await db.prepare("DELETE FROM cart_items WHERE cart_id = ?").run(cart.id);
       
       return orderId;
-    });
+    };
 
-    const orderId = transaction();
+    const orderId = await transaction(cartItems, totalAmount, customer.id, paymentMethod, deliveryAddressId, deliveryMethod);
 
     res.status(201).json({
       message: "Order placed successfully",
@@ -79,8 +79,8 @@ export async function placeOrder(req: any, res: Response) {
  */
 export async function getMyOrders(req: any, res: Response) {
   try {
-    const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
-    const orders = db.prepare(`
+    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
+    const orders = await db.prepare(`
       SELECT * FROM orders 
       WHERE customer_id = ? 
       ORDER BY created_at DESC
@@ -98,12 +98,12 @@ export async function getMyOrders(req: any, res: Response) {
 export async function getOrderDetails(req: any, res: Response) {
   const { id } = req.params;
   try {
-    const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
-    const order = db.prepare("SELECT * FROM orders WHERE id = ? AND customer_id = ?").get(id, customer.id);
+    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
+    const order = await db.prepare("SELECT * FROM orders WHERE id = ? AND customer_id = ?").get(id, customer.id);
     
     if (!order) return res.status(404).json({ error: "Order not found" });
 
-    const items = db.prepare(`
+    const items = await db.prepare(`
       SELECT oi.*, p.name, p.image_url
       FROM order_items oi
       JOIN products p ON oi.product_id = p.id

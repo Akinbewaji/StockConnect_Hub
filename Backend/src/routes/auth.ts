@@ -25,7 +25,7 @@ router.post("/register", async (req, res) => {
     const stmt = db.prepare(
       "INSERT INTO users (phone, email, username, password, name, business_name) VALUES (?, ?, ?, ?, ?, ?)",
     );
-    const info = stmt.run(
+    const info = await stmt.run(
       phone,
       email,
       username,
@@ -179,7 +179,7 @@ router.post("/demo", async (req, res) => {
     const userStmt = db.prepare(
       "INSERT INTO users (phone, email, username, password, name, business_name) VALUES (?, ?, ?, ?, ?, ?)"
     );
-    const userInfo = userStmt.run(
+    const userInfo = await (await userStmt).run(
       `080${Math.floor(Math.random() * 100000000)}`,
       `${demoUserStr}@example.com`,
       demoUserStr,
@@ -190,24 +190,24 @@ router.post("/demo", async (req, res) => {
     const businessId = userInfo.lastInsertRowid;
 
     // 2. Insert Settings
-    db.prepare('INSERT INTO settings (business_id) VALUES (?)').run(businessId);
+    await (await db.prepare('INSERT INTO settings (business_id) VALUES (?)')).run(businessId);
 
-    const seedData = db.transaction(() => {
+    const seedData = async () => {
       // 3. Create Demo Products
       const productStmt = db.prepare(
         "INSERT INTO products (business_id, name, category, price, quantity) VALUES (?, ?, ?, ?, ?)"
       );
-      const cementId = productStmt.run(businessId, 'Dangote Cement 50kg', 'Building Materials', 8500, 150).lastInsertRowid;
-      const pipeId = productStmt.run(businessId, 'PVC Pipe 4 inch', 'Plumbing', 3500, 20).lastInsertRowid; // Low stock
-      const wireId = productStmt.run(businessId, 'Copper Wire 2.5mm', 'Electrical', 12000, 80).lastInsertRowid;
-      const paintId = productStmt.run(businessId, 'Emulsion Paint 20L', 'Paint', 15000, 45).lastInsertRowid;
+      const cementId = (await (await productStmt).run(businessId, 'Dangote Cement 50kg', 'Building Materials', 8500, 150)).lastInsertRowid;
+      const pipeId = (await (await productStmt).run(businessId, 'PVC Pipe 4 inch', 'Plumbing', 3500, 20)).lastInsertRowid; // Low stock
+      const wireId = (await (await productStmt).run(businessId, 'Copper Wire 2.5mm', 'Electrical', 12000, 80)).lastInsertRowid;
+      const paintId = (await (await productStmt).run(businessId, 'Emulsion Paint 20L', 'Paint', 15000, 45)).lastInsertRowid;
 
       // 4. Create Demo Customers
       const customerStmt = db.prepare(
         "INSERT INTO customers (business_id, name, phone, email) VALUES (?, ?, ?, ?)"
       );
-      const cust1Id = customerStmt.run(businessId, 'John Contractor', '08011111111', 'john@example.com').lastInsertRowid;
-      const cust2Id = customerStmt.run(businessId, 'ABC Builders Ltd', '08022222222', 'contact@abc.com').lastInsertRowid;
+      const cust1Id = (await (await customerStmt).run(businessId, 'John Contractor', '08011111111', 'john@example.com')).lastInsertRowid;
+      const cust2Id = (await (await customerStmt).run(businessId, 'ABC Builders Ltd', '08022222222', 'contact@abc.com')).lastInsertRowid;
 
       // 5. Create past orders for graph data
       const orderStmt = db.prepare("INSERT INTO orders (customer_id, total_amount, status, created_at) VALUES (?, ?, ?, ?)");
@@ -218,21 +218,21 @@ router.post("/demo", async (req, res) => {
       // Order 4 days ago
       const day4 = new Date(today);
       day4.setDate(day4.getDate() - 4);
-      const o1Id = orderStmt.run(cust1Id, 85000, 'confirmed', day4.toISOString()).lastInsertRowid;
-      itemStmt.run(o1Id, cementId, 10, 8500);
+      const o1Id = (await (await orderStmt).run(cust1Id, 85000, 'confirmed', day4.toISOString())).lastInsertRowid;
+      await (await itemStmt).run(o1Id, cementId, 10, 8500);
 
       // Order 2 days ago
       const day2 = new Date(today);
       day2.setDate(day2.getDate() - 2);
-      const o2Id = orderStmt.run(cust2Id, 150000, 'confirmed', day2.toISOString()).lastInsertRowid;
-      itemStmt.run(o2Id, paintId, 10, 15000);
+      const o2Id = (await (await orderStmt).run(cust2Id, 150000, 'confirmed', day2.toISOString())).lastInsertRowid;
+      await (await itemStmt).run(o2Id, paintId, 10, 15000);
 
       // Order today
-      const o3Id = orderStmt.run(cust1Id, 42000, 'confirmed', today.toISOString()).lastInsertRowid;
-      itemStmt.run(o3Id, pipeId, 12, 3500);
-    });
+      const o3Id = (await (await orderStmt).run(cust1Id, 42000, 'confirmed', today.toISOString())).lastInsertRowid;
+      await (await itemStmt).run(o3Id, pipeId, 12, 3500);
+    };
 
-    seedData();
+    await seedData();
 
     // 6. Generate Token & Login
     const token = jwt.sign({ id: businessId, role: "owner" }, SECRET_KEY, {

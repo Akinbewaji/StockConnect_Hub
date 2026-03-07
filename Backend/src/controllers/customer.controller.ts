@@ -29,27 +29,37 @@ export async function register(req: Request, res: Response) {
 
     // 1. Create a user entry for login
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userResult = db.prepare(`
+    const userResult = await (await db.prepare(`
       INSERT INTO users (username, email, phone, password, name, business_name, role)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(email, email, formattedPhone, hashedPassword, name, 'Customer', 'customer');
+    `)).run(email, email, formattedPhone, hashedPassword, name, 'Customer', 'customer');
 
     const userId = userResult.lastInsertRowid;
+    // (Default business assignment handled later or via invitations)
+    const defaultBusinessId = 1; 
 
     // 2. Create customer entry linked to user
-    const customerResult = db.prepare(`
-      INSERT INTO customers (name, phone, email, user_id)
-      VALUES (?, ?, ?, ?)
-    `).run(name, formattedPhone, email, userId);
-
-    const customerId = customerResult.lastInsertRowid;
+    const customerId = (await (await db.prepare(
+      "INSERT INTO customers (business_id, name, phone, email, user_id) VALUES (?, ?, ?, ?, ?)",
+    )).run(
+      defaultBusinessId,
+      name,
+      formattedPhone,
+      email || null,
+      userId
+    )).lastInsertRowid;
 
     // 3. Add address if provided
     if (address) {
-      db.prepare(`
-        INSERT INTO addresses (customer_id, label, address_line1, city, state, is_default)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(customerId, 'Home', address.street || '', address.city || '', address.state || '', 1);
+      await (await db.prepare(
+        "INSERT INTO addresses (customer_id, label, address_line1, city, state) VALUES (?, ?, ?, ?, ?)",
+      )).run(
+        customerId,
+        "Default",
+        address.street || '',
+        address.city || null,
+        address.state || null,
+      );
     }
 
     res.status(201).json({
@@ -82,9 +92,9 @@ export async function login(req: Request, res: Response) {
 
   try {
     // Find user by email, phone, or username
-    const user = db.prepare(
+    const user = (await db.prepare(
       "SELECT * FROM users WHERE email = ? OR phone = ? OR username = ?"
-    ).get(identifier, identifier, identifier) as any;
+    ).get(identifier, identifier, identifier)) as any;
 
     if (!user || user.role !== 'customer') {
       return res.status(401).json({ error: "Invalid credentials" });
@@ -127,7 +137,7 @@ export async function verifyOTP(...) { ... }
  */
 export async function getProfile(req: any, res: Response) {
   try {
-    const customer = db.prepare("SELECT * FROM customers WHERE user_id = ?").get(req.user.id);
+    const customer = (await db.prepare("SELECT * FROM customers WHERE user_id = ?").get(req.user.id));
     if (!customer) {
       return res.status(404).json({ error: "Customer profile not found" });
     }
@@ -143,7 +153,7 @@ export async function getProfile(req: any, res: Response) {
 export async function updateProfile(req: any, res: Response) {
   const { name, email } = req.body;
   try {
-    db.prepare(`
+    await db.prepare(`
       UPDATE customers 
       SET name = COALESCE(?, name), 
           email = COALESCE(?, email)
@@ -162,13 +172,13 @@ export async function updateProfile(req: any, res: Response) {
 export async function addAddress(req: any, res: Response) {
   const { label, address_line1, address_line2, city, state, postal_code, is_default } = req.body;
   try {
-    const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
+    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
     
     if (is_default) {
-      db.prepare("UPDATE addresses SET is_default = 0 WHERE customer_id = ?").run(customer.id);
+      await db.prepare("UPDATE addresses SET is_default = 0 WHERE customer_id = ?").run(customer.id);
     }
 
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO addresses (customer_id, label, address_line1, address_line2, city, state, postal_code, is_default)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(customer.id, label, address_line1, address_line2, city, state, postal_code, is_default ? 1 : 0);
@@ -181,8 +191,8 @@ export async function addAddress(req: any, res: Response) {
 
 export async function getAddresses(req: any, res: Response) {
   try {
-    const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
-    const addresses = db.prepare("SELECT * FROM addresses WHERE customer_id = ?").all(customer.id);
+    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
+    const addresses = await db.prepare("SELECT * FROM addresses WHERE customer_id = ?").all(customer.id);
     res.json(addresses);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });

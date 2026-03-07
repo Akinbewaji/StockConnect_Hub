@@ -22,10 +22,10 @@ export const webPushService = {
   /**
    * Save a new push subscription for a user
    */
-  saveSubscription: (userId: number, role: 'owner' | 'customer', subscription: any) => {
+  saveSubscription: async (userId: number, role: 'owner' | 'customer', subscription: any) => {
     try {
       const { endpoint, keys } = subscription;
-      db.prepare(`
+      await db.prepare(`
         INSERT OR REPLACE INTO web_push_subscriptions (user_id, role, endpoint, keys_p256dh, keys_auth)
         VALUES (?, ?, ?, ?, ?)
       `).run(userId, role, endpoint, keys.p256dh, keys.auth);
@@ -43,10 +43,10 @@ export const webPushService = {
     if (!publicVapidKey || !privateVapidKey) return;
 
     try {
-      const subscriptions = db.prepare(`
+      const subscriptions = (await db.prepare(`
         SELECT * FROM web_push_subscriptions 
         WHERE user_id = ? AND role = ?
-      `).all(userId, role) as any[];
+      `).all(userId, role)) as any[];
 
       const notifications = subscriptions.map((sub) => {
         const pushSubscription = {
@@ -57,10 +57,10 @@ export const webPushService = {
           }
         };
 
-        return webPush.sendNotification(pushSubscription as any, JSON.stringify(payload)).catch((err: any) => {
+        return webPush.sendNotification(pushSubscription as any, JSON.stringify(payload)).catch(async (err: any) => {
           if (err.statusCode === 404 || err.statusCode === 410) {
             // Subscription has expired or is no longer valid
-            db.prepare('DELETE FROM web_push_subscriptions WHERE id = ?').run(sub.id);
+            await db.prepare('DELETE FROM web_push_subscriptions WHERE id = ?').run(sub.id);
           } else {
             console.error("Web Push Error:", err);
           }

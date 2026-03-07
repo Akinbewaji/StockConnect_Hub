@@ -72,7 +72,7 @@ async function startServer() {
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
   // Initialize Database
-  initializeDatabase();
+  await initializeDatabase();
   await seedDemoData(); // Create demo account if it doesn't exist
 
   // Health check endpoint
