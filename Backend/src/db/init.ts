@@ -3,11 +3,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Initialize PostgreSQL Pool
+const connectionString = process.env.DATABASE_URL;
+
+// Strip `sslmode` and `channel_binding` from the connection string to avoid conflicts with the `ssl` object
+const cleanedConnectionString = connectionString?.replace(/(\?|&)(sslmode|channel_binding)=[^&]*/g, (match, p1) => p1 === '?' ? '?' : '');
+// Fix potential trailing '?' or '&'
+const finalConnectionString = cleanedConnectionString?.replace(/[?&]$/, '');
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: false } // Required for Render/Neon etc
-    : process.env.DATABASE_URL?.includes('neon') ? { rejectUnauthorized: false } : false
+  connectionString: finalConnectionString,
+  ssl: (process.env.NODE_ENV === 'production' || connectionString?.includes('neon'))
+    ? { rejectUnauthorized: false }
+    : false
 });
 
 /**
