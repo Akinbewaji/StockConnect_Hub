@@ -36,6 +36,10 @@ export default function Settings() {
   const [verifying, setVerifying] = useState(false);
   const [wipeConfirmText, setWipeConfirmText] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
+  const [fullResetConfirmText, setFullResetConfirmText] = useState('');
+  const [showFullResetModal, setShowFullResetModal] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -157,12 +161,6 @@ export default function Settings() {
     }
   };
 
-  const [fullResetConfirmText, setFullResetConfirmText] = useState('');
-  const [showFullResetModal, setShowFullResetModal] = useState(false);
-  const [resetting, setResetting] = useState(false);
-
-  // ... (keep fetchSettings etc.)
-
   const handleFullReset = async () => {
     if (fullResetConfirmText !== 'RESET ALL') return;
     
@@ -188,6 +186,14 @@ export default function Settings() {
       setResetting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -543,7 +549,24 @@ export default function Settings() {
             </div>
             <h2 className="font-bold text-red-900">Danger Zone</h2>
           </div>
-          <div className="p-6">
+          <div className="p-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1 md:pr-10">
+                <span className="text-sm font-bold text-red-900">Wipe POS Transactions</span>
+                <p className="text-xs text-red-700 leading-relaxed">
+                  Permanently delete all Orders, Order Items, and Stock Movements. 
+                  <span className="block mt-1 font-semibold">Products and Customers will be kept. This action cannot be reversed.</span>
+                </p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowWipeModal(true)}
+                className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+              >
+                Wipe Data
+              </button>
+            </div>
+
             <div className="flex items-center justify-between py-6 border-t border-red-100">
               <div className="space-y-1 md:pr-10">
                 <span className="text-sm font-bold text-red-900">Full Business Reset</span>
@@ -587,7 +610,72 @@ export default function Settings() {
       </form>
 
       {/* Wipe Confirmation Modal */}
-      {/* ... (existing wipe modal) ... */}
+      <AnimatePresence>
+        {showWipeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl w-full max-md shadow-2xl p-6"
+            >
+              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={32} />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">Are you sure?</h2>
+              <p className="text-slate-500 text-center mb-6 text-sm">
+                This will permanently delete ALL historical order and transaction data from your application. Your products and customers will not be altered.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Type <span className="text-red-600 font-mono bg-red-50 px-2 py-0.5 rounded">WIPE DATA</span> to confirm:
+                  </label>
+                  <input
+                    type="text"
+                    value={wipeConfirmText}
+                    onChange={e => setWipeConfirmText(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none font-mono"
+                    placeholder="WIPE DATA"
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-2">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowWipeModal(false);
+                      setWipeConfirmText('');
+                    }}
+                    disabled={wiping}
+                    className="flex-1 px-4 py-3 text-slate-600 font-bold bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={handleWipeData}
+                    disabled={wipeConfirmText !== 'WIPE DATA' || wiping}
+                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                  >
+                    {wiping ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      'Nuke It'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Full Reset Confirmation Modal */}
       <AnimatePresence>
