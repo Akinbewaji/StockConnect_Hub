@@ -9,7 +9,7 @@ import { authenticateToken } from "../middleware/auth.js";
 const router = Router();
 
 // Get all products (Public for browsing)
-router.get("/", (req: any, res) => {
+router.get("/", async (req: any, res) => {
   const { search, category, page, limit, businessId: queryBusinessId, minPrice, maxPrice } = req.query;
   
   // If owner, show only their products. If customer or not logged in, show all (or filtered by queryBusinessId)
@@ -24,7 +24,7 @@ router.get("/", (req: any, res) => {
   const offset = (pPage - 1) * pLimit;
 
   try {
-    const result = ProductService.getAll(
+    const result = await ProductService.getAll(
       businessId, 
       pLimit, 
       offset, 
@@ -41,10 +41,10 @@ router.get("/", (req: any, res) => {
 });
 
 // Create product
-router.post("/", authenticateToken, (req: any, res) => {
+router.post("/", authenticateToken, async (req: any, res) => {
   const businessId = req.user.id;
   try {
-    const id = ProductService.create(req.body, businessId);
+    const id = await ProductService.create(req.body, businessId);
     res.json({ id, ...req.body });
   } catch (error: any) {
     console.error("Failed to create product:", error);
@@ -132,7 +132,7 @@ router.post("/:id/stock", authenticateToken, async (req, res) => {
 });
 
 // Get stock movements
-router.get("/movements", authenticateToken, (req, res) => {
+router.get("/movements", authenticateToken, async (req, res) => {
   const { productId } = req.query;
   try {
     let query = `
@@ -149,8 +149,8 @@ router.get("/movements", authenticateToken, (req, res) => {
 
     query += " ORDER BY sm.created_at DESC LIMIT 50";
 
-    const stmt = db.prepare(query);
-    const movements = stmt.all(...params);
+    const stmt = await db.prepare(query);
+    const movements = await stmt.all(...params);
     res.json(movements);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch movements" });
@@ -158,10 +158,10 @@ router.get("/movements", authenticateToken, (req, res) => {
 });
 
 // Low stock
-router.get("/low-stock", authenticateToken, (req: AuthRequest, res) => {
+router.get("/low-stock", authenticateToken, async (req: AuthRequest, res) => {
   const businessId = req.user!.id;
   try {
-    const products = ProductService.getLowStockProducts(businessId);
+    const products = await ProductService.getLowStockProducts(businessId);
     res.json(products);
   } catch (error) {
     console.error("Failed to fetch low stock products:", error);
@@ -170,7 +170,7 @@ router.get("/low-stock", authenticateToken, (req: AuthRequest, res) => {
 });
 
 // Update reorder threshold
-router.patch("/:id/threshold", authenticateToken, (req: AuthRequest, res) => {
+router.patch("/:id/threshold", authenticateToken, async (req: AuthRequest, res) => {
   const { id } = req.params;
   const { threshold } = req.body;
   const businessId = req.user!.id;
@@ -180,7 +180,7 @@ router.patch("/:id/threshold", authenticateToken, (req: AuthRequest, res) => {
   }
 
   try {
-    ProductService.updateReorderThreshold(Number(id), threshold, businessId);
+    await ProductService.updateReorderThreshold(Number(id), threshold, businessId);
     res.json({ success: true });
   } catch (error) {
     console.error("Failed to update threshold:", error);
@@ -235,7 +235,7 @@ router.post("/bulk-import", authenticateToken, async (req: AuthRequest, res) => 
             continue;
           }
 
-          ProductService.create({
+          await ProductService.create({
             ...product,
             reorderThreshold: product.reorderThreshold || product.reorder_threshold || 5,
             costPrice: product.costPrice || product.cost_price || 0,

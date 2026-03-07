@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req: any, res) => {
   const businessId = req.user.id;
   try {
-    let settings = db.prepare('SELECT * FROM settings WHERE business_id = ?').get(businessId);
+    let settings = await db.prepare('SELECT * FROM settings WHERE business_id = ?').get(businessId);
     
     if (!settings) {
       // Initialize default settings if not exists
@@ -23,7 +23,7 @@ router.get('/', async (req: any, res) => {
 });
 
 // Update settings
-router.patch('/', (req: any, res) => {
+router.patch('/', async (req: any, res) => {
   const businessId = req.user.id;
   const { 
     currency, 
@@ -56,7 +56,7 @@ router.patch('/', (req: any, res) => {
       WHERE business_id = ?
     `);
     
-    stmt.run(
+    await stmt.run(
       currency, 
       loyalty_points_per_unit, 
       currency_unit_for_points, 

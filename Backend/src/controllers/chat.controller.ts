@@ -8,10 +8,10 @@ import { io } from "../server.js";
 export async function getMyChats(req: any, res: Response) {
   try {
     if (req.user.role === 'customer') {
-      const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
+      const customer = await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
       if (!customer) return res.status(404).json({ error: "Customer not found" });
       
-      const chats = db.prepare(`
+      const chats = await db.prepare(`
         SELECT c.*, u.business_name, u.name as business_owner_name
         FROM chats c
         JOIN users u ON c.business_id = u.id
@@ -22,7 +22,7 @@ export async function getMyChats(req: any, res: Response) {
       res.json(chats);
     } else {
       // Owner/Business side
-      const chats = db.prepare(`
+      const chats = await db.prepare(`
         SELECT c.*, cust.name as customer_name, cust.phone as customer_phone
         FROM chats c
         JOIN customers cust ON c.customer_id = cust.id
@@ -46,22 +46,22 @@ export async function getMessages(req: any, res: Response) {
   try {
     let chat;
     if (req.user.role === 'customer') {
-      const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
-      chat = db.prepare("SELECT id FROM chats WHERE id = ? AND customer_id = ?").get(chatId, customer.id);
+      const customer = await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
+      chat = await db.prepare("SELECT id FROM chats WHERE id = ? AND customer_id = ?").get(chatId, customer.id);
       
       // Mark as read (messages from business)
-      db.prepare("UPDATE messages SET read = 1 WHERE chat_id = ? AND sender_type = 'business'").run(chatId);
+      await db.prepare("UPDATE messages SET read = 1 WHERE chat_id = ? AND sender_type = 'business'").run(chatId);
     } else {
       // Business side
-      chat = db.prepare("SELECT id FROM chats WHERE id = ? AND business_id = ?").get(chatId, req.user.id);
+      chat = await db.prepare("SELECT id FROM chats WHERE id = ? AND business_id = ?").get(chatId, req.user.id);
       
       // Mark as read (messages from customer)
-      db.prepare("UPDATE messages SET read = 1 WHERE chat_id = ? AND sender_type = 'customer'").run(chatId);
+      await db.prepare("UPDATE messages SET read = 1 WHERE chat_id = ? AND sender_type = 'customer'").run(chatId);
     }
     
     if (!chat) return res.status(403).json({ error: "Unauthorized" });
 
-    const messages = db.prepare(`
+    const messages = await db.prepare(`
       SELECT * FROM messages 
       WHERE chat_id = ? 
       ORDER BY created_at ASC
@@ -86,13 +86,13 @@ export async function sendMessage(req: any, res: Response) {
 
     if (req.user.role === 'customer') {
       senderType = 'customer';
-      const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
+      const customer = await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id) as any;
       if (!customer) return res.status(404).json({ error: "Customer not found" });
 
       if (!activeChatId) {
         businessIdValue = bodyBusinessId;
         // Create new chat if not exists
-        let chat = db.prepare("SELECT id FROM chats WHERE customer_id = ? AND business_id = ?")
+        let chat = await db.prepare("SELECT id FROM chats WHERE customer_id = ? AND business_id = ?")
           .get(customer.id, businessIdValue) as any;
         
         if (!chat) {
@@ -104,7 +104,7 @@ export async function sendMessage(req: any, res: Response) {
           activeChatId = chat.id;
         }
       } else {
-        const chat = db.prepare("SELECT business_id FROM chats WHERE id = ?").get(activeChatId) as any;
+        const chat = await db.prepare("SELECT business_id FROM chats WHERE id = ?").get(activeChatId) as any;
         businessIdValue = chat?.business_id;
       }
     } else {
@@ -154,7 +154,7 @@ export async function sendMessage(req: any, res: Response) {
         io.to(`user_${businessIdValue}`).emit("new_chat_message", message);
       } else {
         // Get customer's user_id for socket notification
-        const chatInfo = db.prepare(`
+        const chatInfo = await db.prepare(`
           SELECT cust.user_id 
           FROM chats c
           JOIN customers cust ON c.customer_id = cust.id

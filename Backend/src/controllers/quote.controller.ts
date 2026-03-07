@@ -11,10 +11,10 @@ export async function requestQuote(req: any, res: Response) {
   const customerUser = req.user; // Token user
 
   try {
-    const customer = db.prepare("SELECT id, name FROM customers WHERE user_id = ?").get(customerUser.id) as any;
+    const customer = await db.prepare("SELECT id, name FROM customers WHERE user_id = ?").get(customerUser.id) as any;
     if (!customer) return res.status(404).json({ error: "Customer profile not found" });
 
-    const product = db.prepare("SELECT business_id, name FROM products WHERE id = ?").get(productId) as any;
+    const product = await db.prepare("SELECT business_id, name FROM products WHERE id = ?").get(productId) as any;
     if (!product) return res.status(404).json({ error: "Product not found" });
 
     const result = await (await db.prepare(`
@@ -25,7 +25,7 @@ export async function requestQuote(req: any, res: Response) {
     const quoteId = result.lastInsertRowid;
 
     // Notify the Seller
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO notifications (user_id, type, title, body, data)
       VALUES (?, 'quote', 'New Quote Request', ?, ?)
     `).run(product.business_id, `Quote request for ${product.name} from ${customer.name}`, JSON.stringify({ quoteId }));
@@ -56,20 +56,20 @@ export async function respondToQuote(req: any, res: Response) {
   const businessUserId = req.user.id;
 
   try {
-    const quote = db.prepare("SELECT * FROM quotes WHERE id = ? AND business_id = ?").get(quoteId, businessUserId) as any;
+    const quote = await db.prepare("SELECT * FROM quotes WHERE id = ? AND business_id = ?").get(quoteId, businessUserId) as any;
     if (!quote) return res.status(404).json({ error: "Quote not found" });
 
-    db.prepare(`
+    await db.prepare(`
       UPDATE quotes 
       SET price = ?, seller_response = ?, status = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).run(price || quote.price, sellerMessage, status || 'responded', quoteId);
 
     // Notify the Customer
-    const customer = db.prepare("SELECT user_id FROM customers WHERE id = ?").get(quote.customer_id) as any;
+    const customer = await db.prepare("SELECT user_id FROM customers WHERE id = ?").get(quote.customer_id) as any;
     
     if (customer && customer.user_id) {
-      db.prepare(`
+      await db.prepare(`
         INSERT INTO notifications (user_id, type, title, body, data)
         VALUES (?, 'quote', 'Quote Updated', ?, ?)
       `).run(customer.user_id, `The seller responded to your quote request (Quote #${quoteId})`, JSON.stringify({ quoteId }));
@@ -98,7 +98,7 @@ export async function respondToQuote(req: any, res: Response) {
 export async function getSellerQuotes(req: any, res: Response) {
   const businessUserId = req.user.id;
   try {
-    const quotes = db.prepare(`
+    const quotes = await db.prepare(`
       SELECT q.*, p.name as product_name, p.image_url, c.name as customer_name 
       FROM quotes q
       JOIN products p ON q.product_id = p.id
@@ -118,10 +118,10 @@ export async function getSellerQuotes(req: any, res: Response) {
 export async function getCustomerQuotes(req: any, res: Response) {
   const customerUser = req.user;
   try {
-    const customer = db.prepare("SELECT id FROM customers WHERE user_id = ?").get(customerUser.id) as any;
+    const customer = await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(customerUser.id) as any;
     if (!customer) return res.json([]); // No profile = no quotes
 
-    const quotes = db.prepare(`
+    const quotes = await db.prepare(`
       SELECT q.*, p.name as product_name, p.image_url, u.business_name 
       FROM quotes q
       JOIN products p ON q.product_id = p.id

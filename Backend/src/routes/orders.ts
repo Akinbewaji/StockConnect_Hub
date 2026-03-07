@@ -6,14 +6,14 @@ import { OrderService } from "../services/order.service.js";
 const router = Router();
 
 // Get orders
-router.get('/', (req: any, res) => {
+router.get('/', async (req: any, res) => {
   const businessId = req.user.id;
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = (page - 1) * limit;
 
   try {
-    const result = OrderService.getAll(businessId, limit, offset);
+    const result = await OrderService.getAll(businessId, limit, offset);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch orders' });
@@ -21,7 +21,7 @@ router.get('/', (req: any, res) => {
 });
 
 // Create order
-router.post("/", (req: any, res) => {
+router.post("/", async (req: any, res) => {
   const result = orderSchema.safeParse(req.body);
   if (!result.success) {
     return res.status(400).json({
@@ -34,7 +34,7 @@ router.post("/", (req: any, res) => {
   const businessId = req.user.id;
 
   try {
-    const orderId = OrderService.create(result.data, businessId);
+    const orderId = await OrderService.create(result.data, businessId);
     res.json({ id: orderId, success: true });
   } catch (error) {
     console.error('Order creation error:', error);
@@ -43,12 +43,12 @@ router.post("/", (req: any, res) => {
 });
 
 // Update order status
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
   try {
-    const success = OrderService.updateStatus(id, status);
+    const success = await OrderService.updateStatus(id, status);
     if (!success) {
       return res.status(404).json({ error: 'Order not found' });
     }

@@ -82,7 +82,7 @@ router.post("/login", async (req, res) => {
     const stmt = db.prepare(
       "SELECT * FROM users WHERE phone = ? OR email = ? OR username = ?",
     );
-    const user = stmt.get(identifier, identifier, identifier) as any;
+    const user = await stmt.get(identifier, identifier, identifier) as any;
 
     if (!user) {
       return res.status(400).json({ error: "Invalid credentials" });
@@ -146,10 +146,10 @@ router.get("/me", authenticateToken, async (req: any, res) => {
 });
 
 // Get Public Seller Profile
-router.get("/seller/:id", (req: any, res) => {
+router.get("/seller/:id", async (req: any, res) => {
   const { id } = req.params;
   try {
-    const user = db.prepare(
+    const user = await db.prepare(
       "SELECT id, name, business_name, phone, email, created_at FROM users WHERE id = ? AND role = 'owner'"
     ).get(id) as any;
 
@@ -157,7 +157,7 @@ router.get("/seller/:id", (req: any, res) => {
       return res.status(404).json({ error: "Seller not found" });
     }
 
-    const settings = db.prepare(
+    const settings = await db.prepare(
       "SELECT address FROM settings WHERE business_id = ?"
     ).get(id) as any;
 
@@ -278,7 +278,7 @@ router.post("/onboarding", authenticateToken, async (req: any, res) => {
 
   try {
     // 1. Update user onboarded status
-    db.prepare("UPDATE users SET onboarded = 1 WHERE id = ?").run(businessId);
+    await db.prepare("UPDATE users SET onboarded = 1 WHERE id = ?").run(businessId);
 
     // 2. Update settings with business info
     const stmt = db.prepare(`
@@ -290,7 +290,7 @@ router.post("/onboarding", authenticateToken, async (req: any, res) => {
       WHERE business_id = ?
     `);
     
-    stmt.run(currency || '₦', phone || null, address || null, taxRate || 0, businessId);
+    await stmt.run(currency || '₦', phone || null, address || null, taxRate || 0, businessId);
 
     res.json({ success: true, message: "Onboarding completed successfully" });
   } catch (error) {
@@ -305,7 +305,7 @@ router.post("/verify-password", authenticateToken, async (req: any, res) => {
   const userId = req.user.id;
 
   try {
-    const user = db.prepare("SELECT password FROM users WHERE id = ?").get(userId) as any;
+    const user = await db.prepare("SELECT password FROM users WHERE id = ?").get(userId) as any;
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }

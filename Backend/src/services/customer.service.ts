@@ -24,8 +24,8 @@ export class CustomerService {
     return { data, total };
   }
 
-  static getById(id: number | string) {
-    return db.prepare("SELECT * FROM customers WHERE id = ?").get(id);
+  static async getById(id: number | string) {
+    return await (await db.prepare("SELECT * FROM customers WHERE id = ?")).get(id);
   }
 
   static async create(data: any, businessId: number) {

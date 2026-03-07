@@ -132,7 +132,7 @@ async function runSeed() {
     const existingQuotes = await (await db.prepare("SELECT count(*) as count FROM quotes WHERE customer_id = ?")).get(aliceId) as any;
     if (existingQuotes.count === 0) {
       // Find a product ID for Alice to request quote
-      const macbook = db.prepare("SELECT id FROM products WHERE name = 'MacBook Pro M3 Max'").get() as any;
+      const macbook = await db.prepare("SELECT id FROM products WHERE name = 'MacBook Pro M3 Max'").get() as any;
       if (macbook) {
         await db.prepare(`
           INSERT INTO quotes (customer_id, business_id, product_id, requested_quantity, customer_message, attachment_url, status)
@@ -144,9 +144,9 @@ async function runSeed() {
   }
 
   if (aliceId && buildCorpId) {
-     const existingQuotes = db.prepare("SELECT count(*) as count FROM quotes WHERE customer_id = ? AND status = 'responded'").get(aliceId) as any;
+     const existingQuotes = await db.prepare("SELECT count(*) as count FROM quotes WHERE customer_id = ? AND status = 'responded'").get(aliceId) as any;
      if (existingQuotes.count === 0) {
-       const drill = db.prepare("SELECT id FROM products WHERE name = 'DeWalt 20V Max Drill'").get() as any;
+       const drill = await db.prepare("SELECT id FROM products WHERE name = 'DeWalt 20V Max Drill'").get() as any;
        if (drill) {
          await db.prepare(`
            INSERT INTO quotes (customer_id, business_id, product_id, requested_quantity, price, customer_message, seller_response, status)

@@ -178,25 +178,25 @@ router.post("/:id/send", async (req: any, res) => {
 });
 
 // Get campaign statistics
-router.get("/:id/stats", (req: any, res) => {
+router.get("/:id/stats", async (req: any, res) => {
   const { id } = req.params;
   const businessId = req.user.id;
 
   try {
-    const stmt = db.prepare(
+    const stmt = await db.prepare(
       "SELECT * FROM campaigns WHERE id = ? AND business_id = ?",
     );
-    const campaign = stmt.get(id, businessId) as any;
+    const campaign = await stmt.get(id, businessId) as any;
 
     if (!campaign) {
       return res.status(404).json({ error: "Campaign not found" });
     }
 
     // Get total customers
-    const customerStmt = db.prepare(
+    const customerStmt = await db.prepare(
       "SELECT COUNT(*) as total FROM customers WHERE business_id = ?",
     );
-    const customerCount = customerStmt.get(businessId) as any;
+    const customerCount = await customerStmt.get(businessId) as any;
 
     res.json({
       campaign,
