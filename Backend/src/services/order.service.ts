@@ -50,15 +50,18 @@ export class OrderService {
         NotificationService.checkLowStockAndNotify(item.productId, businessId).catch(console.error);
       }
 
-      // 3. Update Loyalty Points
+      // 3. Update Loyalty Points (Pro Feature)
       if (customerId) {
-        const settings = (await (await db.prepare('SELECT * FROM settings WHERE business_id = ?')).get(businessId)) as any;
-        const pointsPerUnit = settings?.loyalty_points_per_unit || 1;
-        const unitAmount = settings?.currency_unit_for_points || 100;
-        
-        const points = Math.floor((totalAmount / unitAmount) * pointsPerUnit);
-        const loyaltyStmt = await db.prepare('UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?');
-        await loyaltyStmt.run(points, customerId);
+        const user = await (await db.prepare("SELECT plan FROM users WHERE id = ?")).get(businessId) as any;
+        if (user && user.plan !== 'free') {
+          const settings = (await (await db.prepare('SELECT * FROM settings WHERE business_id = ?')).get(businessId)) as any;
+          const pointsPerUnit = settings?.loyalty_points_per_unit || 1;
+          const unitAmount = settings?.currency_unit_for_points || 100;
+          
+          const points = Math.floor((totalAmount / unitAmount) * pointsPerUnit);
+          const loyaltyStmt = await db.prepare('UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?');
+          await loyaltyStmt.run(points, customerId);
+        }
       }
       
       return orderId;

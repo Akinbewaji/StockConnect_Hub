@@ -60,6 +60,8 @@ export async function initializeDatabase() {
         name VARCHAR(255) NOT NULL,
         business_name VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'owner',
+        plan VARCHAR(50) DEFAULT 'free',
+        sms_credits INTEGER DEFAULT 0,
         onboarded INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -283,6 +285,20 @@ export async function initializeDatabase() {
         read INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Subscriptions
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id SERIAL PRIMARY KEY,
+        business_id INTEGER NOT NULL,
+        plan VARCHAR(50) NOT NULL,
+        amount NUMERIC NOT NULL,
+        reference VARCHAR(255) UNIQUE NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
 

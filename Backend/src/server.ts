@@ -19,6 +19,7 @@ import customerSelfRoutes from "./routes/customer.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import subscriptionRoutes from "./routes/subscriptions.js";
 
 // Load environment variables
 dotenv.config();
@@ -91,6 +92,7 @@ async function startServer() {
   app.use("/api/orders", authenticateToken, orderRoutes);
   app.use("/api/campaigns", authenticateToken, campaignRoutes);
   app.use("/api/analytics", authenticateToken, analyticsRoutes);
+  app.use("/api/subscriptions", authenticateToken, subscriptionRoutes);
   app.use("/api/settings", authenticateToken, checkRole(['owner']), settingsRoutes);
 
   // Socket.io Connection

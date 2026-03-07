@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Gift, Search, Award, History, ArrowRight } from 'lucide-react';
 import { authFetch } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import { Gift, Search, Award, History, ArrowRight } from 'lucide-react';
 
 export default function Loyalty() {
+  const { user } = useAuth();
+  const isPro = user?.plan?.toLowerCase() !== 'free';
+
   const [customers, setCustomers] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [search, setSearch] = useState('');
@@ -57,7 +61,27 @@ export default function Loyalty() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="relative min-h-[400px]">
+      {!isPro && (
+        <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-slate-200">
+           <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4">
+             <Award size={32} />
+           </div>
+           <h2 className="text-xl font-bold text-slate-900 mb-2">Pro Feature: Loyalty Programs</h2>
+           <p className="text-slate-600 max-w-sm mb-6">
+             Automate rewards and keep your best customers coming back. 
+             Upgrade to Pro to enable points-based loyalty for your business.
+           </p>
+           <button 
+             onClick={() => window.location.href = '/admin/settings'}
+             className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+           >
+             Upgrade to Pro
+           </button>
+        </div>
+      )}
+
+      <div className={`space-y-6 ${!isPro ? 'opacity-40 pointer-events-none grayscale-[0.5]' : ''}`}>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Loyalty Rewards</h1>
@@ -224,6 +248,7 @@ export default function Loyalty() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Send, MessageSquare, AlertCircle, CheckCircle2, Users, Users as UsersIcon, Edit3 } from 'lucide-react';
 import { authFetch } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import { Plus, Send, Megaphone, MessageSquare, AlertCircle, CheckCircle2, Users, Users as UsersIcon, Edit3 } from 'lucide-react';
 
 export default function Campaigns() {
+  const { user } = useAuth();
+  const isPro = user?.plan?.toLowerCase() !== 'free';
+
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -113,7 +117,27 @@ export default function Campaigns() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="relative min-h-[400px]">
+      {!isPro && (
+        <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-slate-200">
+           <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4">
+             <Megaphone size={32} />
+           </div>
+           <h2 className="text-xl font-bold text-slate-900 mb-2">Pro Feature: Bulk Campaigns</h2>
+           <p className="text-slate-600 max-w-sm mb-6">
+             Reach hundreds of customers at once with SMS and WhatsApp campaigns. 
+             Upgrade to Pro to unlock marketing tools and 500 monthly credits.
+           </p>
+           <button 
+             onClick={() => window.location.href = '/admin/settings'}
+             className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all"
+           >
+             Upgrade to Pro
+           </button>
+        </div>
+      )}
+      
+      <div className={`space-y-4 ${!isPro ? 'opacity-40 pointer-events-none grayscale-[0.5]' : ''}`}>
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">Campaigns</h1>
         <button 
@@ -393,6 +417,7 @@ export default function Campaigns() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

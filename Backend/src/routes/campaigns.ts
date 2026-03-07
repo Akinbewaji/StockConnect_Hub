@@ -46,6 +46,14 @@ router.post("/:id/send", async (req: any, res) => {
   const businessId = req.user.id;
 
   try {
+    // 0. Check Plan and Credits
+    const user = await (await db.prepare("SELECT plan, sms_credits FROM users WHERE id = ?")).get(businessId) as any;
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.plan === 'free') {
+      return res.status(403).json({ error: "Campaigns are a Pro feature. Please upgrade your plan." });
+    }
+
     // Get campaign details
     const campaignStmt = await db.prepare(
       "SELECT * FROM campaigns WHERE id = ? AND business_id = ?",
@@ -115,6 +123,15 @@ router.post("/:id/send", async (req: any, res) => {
       return res.status(400).json({ error: "No valid phone numbers to send to" });
     }
 
+    // 5. Check if enough credits
+    if (user.sms_credits < phoneNumbers.length) {
+      return res.status(400).json({ 
+        error: `Insufficient SMS credits. You need ${phoneNumbers.length} but only have ${user.sms_credits}.`,
+        needed: phoneNumbers.length,
+        available: user.sms_credits
+      });
+    }
+
     // Send based on channel
     let result: MessageResult;
     if (campaign.channel === "SMS") {
@@ -132,6 +149,10 @@ router.post("/:id/send", async (req: any, res) => {
     }
 
     if (result.success) {
+      // 6. Deduct credits
+      const newCredits = Math.max(0, user.sms_credits - phoneNumbers.length);
+      await (await db.prepare("UPDATE users SET sms_credits = ? WHERE id = ?")).run(newCredits, businessId);
+
       // Update campaign status to sent
       const updateStmt = await db.prepare(
         "UPDATE campaigns SET status = ? WHERE id = ?",
@@ -140,7 +161,7 @@ router.post("/:id/send", async (req: any, res) => {
 
       res.json({
         success: true,
-        message: `Campaign sent to ${phoneNumbers.length} recipients`,
+        message: `Campaign sent to ${phoneNumbers.length} recipients. ${newCredits} credits remaining.`,
         details: result.data,
         warning: result.warning,
       });

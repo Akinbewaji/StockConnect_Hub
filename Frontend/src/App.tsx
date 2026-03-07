@@ -11,6 +11,7 @@ import Customers from "./pages/admin/Customers";
 import Loyalty from "./pages/admin/Loyalty";
 import Campaigns from "./pages/admin/Campaigns";
 import Messages from "./pages/admin/Messages";
+import Plans from "./pages/admin/Plans";
 import Settings from "./pages/admin/Settings";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -84,6 +85,7 @@ export default function App() {
             <Route path="loyalty" element={<Loyalty />} />
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="messages" element={<Messages />} />
+            <Route path="plans" element={<Plans />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

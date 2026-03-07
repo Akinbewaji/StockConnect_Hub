@@ -68,6 +68,15 @@ export class ProductService {
 
   static async create(data: any, businessId: number) {
     const { name, category, description, price, quantity, reorderThreshold, costPrice, barcode, supplier, imageUrl } = data;
+    // Check plan limits
+    const user = await (await db.prepare("SELECT plan FROM users WHERE id = ?")).get(businessId) as any;
+    if (user && user.plan === 'free') {
+      const { total } = await (await db.prepare("SELECT COUNT(*) as total FROM products WHERE business_id = ?")).get(businessId) as any;
+      if (total >= 50) {
+        throw new Error("Product limit reached for Free tier (max 50 products). Please upgrade to Pro.");
+      }
+    }
+
     const stmt = await db.prepare(`
       INSERT INTO products (name, category, description, price, quantity, reorder_threshold, cost_price, barcode, supplier, image_url, business_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

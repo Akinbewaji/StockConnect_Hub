@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { authFetch } from "../../utils/api";
+import { useAuth } from "../../context/AuthContext";
 import { ListSkeleton } from "../../components/Skeleton";
 
 export default function Inventory() {
@@ -241,26 +242,82 @@ export default function Inventory() {
     window.URL.revokeObjectURL(url);
   };
 
+  const { user } = useAuth();
+  const isFree = user?.plan?.toLowerCase() === 'free' || !user?.plan;
+  const limitReached = isFree && total >= 50;
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Inventory</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Inventory</h1>
+          {isFree && (
+            <div className="mt-1 flex items-center gap-2">
+              <div className="h-1.5 w-32 bg-slate-200 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all ${total >= 45 ? 'bg-amber-500' : 'bg-indigo-600'}`}
+                  style={{ width: `${Math.min(100, (total / 50) * 100)}%` }}
+                ></div>
+              </div>
+              <span className={`text-[10px] font-bold ${total >= 45 ? 'text-amber-600' : 'text-slate-500'}`}>
+                {total}/50 products
+              </span>
+            </div>
+          )}
+        </div>
         <div className="flex gap-2">
           <button
-            onClick={() => setShowImportModal(true)}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-green-700"
+            onClick={() => {
+              if (limitReached) {
+                alert("Product limit reached for Free tier. Please upgrade to Pro to import more products.");
+              } else {
+                setShowImportModal(true);
+              }
+            }}
+            className={`px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 transition-all ${
+              limitReached 
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
           >
             <Upload size={20} />
             <span className="hidden sm:inline">Import</span>
           </button>
           <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-indigo-600 text-white p-2 rounded-full shadow-lg"
+            onClick={() => {
+              if (limitReached) {
+                alert("Product limit reached for Free tier. Please upgrade to Pro to add more products.");
+              } else {
+                setShowAddModal(true);
+              }
+            }}
+            className={`p-2 rounded-full shadow-lg transition-all ${
+              limitReached
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                : 'bg-indigo-600 text-white'
+            }`}
           >
             <Plus size={24} />
           </button>
         </div>
       </div>
+
+      {limitReached && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+          <AlertCircle className="text-amber-600 shrink-0" size={20} />
+          <div className="flex-1">
+            <p className="text-sm text-amber-800 font-medium">
+              You've reached the 50-product limit for the Free tier.
+            </p>
+            <button 
+              onClick={() => window.location.href = '/admin/settings'}
+              className="text-xs text-amber-700 font-bold underline mt-1"
+            >
+              Upgrade to Pro for unlimited products
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Search & Filters */}
       <div className="space-y-3">
@@ -315,7 +372,7 @@ export default function Inventory() {
             className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center"
           >
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200">
+              <div className="h-16 w-16 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
                 <img
                   src={
                     product.image_url ||

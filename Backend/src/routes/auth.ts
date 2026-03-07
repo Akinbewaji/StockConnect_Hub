@@ -49,6 +49,9 @@ router.post("/register", async (req, res) => {
         phone,
         email,
         username,
+        role: "owner",
+        plan: "free",
+        smsCredits: 0,
         onboarded: 0,
       },
     });
@@ -103,6 +106,9 @@ router.post("/login", async (req, res) => {
         phone: user.phone,
         email: user.email,
         username: user.username,
+        role: user.role,
+        plan: user.plan,
+        smsCredits: user.sms_credits,
         onboarded: user.onboarded,
       },
     });
@@ -112,12 +118,12 @@ router.post("/login", async (req, res) => {
 });
 
 // Get current user
-router.get("/me", authenticateToken, (req: any, res) => {
+router.get("/me", authenticateToken, async (req: any, res) => {
   try {
-    const stmt = db.prepare(
-      "SELECT id, name, business_name, phone, role, created_at FROM users WHERE id = ?",
+    const stmt = await db.prepare(
+      "SELECT id, name, business_name, phone, role, plan, sms_credits, onboarded, created_at FROM users WHERE id = ?",
     );
-    const user = stmt.get(req.user.id) as any;
+    const user = await stmt.get(req.user.id) as any;
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -129,6 +135,8 @@ router.get("/me", authenticateToken, (req: any, res) => {
       businessName: user.business_name,
       phone: user.phone,
       role: user.role,
+      plan: user.plan,
+      smsCredits: user.sms_credits,
       onboarded: user.onboarded,
       createdAt: user.created_at,
     });
