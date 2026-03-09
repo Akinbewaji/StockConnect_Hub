@@ -31,7 +31,7 @@ export class CustomerService {
   static async create(data: any, businessId: number) {
     const { name, phone, email } = data;
     const stmt = await db.prepare(
-      "INSERT INTO customers (business_id, name, phone, email) VALUES (?, ?, ?, ?)",
+      "INSERT INTO customers (business_id, name, phone, email) VALUES (?, ?, ?, ?) RETURNING id",
     );
     const info = await stmt.run(businessId, data.name, data.phone, data.email);
     return info.lastInsertRowid;

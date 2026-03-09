@@ -30,7 +30,7 @@ router.post("/", async (req: any, res) => {
   const businessId = req.user.id;
   try {
     const stmt = await db.prepare(
-      "INSERT INTO campaigns (name, message, channel, business_id) VALUES (?, ?, ?, ?)",
+      "INSERT INTO campaigns (name, message, channel, business_id) VALUES (?, ?, ?, ?) RETURNING id",
     );
     const info = await stmt.run(name, message, channel, businessId);
     res.json({ id: info.lastInsertRowid, ...req.body });

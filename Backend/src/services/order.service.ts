@@ -29,14 +29,14 @@ export class OrderService {
 
     const transaction = async () => {
       // 1. Create Order
-      const stmt = await db.prepare('INSERT INTO orders (customer_id, total_amount, status) VALUES (?, ?, ?)');
+      const stmt = await db.prepare('INSERT INTO orders (customer_id, total_amount, status) VALUES (?, ?, ?) RETURNING id');
       const info = await stmt.run(customerId, totalAmount, 'confirmed');
       const orderId = info.lastInsertRowid;
       
       // 2. Process Items
-      const itemStmt = await db.prepare('INSERT INTO order_items (order_id, product_id, quantity, unit_price, unit_cost) VALUES (?, ?, ?, ?, ?)');
+      const itemStmt = await db.prepare('INSERT INTO order_items (order_id, product_id, quantity, unit_price, unit_cost) VALUES (?, ?, ?, ?, ?) RETURNING id');
       const stockStmt = await db.prepare('UPDATE products SET quantity = quantity - ? WHERE id = ?');
-      const movementStmt = await db.prepare('INSERT INTO stock_movements (product_id, change_amount, reason) VALUES (?, ?, ?)');
+      const movementStmt = await db.prepare('INSERT INTO stock_movements (product_id, change_amount, reason) VALUES (?, ?, ?) RETURNING id');
       const productStmt = await db.prepare('SELECT cost_price FROM products WHERE id = ?');
       
       for (const item of items) {

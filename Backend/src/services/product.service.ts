@@ -79,7 +79,7 @@ export class ProductService {
 
     const stmt = await db.prepare(`
       INSERT INTO products (name, category, description, price, quantity, reorder_threshold, cost_price, barcode, supplier, image_url, business_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     `);
     const info = await stmt.run(
       name,

@@ -54,7 +54,7 @@ router.post("/verify", authenticateToken, async (req: any, res) => {
       .run(plan.toLowerCase(), smsCreditsToAdd, businessId);
 
     // b. Record Subscription
-    await db.prepare("INSERT INTO subscriptions (business_id, plan, amount, reference, status) VALUES (?, ?, ?, ?, ?)")
+    await db.prepare("INSERT INTO subscriptions (business_id, plan, amount, reference, status) VALUES (?, ?, ?, ?, ?) RETURNING id")
       .run(businessId, plan.toLowerCase(), data.data.amount / 100, reference, "success");
 
     // c. Get updated user info

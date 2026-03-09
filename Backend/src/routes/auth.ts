@@ -23,7 +23,7 @@ router.post("/register", async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const stmt = db.prepare(
-      "INSERT INTO users (phone, email, username, password, name, business_name) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO users (phone, email, username, password, name, business_name) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
     );
     const info = await stmt.run(
       phone,
@@ -185,7 +185,7 @@ router.post("/demo", async (req, res) => {
     
     // 1. Create Demo User
     const userStmt = db.prepare(
-      "INSERT INTO users (phone, email, username, password, name, business_name) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO users (phone, email, username, password, name, business_name) VALUES (?, ?, ?, ?, ?, ?) RETURNING id"
     );
     const userInfo = await (await userStmt).run(
       `080${Math.floor(Math.random() * 100000000)}`,
@@ -203,7 +203,7 @@ router.post("/demo", async (req, res) => {
     const seedData = async () => {
       // 3. Create Demo Products
       const productStmt = db.prepare(
-        "INSERT INTO products (business_id, name, category, price, quantity) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO products (business_id, name, category, price, quantity) VALUES (?, ?, ?, ?, ?) RETURNING id"
       );
       const cementId = (await (await productStmt).run(businessId, 'Dangote Cement 50kg', 'Building Materials', 8500, 150)).lastInsertRowid;
       const pipeId = (await (await productStmt).run(businessId, 'PVC Pipe 4 inch', 'Plumbing', 3500, 20)).lastInsertRowid; // Low stock
@@ -212,14 +212,14 @@ router.post("/demo", async (req, res) => {
 
       // 4. Create Demo Customers
       const customerStmt = db.prepare(
-        "INSERT INTO customers (business_id, name, phone, email) VALUES (?, ?, ?, ?)"
+        "INSERT INTO customers (business_id, name, phone, email) VALUES (?, ?, ?, ?) RETURNING id"
       );
       const cust1Id = (await (await customerStmt).run(businessId, 'John Contractor', '08011111111', 'john@example.com')).lastInsertRowid;
       const cust2Id = (await (await customerStmt).run(businessId, 'ABC Builders Ltd', '08022222222', 'contact@abc.com')).lastInsertRowid;
 
       // 5. Create past orders for graph data
-      const orderStmt = db.prepare("INSERT INTO orders (customer_id, total_amount, status, created_at) VALUES (?, ?, ?, ?)");
-      const itemStmt = db.prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)");
+      const orderStmt = db.prepare("INSERT INTO orders (customer_id, total_amount, status, created_at) VALUES (?, ?, ?, ?) RETURNING id");
+      const itemStmt = db.prepare("INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?) RETURNING id");
       
       const today = new Date();
       
