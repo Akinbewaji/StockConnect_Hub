@@ -185,7 +185,7 @@ router.post("/demo", async (req, res) => {
     
     // 1. Create Demo User
     const userStmt = db.prepare(
-      "INSERT INTO users (phone, email, username, password, name, business_name) VALUES (?, ?, ?, ?, ?, ?) RETURNING id"
+      "INSERT INTO users (phone, email, username, password, name, business_name, plan, sms_credits) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id"
     );
     const userInfo = await (await userStmt).run(
       `080${Math.floor(Math.random() * 100000000)}`,
@@ -193,7 +193,9 @@ router.post("/demo", async (req, res) => {
       demoUserStr,
       hashedPassword,
       "Demo User",
-      "Demo Hardware Store"
+      "Demo Hardware Store",
+      "business",
+      2000
     );
     const businessId = userInfo.lastInsertRowid;
 
