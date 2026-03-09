@@ -74,6 +74,16 @@ export async function initializeDatabase() {
       )
     `);
 
+    // Migration: Ensure 'plan' and 'sms_credits' columns exist for older databases
+    await db.exec(`DO $$ BEGIN 
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='plan') THEN
+        ALTER TABLE users ADD COLUMN plan VARCHAR(50) DEFAULT 'free';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='sms_credits') THEN
+        ALTER TABLE users ADD COLUMN sms_credits INTEGER DEFAULT 0;
+      END IF;
+    END $$;`);
+
     // Products
     await db.exec(`
       CREATE TABLE IF NOT EXISTS products (
