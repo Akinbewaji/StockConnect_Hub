@@ -21,6 +21,8 @@ import chatRoutes from "./routes/chat.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import subscriptionRoutes from "./routes/subscriptions.js";
 import maintenanceRoutes from "./routes/maintenance.routes.js";
+import insightRoutes from "./routes/insights.js";
+import { scheduleDailyReports } from "./services/report.service.js";
 
 // Load environment variables
 dotenv.config();
@@ -109,6 +111,7 @@ async function startServer() {
   app.use("/api/subscriptions", authenticateToken, subscriptionRoutes);
   app.use("/api/settings", authenticateToken, checkRole(['owner']), settingsRoutes);
   app.use("/api/maintenance", authenticateToken, checkRole(['owner']), maintenanceRoutes);
+  app.use("/api/insights", authenticateToken, checkRole(['owner']), insightRoutes);
 
   // Socket.io Connection
   io.on("connection", (socket: any) => {
@@ -165,6 +168,9 @@ async function startServer() {
     );
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
     console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+    
+    // Start automated daily reports scheduler
+    scheduleDailyReports();
   });
 }
 

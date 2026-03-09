@@ -13,6 +13,7 @@ import Campaigns from "./pages/admin/Campaigns";
 import Messages from "./pages/admin/Messages";
 import Plans from "./pages/admin/Plans";
 import Settings from "./pages/admin/Settings";
+import Insights from "./pages/admin/Insights";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -87,6 +88,7 @@ export default function App() {
             <Route path="messages" element={<Messages />} />
             <Route path="plans" element={<Plans />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="insights" element={<Insights />} />
           </Route>
         </Routes>
         </BrowserRouter>

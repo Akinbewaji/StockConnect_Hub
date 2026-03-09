@@ -1,4 +1,5 @@
 import AfricasTalking from "africastalking";
+import axios from "axios";
 
 // Initialize Africa's Talking SDK
 const username = process.env.AFRICASTALKING_USERNAME || "sandbox";
@@ -73,30 +74,48 @@ export async function sendSMS(params: SendSMSParams) {
  * Note: This requires Africa's Talking WhatsApp Business API setup
  */
 export async function sendWhatsApp(params: SendWhatsAppParams) {
-  try {
-    // Africa's Talking WhatsApp requires a separate API call
-    // This is a placeholder implementation
-    // You'll need to implement the actual WhatsApp API integration
-
-    console.log("📱 WhatsApp message queued for:", params.to);
-    console.log("Message:", params.message);
-
-    // For now, return a mock success response
-    // In production, you'd make an HTTP request to AT's WhatsApp API
-    return {
-      success: true,
-      data: {
-        message: "WhatsApp messages queued",
-        recipients: params.to,
-      },
-      warning:
-        "WhatsApp integration requires additional setup with Africa's Talking WhatsApp Business API",
-    };
-  } catch (error: any) {
-    console.error("❌ WhatsApp sending failed:", error);
+  if (!apiKey || apiKey.trim() === "") {
+    console.error("❌ Africa's Talking SDK not initialized (Missing API Key)");
     return {
       success: false,
-      error: error.message || "Failed to send WhatsApp message",
+      error: "WhatsApp service not configured. Please set AFRICASTALKING_API_KEY in .env file",
+    };
+  }
+
+  try {
+    // Africa's Talking WhatsApp Business API Endpoint
+    const url = "https://apis.africastalking.com/v1/whatsapp/message/send";
+
+    const data = {
+      username: username,
+      to: params.to[0], // AT WhatsApp usually takes one recipient at a time for this endpoint
+      message: params.message,
+    };
+
+    const config = {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'apiKey': apiKey
+      }
+    };
+
+    console.log("📱 Sending WhatsApp message via Africa's Talking to:", params.to);
+    
+    const response = await axios.post(url, data, config);
+    
+    console.log("✅ WhatsApp response:", response.data);
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error("❌ WhatsApp sending failed:", error.response?.data || error.message);
+    
+    return {
+      success: false,
+      error: error.response?.data?.errorMessage || error.message || "Failed to send WhatsApp message",
     };
   }
 }
