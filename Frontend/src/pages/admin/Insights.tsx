@@ -8,7 +8,7 @@ import {
   ShoppingBag, Zap, RefreshCw, BarChart3, PieChart as PieChartIcon,
   MessageSquare, LayoutDashboard
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { authFetch } from '../../utils/api';
 import socket from '../../utils/socket';
 
@@ -241,8 +241,11 @@ export default function Insights() {
                   </div>
                 ))}
               </div>
-              <button className="w-full mt-6 py-2 rounded-xl bg-slate-50 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-colors">
-                View Full Report
+              <button 
+                onClick={() => window.location.href = '/admin/inventory'}
+                className="w-full mt-6 py-2 rounded-xl bg-slate-50 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-colors"
+              >
+                View Full Inventory
               </button>
             </motion.div>
           </div>

@@ -13,6 +13,7 @@ import {
 import { authFetch } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { ListSkeleton } from "../../components/Skeleton";
+import { Edit, Trash2 } from "lucide-react";
 
 export default function Inventory() {
   const [products, setProducts] = useState<any[]>([]);
@@ -40,6 +41,7 @@ export default function Inventory() {
     barcode: "",
     imageUrl: "",
   });
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -407,12 +409,57 @@ export default function Inventory() {
                 </div>
               </div>
             </div>
-            <button className="text-slate-400 hover:text-slate-600">
-              <MoreVertical size={20} />
-            </button>
+            <div className="relative">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenuId(openMenuId === product.id ? null : product.id);
+                }}
+                className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+                title="Options"
+              >
+                <MoreVertical size={20} />
+              </button>
+              
+              {openMenuId === product.id && (
+                <div className="absolute right-0 mt-1 w-48 bg-white border border-slate-100 rounded-xl shadow-xl z-30 py-1 overflow-hidden animate-in fade-in zoom-in duration-200">
+                  <button 
+                    onClick={() => {
+                      alert("Edit feature coming soon!");
+                      setOpenMenuId(null);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <Edit size={16} className="text-indigo-600" /> 
+                    Edit Product
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if(confirm("Are you sure you want to delete this product?")) {
+                        // Implement delete
+                        alert("Delete feature coming soon!");
+                      }
+                      setOpenMenuId(null);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-slate-50"
+                  >
+                    <Trash2 size={16} /> 
+                    Delete Product
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>
+      )}
+
+      {/* Global click to close menu */}
+      {openMenuId && (
+        <div 
+          className="fixed inset-0 z-20" 
+          onClick={() => setOpenMenuId(null)}
+        />
       )}
 
       {/* Pagination Controls */}
