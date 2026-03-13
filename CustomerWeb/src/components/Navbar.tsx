@@ -92,7 +92,9 @@ export default function Navbar() {
                   Log In
                 </Link>
               ) : (
-                <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+                <Link to="/profile" className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 font-bold hover:bg-indigo-200 transition-colors shadow-sm uppercase">
+                  {authService.getCurrentUser()?.name?.[0] || 'U'}
+                </Link>
               )}
             </div>
 

@@ -14,6 +14,7 @@ import Chat from './pages/Chat';
 import ProductDetails from './pages/ProductDetails';
 import SellerProfile from './pages/SellerProfile';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import OrderConfirmation from './pages/OrderConfirmation';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -74,6 +75,11 @@ function App() {
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
           </Routes>
