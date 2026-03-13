@@ -194,7 +194,7 @@ router.post("/demo", async (req, res) => {
       hashedPassword,
       "Demo User",
       "Demo Hardware Store",
-      "business",
+      "pro",
       2000
     );
     const businessId = userInfo.lastInsertRowid;
@@ -256,6 +256,9 @@ router.post("/demo", async (req, res) => {
         name: "Demo User",
         businessName: "Demo Hardware Store",
         username: demoUserStr,
+        plan: "pro",
+        smsCredits: 2000,
+        onboarded: 0
       },
     });
 

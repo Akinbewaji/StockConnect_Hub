@@ -195,6 +195,26 @@ export default function Settings() {
     );
   }
 
+  if (!settings) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white rounded-2xl border border-slate-100 shadow-sm">
+        <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4">
+          <AlertCircle size={32} />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Failed to Load Settings</h2>
+        <p className="text-slate-500 mb-6 max-w-sm">
+          We couldn't retrieve your business settings. Please check your connection and try again.
+        </p>
+        <button 
+          onClick={fetchSettings}
+          className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+        >
+          Retry Loading
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <div>
@@ -251,7 +271,7 @@ export default function Settings() {
                 <input 
                   type="text" 
                   disabled={isProfileLocked}
-                  value={settings.currency || ''}
+                  value={settings?.currency || ''}
                   onChange={e => setSettings({...settings, currency: e.target.value})}
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all disabled:text-slate-500"
                   placeholder="₦, $, €"
@@ -309,7 +329,7 @@ export default function Settings() {
                   step="0.01"
                   min="0"
                   max="100"
-                  value={settings.tax_rate || ''}
+                  value={settings?.tax_rate || ''}
                   onChange={e => setSettings({...settings, tax_rate: parseFloat(e.target.value) || 0})}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                   placeholder="e.g. 7.5"
@@ -320,7 +340,7 @@ export default function Settings() {
             <div className="space-y-1.5 md:col-span-2">
               <label className="text-sm font-medium text-slate-700">Receipt Footer Message</label>
               <textarea 
-                value={settings.receipt_footer || ''}
+                value={settings?.receipt_footer || ''}
                 onChange={e => setSettings({...settings, receipt_footer: e.target.value})}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-20"
                 placeholder="Thank you for shopping with us! Returns accepted within 3 days with receipt."
@@ -342,7 +362,7 @@ export default function Settings() {
               <label className="text-sm font-medium text-slate-700">Default Africa's Talking Sender ID</label>
               <input 
                 type="text" 
-                value={settings.default_sender_id || ''}
+                value={settings?.default_sender_id || ''}
                 onChange={e => setSettings({...settings, default_sender_id: e.target.value})}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 placeholder="e.g. MYSTORE (Leave blank for default shortcode)"
@@ -358,7 +378,7 @@ export default function Settings() {
               <div className="relative inline-flex items-center shrink-0">
                 <input 
                   type="checkbox" 
-                  checked={settings.auto_receipt_sms === 1}
+                  checked={settings?.auto_receipt_sms === 1}
                   onChange={e => setSettings({...settings, auto_receipt_sms: e.target.checked ? 1 : 0})}
                   className="sr-only peer" 
                 />
@@ -407,8 +427,8 @@ export default function Settings() {
               </div>
             </div>
             <p className="text-xs text-slate-500 italic">
-              Currently: Customers earn {settings.loyalty_points_per_unit} point(s) for every {settings.currency}{settings.currency_unit_for_points} spent. 
-              Each point is worth {settings.currency}{settings.point_redemption_value} during redemption.
+              Currently: Customers earn {settings?.loyalty_points_per_unit || 1} point(s) for every {settings?.currency || '₦'}{settings?.currency_unit_for_points || 100} spent. 
+              Each point is worth {settings?.currency || '₦'}{settings?.point_redemption_value || 10} during redemption.
             </p>
           </div>
         </section>

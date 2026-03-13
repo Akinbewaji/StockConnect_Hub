@@ -52,9 +52,13 @@ async function startServer() {
   // 2. Rate Limiting
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Higher limit in development
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+      // Skip rate limiting for OPTIONS preflight requests to avoid CORS issues in dev
+      return req.method === 'OPTIONS' || process.env.NODE_ENV !== 'production';
+    },
     message: { error: "Too many requests, please try again later." },
   });
 

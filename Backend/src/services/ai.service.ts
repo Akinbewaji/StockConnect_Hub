@@ -22,25 +22,30 @@ export async function generateBusinessInsights(data: BusinessData, query: string
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: "You are 'StockConnect Advisor', an elite business consultant for West African SMEs. Your goal is to maximize profitability and efficiency using data-driven insights. Be professional, direct, and actionable."
+    });
 
+    const lowStockItems = data.inventory.filter((p: any) => p.quantity <= p.reorder_threshold);
+    
     const prompt = `
-      You are a professional business consultant for a small to medium enterprise named "StockConnect".
-      I will provide you with my current business data. 
-      Please analyze it and answer the following query: "${query}"
+      Context:
+      - Name: StockConnect SME Hub
+      - Total Sales (7 days): ${JSON.stringify(data.sales)}
+      - Inventory Stats: ${data.inventory.length} total items, ${lowStockItems.length} low stock warnings.
+      - Low Stock Details: ${JSON.stringify(lowStockItems.slice(0, 5))}
+      - Customer Count: ${data.customers.length}
+      - Recent Orders Activity: ${JSON.stringify(data.recentOrders.slice(0, 10))}
 
-      Business Data:
-      - Total Sales (last 7 days): ${JSON.stringify(data.sales)}
-      - Current Inventory (Products/Stock): ${JSON.stringify(data.inventory.length)} items, including low stock items.
-      - Total Customers: ${data.customers.length}
-      - Recent Orders Summary: ${JSON.stringify(data.recentOrders)}
+      User Query: ${query}
 
-      Instructions:
-      1. Provide clear, actionable insights.
-      2. If asked for graphical representations, suggest what kind of charts (Line, Bar, Pie) would best represent the data for that specific query.
-      3. Keep the tone professional, encouraging, and concise.
-      4. Format the response in Markdown. Use bolding and lists for readability.
-      5. If the query is about "Decision Making", highlight the pros and cons of the suggested actions.
+      Instructions for Response:
+      1. CRITICAL: Use Markdown formatting (headers, bolding, lists).
+      2. If query is vague, provide a general "State of Business" report with 3 urgent actions.
+      3. If specific (e.g., 'marketing', 'stock'), dive deep into that area using the provided JSON data.
+      4. Suggest a specific chart type (Line, Bar, Pie) if visualization helps the answer.
+      5. Add a "Financial Tip of the Day" at the end of every response.
     `;
 
     const result = await model.generateContent(prompt);
@@ -48,7 +53,10 @@ export async function generateBusinessInsights(data: BusinessData, query: string
     return response.text();
   } catch (error: any) {
     console.error("❌ Gemini AI Error:", error);
-    throw new Error("Failed to generate AI insights: " + error.message);
+    if (error.message?.includes("API key")) {
+      throw new Error("Invalid or expired API key. Please check your GEMINI_API_KEY.");
+    }
+    throw new Error("AI Advisor is currently unavailable. " + error.message);
   }
 }
 

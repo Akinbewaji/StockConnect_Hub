@@ -103,54 +103,49 @@ http://localhost:3000
 ## Project Structure
 
 ```
-├── server.ts                 # Express server entry point
-├── index.html               # HTML entry point
-├── package.json             # Dependencies and scripts
-├── tsconfig.json            # TypeScript configuration
-├── vite.config.ts           # Vite configuration
-├── src/
-│   ├── main.tsx             # React entry point
-│   ├── App.tsx              # Main app component
-│   ├── index.css            # Global styles
-│   ├── components/          # Reusable UI components
-│   │   └── ChatBot.tsx      # AI chatbot component
-│   ├── context/             # React context providers
-│   │   └── AuthContext.tsx  # Authentication context
-│   ├── db/                  # Database initialization
-│   │   ├── init.ts          # Database setup
-│   │   └── seed.ts          # Seed data
-│   ├── layouts/             # Page layouts
-│   │   ├── AdminLayout.tsx  # Admin dashboard layout
-│   │   └── ShopLayout.tsx   # Shop layout
-│   ├── middleware/          # Express middleware
-│   │   └── auth.ts          # JWT authentication
-│   ├── pages/               # Page components
-│   │   ├── admin/           # Admin pages
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Inventory.tsx
-│   │   │   ├── POS.tsx
-│   │   │   ├── Customers.tsx
-│   │   │   ├── Orders.tsx
-│   │   │   ├── Campaigns.tsx
-│   │   │   ├── Loyalty.tsx
-│   │   │   └── Settings.tsx
-│   │   ├── auth/            # Authentication pages
-│   │   │   ├── Login.tsx
-│   │   │   └── Register.tsx
-│   │   └── shop/            # Customer-facing pages
-│   │       ├── Home.tsx
-│   │       └── ProductDetail.tsx
-│   ├── routes/              # API routes
-│   │   ├── auth.ts
-│   │   ├── products.ts
-│   │   ├── customers.ts
-│   │   ├── orders.ts
-│   │   ├── campaigns.ts
-│   │   ├── analytics.ts
-│   │   └── settings.ts
-│   └── utils/               # Utility functions
-│       └── api.ts           # API helper functions
+├── Backend/                 # Express API (SQLite, Gemini, Africa's Talking)
+│   ├── src/
+│   │   ├── services/       # Business logic (AI, SMS, Orders)
+│   │   └── server.ts       # Backend entry point
+├── Frontend/                # Business Admin Dashboard (React + Vite)
+│   ├── src/
+│   │   └── pages/admin/    # POS, Inventory, Insights (AI)
+├── CustomerWeb/             # Customer-facing shopping site (React)
+├── package.json             # Root workspace-like scripts
+└── README.md                # This guide
 ```
+
+## Getting Started
+
+### Prerequisites
+- **Node.js** (v18+)
+- **npm** or **yarn**
+- **Gemini API Key** (for Business Insights)
+
+### Installation & Setup
+
+1. **Clone & Install**:
+   ```bash
+   git clone <repository-url>
+   npm install
+   ```
+
+2. **Environment Configuration**:
+   Create a `.env` file in the **root** folder (and `Backend/.env`):
+   ```env
+   GEMINI_API_KEY=your_key_here
+   AFRICASTALKING_USERNAME=sandbox
+   AFRICASTALKING_API_KEY=your_at_key
+   PORT=5000
+   ```
+
+3. **Running the Platform**:
+   Use the root scripts for convenience:
+   ```bash
+   npm run dev:backend   # Start API
+   npm run dev:frontend  # Start Dashboard
+   npm run dev:customer  # Start Shop
+   ```
 
 ## API Endpoints
 

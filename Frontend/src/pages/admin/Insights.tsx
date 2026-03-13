@@ -9,8 +9,10 @@ import {
   MessageSquare, LayoutDashboard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { jsPDF } from "jspdf";
 import { authFetch } from '../../utils/api';
 import socket from '../../utils/socket';
+import { Copy, Download, CheckCircle2 } from 'lucide-react';
 
 // Types for business data
 interface BusinessInsightData {
@@ -33,6 +35,7 @@ export default function Insights() {
   const [query, setQuery] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const fetchData = async () => {
@@ -90,6 +93,55 @@ export default function Insights() {
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const copyToClipboard = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(index);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const exportChatToPDF = () => {
+    const doc = new jsPDF();
+    const title = "StockConnect Business Insight Report";
+    const date = new Date().toLocaleString();
+    
+    doc.setFontSize(20);
+    doc.setTextColor(79, 70, 229); // Indigo-600
+    doc.text(title, 20, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139); // Slate-500
+    doc.text(`Generated on: ${date}`, 20, 30);
+    
+    doc.setDrawColor(226, 232, 240); // Slate-200
+    doc.line(20, 35, 190, 35);
+    
+    let cursorY = 45;
+    chatHistory.forEach((msg) => {
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      if (msg.role === 'ai') {
+        doc.setTextColor(79, 70, 229);
+      } else {
+        doc.setTextColor(51, 65, 85);
+      }
+      doc.text(msg.role === 'ai' ? "AI Advisor:" : "Business Owner:", 20, cursorY);
+      cursorY += 7;
+      
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      const splitText = doc.splitTextToSize(msg.content, 170);
+      doc.text(splitText, 20, cursorY);
+      cursorY += (splitText.length * 6) + 10;
+      
+      if (cursorY > 270) {
+        doc.addPage();
+        cursorY = 20;
+      }
+    });
+
+    doc.save(`StockConnect_Insights_${Date.now()}.pdf`);
   };
 
   if (loading) {
@@ -270,6 +322,16 @@ export default function Insights() {
                   <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Gemini 1.5 Powered</span>
                 </div>
               </div>
+              {chatHistory.length > 0 && (
+                <button 
+                  onClick={exportChatToPDF}
+                  className="ml-auto p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors group relative"
+                  title="Export to PDF"
+                >
+                  <Download size={18} />
+                  <span className="absolute -bottom-8 right-0 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Export Report</span>
+                </button>
+              )}
             </div>
 
             {/* Chat Messages */}
@@ -299,9 +361,9 @@ export default function Insights() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={index} 
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                 >
-                  <div className={`max-w-[85%] p-4 rounded-2xl text-sm ${
+                  <div className={`max-w-[85%] p-4 rounded-2xl text-sm relative group ${
                     msg.role === 'user' 
                       ? 'bg-indigo-600 text-white rounded-tr-none' 
                       : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'
@@ -312,6 +374,15 @@ export default function Insights() {
                       </div>
                     ) : (
                       msg.content
+                    )}
+                    
+                    {msg.role === 'ai' && (
+                      <button 
+                        onClick={() => copyToClipboard(msg.content, index)}
+                        className="absolute -right-10 top-2 p-1.5 text-slate-500 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        {copiedId === index ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
+                      </button>
                     )}
                   </div>
                 </motion.div>

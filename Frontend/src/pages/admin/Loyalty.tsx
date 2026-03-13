@@ -46,7 +46,8 @@ export default function Loyalty() {
     // Let's assume we'd add a transaction record too.
     
     // For MVP, let's just show an alert success.
-    alert(`Successfully redeemed ${points} points for ${selectedCustomer.name}. Value: ${settings.currency}${(points * settings.point_redemption_value).toLocaleString()}`);
+    const redemptionValue = Number(settings?.point_redemption_value || 0);
+    alert(`Successfully redeemed ${points} points for ${selectedCustomer.name}. Value: ${settings?.currency}${(points * redemptionValue).toLocaleString()}`);
     
     // Optimistically update UI
     const updatedCustomers = customers.map(c => 
@@ -89,7 +90,7 @@ export default function Loyalty() {
         </div>
         <div className="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-medium flex items-center gap-2">
           <Award size={20} />
-          <span>1 Point = {settings?.currency}{settings?.point_redemption_value?.toFixed(2)}</span>
+          <span>1 Point = {settings?.currency}{Number(settings?.point_redemption_value || 0).toFixed(2)}</span>
         </div>
       </div>
 
@@ -204,8 +205,8 @@ export default function Loyalty() {
                   <span className="font-medium text-slate-900">{selectedCustomer.loyalty_points} pts</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Value ({settings.currency}{settings.point_redemption_value}/pt)</span>
-                  <span className="font-medium text-slate-900">{settings.currency}{(selectedCustomer.loyalty_points * settings.point_redemption_value).toLocaleString()}</span>
+                  <span className="text-slate-500">Value ({settings?.currency}{settings?.point_redemption_value}/pt)</span>
+                  <span className="font-medium text-slate-900">{settings?.currency}{(selectedCustomer.loyalty_points * (settings?.point_redemption_value || 0)).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -224,7 +225,7 @@ export default function Loyalty() {
                   />
                   {pointsToRedeem && (
                     <p className="text-center text-sm text-green-600 mt-2 font-medium">
-                      = {settings.currency}{(parseInt(pointsToRedeem) * settings.point_redemption_value).toLocaleString()} Discount
+                      = {settings?.currency}{(parseInt(pointsToRedeem) * (settings?.point_redemption_value || 0)).toLocaleString()} Discount
                     </p>
                   )}
                 </div>

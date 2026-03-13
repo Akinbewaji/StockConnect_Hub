@@ -359,9 +359,9 @@ export async function seedDemoData() {
 
     // Using returning id to mimic lastInsertRowid
     const userResult = await pool.query(`
-      INSERT INTO users (username, email, phone, password, name, business_name, role)
-      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
-    `, [DEMO_EMAIL, DEMO_EMAIL, DEMO_PHONE, hashedPassword, DEMO_NAME, "Customer", "customer"]);
+      INSERT INTO users (username, email, phone, password, name, business_name, role, plan)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+    `, [DEMO_EMAIL, DEMO_EMAIL, DEMO_PHONE, hashedPassword, DEMO_NAME, "Customer", "customer", "pro"]);
 
     const userId = userResult.rows[0].id;
 

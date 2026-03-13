@@ -33,6 +33,8 @@ function TitleManager() {
   return null;
 }
 
+import ErrorBoundary from "./components/ErrorBoundary";
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   
@@ -74,7 +76,9 @@ export default function App() {
             path="/admin"
             element={
               <ProtectedRoute>
-                <AdminLayout />
+                <ErrorBoundary>
+                  <AdminLayout />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           >

@@ -119,7 +119,7 @@ export default function AdminLayout() {
 
         {/* Mobile Navigation Menu Overlay */}
         {isMenuOpen && (
-          <div className="fixed inset-0 top-0 bg-black/50 z-[60] md:hidden" onClick={() => setIsMenuOpen(false)}>
+          <div className="fixed inset-0 top-0 bg-black/50 z-60 md:hidden" onClick={() => setIsMenuOpen(false)}>
             <div className="bg-white w-64 h-full shadow-xl flex flex-col overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">

@@ -45,7 +45,7 @@ AFRICASTALKING_API_KEY=your_api_key
 
 **Endpoint Details:**
 
-```
+```http
 GET /api/auth/me
 Authorization: Bearer <token>
 ```
@@ -146,7 +146,7 @@ await sendWhatsApp({
 
 #### Send Campaign
 
-```
+```http
 POST /api/campaigns/:id/send
 Authorization: Bearer <token>
 ```
@@ -176,7 +176,7 @@ Authorization: Bearer <token>
 
 #### Get Campaign Statistics
 
-```
+```http
 GET /api/campaigns/:id/stats
 Authorization: Bearer <token>
 ```
@@ -426,6 +426,37 @@ The server will start on `http://localhost:3000`
 
 ---
 
+### 7. **Business AI Advisor (Gemini 1.5)** ✨ ENHANCED
+
+**Files Modified:**
+
+- [`Backend/src/services/ai.service.ts`](Backend/src/services/ai.service.ts) - Enhanced prompts and data integration.
+- [`Frontend/src/pages/admin/Insights.tsx`](Frontend/src/pages/admin/Insights.tsx) - Added Copy and PDF Export.
+
+**Features:**
+
+- ✅ Context-aware business consulting using Gemini 1.5.
+- ✅ Bulk data analysis (sales, stock, orders).
+- ✅ Real-time insight generation.
+- ✅ **New:** Export insight reports to PDF using `jspdf`.
+- ✅ **New:** Copy insights to clipboard for quick sharing.
+
+---
+
+### 8. **Root CLI Utilities** ✨ NEW
+
+**Files Modified:**
+
+- [`package.json`](package.json) - Added workspace scripts.
+
+**Convenience Scripts:**
+
+- `npm run dev:backend` - Start Express API.
+- `npm run dev:frontend` - Start Admin Dashboard.
+- `npm run dev:customer` - Start Shop interface.
+
+---
+
 ## 🎉 What's Next?
 
 ### Potential Enhancements
@@ -461,5 +492,5 @@ For issues or questions:
 
 ---
 
-**Last Updated:** 2026-02-25
-**Version:** 1.0.0
+**Last Updated:** 2026-03-11
+**Version:** 1.1.0

@@ -65,12 +65,12 @@ export default function Dashboard() {
             <span className="text-sm text-slate-500">Revenue</span>
           </div>
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold text-slate-900">₦{stats.totalRevenue?.toLocaleString()}</p>
-            <div className={`text-xs font-bold px-2 py-1 rounded-full ${stats.trends?.dayChange >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-              {stats.trends?.dayChange >= 0 ? '+' : ''}{stats.trends?.dayChange}%
+            <p className="text-2xl font-bold text-slate-900">₦{stats?.totalRevenue?.toLocaleString() || 0}</p>
+            <div className={`text-xs font-bold px-2 py-1 rounded-full ${(stats?.trends?.dayChange || 0) >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {(stats?.trends?.dayChange || 0) >= 0 ? '+' : ''}{stats?.trends?.dayChange || 0}%
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">Vs yesterday (₦{stats.trends?.yesterday?.toLocaleString()})</p>
+          <p className="text-[10px] text-slate-400 mt-1">Vs yesterday (₦{stats?.trends?.yesterday?.toLocaleString() || 0})</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 border-l-4 border-l-green-500">
@@ -81,10 +81,10 @@ export default function Dashboard() {
             <span className="text-sm text-slate-500">Profit</span>
           </div>
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold text-green-600">₦{stats.totalProfit?.toLocaleString()}</p>
-            <span className="text-[10px] font-bold text-green-500">{stats.profitMargin}% Margin</span>
+            <p className="text-2xl font-bold text-green-600">₦{stats?.totalProfit?.toLocaleString() || 0}</p>
+            <span className="text-[10px] font-bold text-green-500">{stats?.profitMargin || 0}% Margin</span>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">This month: ₦{stats.trends?.month?.toLocaleString()}</p>
+          <p className="text-[10px] text-slate-400 mt-1">This month: ₦{stats?.trends?.month?.toLocaleString() || 0}</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
@@ -94,7 +94,7 @@ export default function Dashboard() {
             </div>
             <span className="text-sm text-slate-500">Products</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900">{stats.totalProducts}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats?.totalProducts || 0}</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
@@ -104,7 +104,7 @@ export default function Dashboard() {
             </div>
             <span className="text-sm text-slate-500">Low Stock</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900">{stats.lowStock}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats?.lowStock || 0}</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
@@ -114,7 +114,7 @@ export default function Dashboard() {
             </div>
             <span className="text-sm text-slate-500">Total Orders</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900">{stats.recentOrders}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats?.recentOrders || 0}</p>
         </div>
 
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
@@ -124,7 +124,7 @@ export default function Dashboard() {
             </div>
             <span className="text-sm text-slate-500">Campaigns</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900">{stats.activeCampaigns}</p>
+          <p className="text-2xl font-bold text-slate-900">{stats?.activeCampaigns || 0}</p>
         </div>
       </div>
 

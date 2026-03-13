@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
+    "dev:backend": "cd Backend && npm run dev",
+    "dev:frontend": "cd Frontend && npm run dev",
+    "dev:customer": "cd CustomerWeb && npm run dev",
     "build": "vite build",
-    "preview": "vite preview",
+    "build:backend": "cd Backend && npm run build",
+    "build:frontend": "cd Frontend && npm run build",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "lint:all": "npm run lint && cd Backend && npm run lint && cd Frontend && npm run lint"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
