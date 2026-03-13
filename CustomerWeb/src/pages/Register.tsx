@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
-import { User, Phone, Mail, Loader2, MapPin, Navigation, Lock, Eye, EyeOff } from 'lucide-react';
+import SEO from '../components/SEO';
+import { User, Phone, Mail, Loader2, MapPin, Navigation, Lock, Eye, EyeOff, ChevronLeft, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface AxiosError {
   response?: {
@@ -93,130 +95,166 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
-        <div className="text-center">
-          <h2 className="text-4xl font-black text-indigo-600 tracking-tight">StockConnect</h2>
-          <p className="mt-3 text-slate-500 font-medium whitespace-pre-line">
-            Join the StockConnect ecosystem
-            {"\n"}Empowering local commerce
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#fcfcfc] py-20 flex items-center justify-center p-4 relative overflow-hidden">
+      <SEO title="Register" description="Create your StockConnect account to start procuring materials." />
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-slate-100/50 rounded-full blur-[120px]" />
+      </div>
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm border border-red-100 font-medium animate-shake">
-            {error}
+      <div className="max-w-xl w-full relative z-10">
+        <Link 
+          to="/login" 
+          className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-all font-bold text-xs uppercase tracking-widest mb-8 group"
+        >
+          <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Login
+        </Link>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/80 backdrop-blur-xl rounded-5xl p-8 sm:p-12 shadow-2xl shadow-indigo-900/10 border border-white"
+        >
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-indigo-200">
+              <User size={32} />
+            </div>
+            <h2 className="text-4xl font-black text-slate-900 font-outfit tracking-tight">Create Account</h2>
+            <p className="mt-3 text-slate-500 font-medium">Join StockConnect's global material network.</p>
           </div>
-        )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-indigo-400" />
-              </div>
-              <input
-                type="text"
-                required
-                className="appearance-none rounded-2xl relative block w-full px-12 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-rose-50 text-rose-600 p-4 rounded-2xl text-xs border border-rose-100 font-bold mb-8 flex items-center gap-3"
+            >
+              <XCircle size={16} />
+              {error}
+            </motion.div>
+          )}
 
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Phone className="h-5 w-5 text-indigo-400" />
-              </div>
-              <input
-                type="tel"
-                required
-                className="appearance-none rounded-2xl relative block w-full px-12 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-indigo-400" />
-              </div>
-              <input
-                type="email"
-                required
-                className="appearance-none rounded-2xl relative block w-full px-12 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-indigo-400" />
-              </div>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                autoComplete="new-password"
-                className="appearance-none rounded-2xl relative block w-full px-12 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
-                placeholder="Create a Password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-500 transition-colors"
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Delivery Address</p>
-                <button
-                  type="button"
-                  onClick={detectLocation}
-                  disabled={loading}
-                  className="flex items-center gap-1 text-[10px] font-black text-indigo-600 uppercase tracking-tighter hover:bg-indigo-50 px-2 py-1 rounded-lg transition-colors border border-indigo-100"
-                >
-                  <Navigation className="h-3 w-3" />
-                  Confirm Location
-                </button>
-              </div>
-              <div className="space-y-3">
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Name */}
+              <div className="group md:col-span-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-4">Full Identity</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-slate-400" />
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-600 transition-colors">
+                    <User size={18} />
                   </div>
                   <input
                     type="text"
-                    className="appearance-none rounded-2xl relative block w-full px-12 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
-                    placeholder="Area / Street Name"
-                    value={formData.address.street}
-                    onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
+                    required
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Navigation className="h-4 w-4 text-slate-400" />
+              </div>
+
+              {/* Phone */}
+              <div className="group">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-4">Phone Number</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-600 transition-colors">
+                    <Phone size={18} />
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                    placeholder="+234..."
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="group">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-4">Email Address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-600 transition-colors">
+                    <Mail size={18} />
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                    placeholder="name@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="group md:col-span-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-4">Secure Passcode</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-600 transition-colors">
+                    <Lock size={18} />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                    placeholder="Create a strong password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-300 hover:text-indigo-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Address Section */}
+              <div className="md:col-span-2 pt-4 border-t border-slate-50">
+                <div className="flex items-center justify-between mb-4 px-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base Location</p>
+                  <button
+                    type="button"
+                    onClick={detectLocation}
+                    disabled={loading}
+                    className="flex items-center gap-1.5 text-[9px] font-black text-indigo-600 uppercase tracking-widest hover:bg-indigo-50 px-3 py-1.5 rounded-full transition-all border border-indigo-100 shadow-sm"
+                  >
+                    <Navigation size={12} className="fill-indigo-600" />
+                    Auto-Detect
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative md:col-span-2 group">
+                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-600 transition-colors">
+                      <MapPin size={18} />
                     </div>
                     <input
                       type="text"
-                      className="appearance-none rounded-2xl relative block w-full px-12 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
-                      placeholder="City"
-                      value={formData.address.city}
-                      onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
+                      className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                      placeholder="Street name or neighborhood"
+                      value={formData.address.street}
+                      onChange={(e) => setFormData({ ...formData, address: { ...formData.address, street: e.target.value } })}
                     />
                   </div>
                   <input
                     type="text"
-                    className="appearance-none rounded-2xl relative block w-full px-6 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-6 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                    placeholder="City"
+                    value={formData.address.city}
+                    onChange={(e) => setFormData({ ...formData, address: { ...formData.address, city: e.target.value } })}
+                  />
+                  <input
+                    type="text"
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-6 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
                     placeholder="State"
                     value={formData.address.state}
                     onChange={(e) => setFormData({ ...formData, address: { ...formData.address, state: e.target.value } })}
@@ -224,27 +262,25 @@ export default function Register() {
                 </div>
               </div>
             </div>
-          </div>
 
-          <div>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 transition-all font-inter"
+              className="w-full flex justify-center py-5 bg-indigo-600 text-white font-black rounded-3xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95 disabled:opacity-50 disabled:grayscale uppercase tracking-widest text-sm"
             >
-              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Create Account'}
+              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Launch My Account'}
             </button>
-          </div>
-        </form>
+          </form>
 
-        <div className="text-center">
-          <p className="text-sm text-slate-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Sign in here
-            </Link>
-          </p>
-        </div>
+          <div className="mt-10 text-center">
+            <p className="text-sm text-slate-400 font-medium">
+              Already have an account?{' '}
+              <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-700 underline underline-offset-4 decoration-indigo-200">
+                Sign in here
+              </Link>
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

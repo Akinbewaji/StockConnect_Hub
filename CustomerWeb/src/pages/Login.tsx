@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
-import { Phone, Mail, Lock, Loader2, Eye, EyeOff, Zap } from 'lucide-react';
+import SEO from '../components/SEO';
+import { Phone, Mail, Lock, Loader2, Eye, EyeOff, ChevronLeft, ShieldCheck, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface AxiosError {
@@ -48,105 +49,136 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl shadow-2xl border border-slate-100">
-        <div className="text-center">
-          <h2 className="text-4xl font-black text-indigo-600 tracking-tight">StockConnect</h2>
-          <p className="mt-3 text-slate-500 font-medium">Welcome back! Sign in to your account.</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#fcfcfc] px-4 py-12 relative overflow-hidden">
+      <SEO title="Login" description="Access your StockConnect customer portal." />
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-100/50 rounded-full blur-[120px]" />
+      </div>
 
-        {/* Demo Login Button */}
-        <button
-          type="button"
-          onClick={fillDemoCredentials}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50 text-indigo-600 font-bold text-sm hover:bg-indigo-100 hover:border-indigo-300 transition-all disabled:opacity-50"
+      <div className="max-w-md w-full relative z-10">
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-all font-bold text-xs uppercase tracking-widest mb-8 group"
         >
-          <Zap size={16} className="text-yellow-500" />
-          Quick Demo Login
-          <span className="ml-1 text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:inline">
-            demo@stockconnect.com / demo1234
-          </span>
-        </button>
+          <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Store
+        </Link>
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm border border-red-100 font-medium">
-            {error}
-          </div>
-        )}
-
-        <motion.form
-          initial={{ opacity: 0, y: 10 }}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-8 space-y-6"
-          onSubmit={handleLogin}
+          className="bg-white/80 backdrop-blur-xl rounded-5xl p-8 sm:p-12 shadow-2xl shadow-indigo-900/10 border border-white"
         >
-          <div className="space-y-4">
-            {/* Identifier field */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                {identifier.includes('@') ? (
-                  <Mail className="h-5 w-5 text-indigo-400" />
-                ) : (
-                  <Phone className="h-5 w-5 text-indigo-400" />
-                )}
-              </div>
-              <input
-                id="identifier"
-                type="text"
-                required
-                autoComplete="username"
-                className="appearance-none rounded-2xl relative block w-full px-12 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
-                placeholder="Email, Phone, or Username"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-              />
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-indigo-200">
+              <ShieldCheck size={32} />
             </div>
-
-            {/* Password field */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-indigo-400" />
-              </div>
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                required
-                autoComplete="current-password"
-                className="appearance-none rounded-2xl relative block w-full px-12 py-4 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-slate-50/50"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-indigo-500 transition-colors"
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
-            </div>
+            <h2 className="text-4xl font-black text-slate-900 font-outfit tracking-tight">Welcome Back</h2>
+            <p className="mt-3 text-slate-500 font-medium">Log in to manage your procurement.</p>
           </div>
 
+          {/* Quick Demo Login */}
           <button
-            type="submit"
-            id="login-btn"
-            disabled={loading || !identifier || !password}
-            className="w-full flex justify-center py-4 px-4 border border-transparent text-sm font-black rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 transition-all shadow-lg shadow-indigo-100 uppercase tracking-widest"
+            type="button"
+            onClick={fillDemoCredentials}
+            disabled={loading}
+            className="w-full relative group p-4 rounded-3xl border-2 border-dashed border-indigo-100 bg-indigo-50/50 text-indigo-600 font-bold text-xs hover:bg-indigo-50 hover:border-indigo-200 transition-all disabled:opacity-50 overflow-hidden mb-8"
           >
-            {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign In'}
+            <div className="relative z-10 flex items-center justify-center gap-2">
+              <Zap size={14} className="text-amber-500 fill-amber-500" />
+              <span>CLICK HERE FOR QUICK DEMO LOGIN</span>
+            </div>
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full duration-1000 transition-transform" />
           </button>
-        </motion.form>
 
-        <div className="mt-8 text-center border-t border-slate-50 pt-8">
-          <p className="text-sm text-slate-500 font-medium">
-            Don't have an account yet?{' '}
-            <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-700 underline underline-offset-4">
-              Register here
-            </Link>
-          </p>
-        </div>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-rose-50 text-rose-600 p-4 rounded-2xl text-xs border border-rose-100 font-bold mb-6 flex items-center gap-3"
+            >
+              <XCircle size={16} />
+              {error}
+            </motion.div>
+          )}
+
+          <form className="space-y-6" onSubmit={handleLogin}>
+            <div className="space-y-4">
+              {/* Identifier field */}
+              <div className="group">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-4">Credential</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-600 transition-colors">
+                    {identifier.includes('@') ? (
+                      <Mail size={18} />
+                    ) : (
+                      <Phone size={18} />
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                    placeholder="Email, Phone, or Username"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Password field */}
+              <div className="group">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-4">Passcode</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-600 transition-colors">
+                    <Lock size={18} />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-300 hover:text-indigo-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || !identifier || !password}
+              className="w-full flex justify-center py-5 bg-indigo-600 text-white font-black rounded-3xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 active:scale-95 disabled:opacity-50 disabled:grayscale uppercase tracking-widest text-sm"
+            >
+              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Log Into Account'}
+            </button>
+          </form>
+
+          <div className="mt-10 text-center">
+            <p className="text-sm text-slate-400 font-medium">
+              New here?{' '}
+              <Link to="/register" className="font-bold text-indigo-600 hover:text-indigo-700 underline underline-offset-4 decoration-indigo-200">
+                Join StockConnect
+              </Link>
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
 }
+
+const XCircle = ({ size, className }: { size: number; className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+  </svg>
+);

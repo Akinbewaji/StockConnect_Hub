@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { productService } from '../services/product.service';
 import Navbar from '../components/Navbar';
-import { Search, Filter, Package, Truck, ChevronRight, ShoppingCart, Star, SlidersHorizontal, ArrowUpDown, XCircle } from 'lucide-react';
+import SEO from '../components/SEO';
+import { Filter, Package, Truck, ChevronRight, ShoppingCart, Star, SlidersHorizontal, ArrowUpDown, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from './Home';
 
@@ -59,6 +60,7 @@ export default function Products() {
 
   return (
     <div className="min-h-screen bg-[#fcfcfc] pb-24">
+      <SEO title="Products" description="Explore our extensive collection of high-quality industrial materials." />
       <Navbar />
       
       {/* Header Section */}

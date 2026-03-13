@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Moon, Sun, Palette, User, Bell, Save, CheckCircle2 } from 'lucide-react';
+import SEO from '../components/SEO';
+import { Moon, Sun, Palette, User, Bell, Save, CheckCircle2, Shield, Sparkles, Smartphone, Mail, Trash2, Loader2 } from 'lucide-react';
 import { useTheme } from '../context/useTheme';
 import { authService } from '../services/auth.service';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
@@ -21,7 +23,7 @@ export default function Settings() {
     // Fetch latest profile data
     api.get('/customers/self/profile').then(res => {
       setProfile(res.data);
-    }).catch(err => console.error("Failed to fetch profile"));
+    }).catch(() => console.error("Failed to fetch profile"));
   }, []);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -34,177 +36,231 @@ export default function Settings() {
         email: profile.email
       });
       setSuccess(true);
-      // Update local storage if needed (optional based on auth service implementation)
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
-      alert("Failed to update profile");
+      console.error("Failed to update profile", error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-(--background) text-(--foreground)">
+    <div className="min-h-screen bg-[#fcfcfc] pb-24 relative overflow-hidden">
+      <SEO title="Settings" description="Manage your digital identity and preferences on StockConnect." />
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-50/50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-(--bg-surface) border-b border-(--border) px-4 py-4">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <Link to="/" className="text-(--foreground) opacity-60 hover:opacity-100 transition-opacity">
-            ←
-          </Link>
-          <h1 className="text-lg font-black text-(--foreground)">Settings</h1>
+      <div className="pt-32 pb-12 bg-white border-b border-slate-100 mb-12 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
+          <nav className="flex items-center justify-center sm:justify-start gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+            <Link to="/" className="hover:text-indigo-600 transition-colors">Dashboard</Link>
+            <div className="w-1 h-1 bg-slate-300 rounded-full" />
+            <span className="text-indigo-600">Preferences</span>
+          </nav>
+          <h1 className="text-4xl md:text-5xl font-black font-outfit text-slate-900 tracking-tight">Account Settings</h1>
+          <p className="text-slate-500 mt-2 text-lg">Manage your digital identity and preferences.</p>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
-        {/* Account Info */}
-        <section className="bg-(--bg-surface) rounded-2xl border border-(--border) overflow-hidden shadow-sm">
-          <div className="p-5 border-b border-(--border) flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 rounded-xl">
-              <User size={18} />
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="space-y-8">
+          
+          {/* Profile Section */}
+          <motion.section 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-5xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden"
+          >
+            <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                  <User size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 font-outfit">Identity Profile</h2>
+                  <p className="text-sm text-slate-400 font-medium">Your personal information</p>
+                </div>
+              </div>
+              <Sparkles size={20} className="text-indigo-300" />
             </div>
-            <h2 className="font-bold text-(--foreground)">Account Profile</h2>
-          </div>
-          <form onSubmit={handleUpdateProfile} className="p-5 space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-(--foreground) opacity-50 uppercase tracking-wider">Full Name</label>
-              <input 
-                type="text"
-                value={profile.name}
-                onChange={e => setProfile({...profile, name: e.target.value})}
-                className="w-full bg-(--bg-surface-2) border border-(--border) rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
-                placeholder="John Doe"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-(--foreground) opacity-50 uppercase tracking-wider">Email Address</label>
-              <input 
-                type="email"
-                value={profile.email}
-                onChange={e => setProfile({...profile, email: e.target.value})}
-                className="w-full bg-(--bg-surface-2) border border-(--border) rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
-                placeholder="john@example.com"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-(--foreground) opacity-50 uppercase tracking-wider">Phone Number</label>
-              <input 
-                type="text"
-                value={profile.phone}
-                disabled
-                className="w-full bg-(--bg-surface-2) border border-(--border) rounded-xl px-4 py-3 text-sm opacity-50 cursor-not-allowed"
-              />
-              <p className="text-[10px] text-(--foreground) opacity-40 italic">Phone number is linked to your identity and cannot be changed.</p>
-            </div>
-            
-            <button 
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-                success 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : success ? (
-                <><CheckCircle2 size={18} /> Profile Updated</>
-              ) : (
-                <><Save size={18} /> Save Changes</>
-              )}
-            </button>
-          </form>
-        </section>
 
-        {/* Appearance */}
-        <section className="bg-(--bg-surface) rounded-2xl border border-(--border) overflow-hidden shadow-sm">
-          <div className="p-5 border-b border-(--border) flex items-center gap-3">
-            <div className="p-2 bg-violet-50 text-violet-600 dark:bg-violet-900/30 rounded-xl">
-              <Palette size={18} />
-            </div>
-            <h2 className="font-bold text-(--foreground)">Appearance</h2>
-          </div>
-          <div className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-(--foreground)">Theme</p>
-                <p className="text-xs opacity-60 text-(--foreground) mt-0.5">
-                  Switch between light and dark mode
+            <form onSubmit={handleUpdateProfile} className="p-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-4">Full Identity</label>
+                  <div className="relative">
+                    <User size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+                    <input 
+                      type="text"
+                      value={profile.name}
+                      onChange={e => setProfile({...profile, name: e.target.value})}
+                      className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                      placeholder="Your Full Name"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-4">Digital Mail</label>
+                  <div className="relative">
+                    <Mail size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+                    <input 
+                      type="email"
+                      value={profile.email}
+                      onChange={e => setProfile({...profile, email: e.target.value})}
+                      className="w-full bg-slate-50/50 border border-slate-100 rounded-3xl px-14 py-4 text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium"
+                      placeholder="name@nexus.com"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="group md:col-span-2 opacity-60">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-4">Phone Link (Immutable)</label>
+                  <div className="relative">
+                    <Smartphone size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" />
+                    <input 
+                      type="text"
+                      value={profile.phone}
+                      disabled
+                      className="w-full bg-slate-50/30 border border-slate-100 rounded-3xl px-14 py-4 text-slate-400 cursor-not-allowed font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                disabled={loading}
+                className={`w-full py-5 rounded-3xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl ${
+                  success 
+                    ? 'bg-emerald-600 text-white shadow-emerald-100' 
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-100'
+                }`}
+              >
+                {loading ? (
+                  <Loader2 size={24} className="animate-spin" />
+                ) : success ? (
+                  <><CheckCircle2 size={20} /> Success: Identity Updated</>
+                ) : (
+                  <><Save size={20} /> Deploy Profile Changes</>
+                )}
+              </button>
+            </form>
+          </motion.section>
+
+          {/* Configuration Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Visual Configuration */}
+            <motion.section 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-5xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden"
+            >
+              <div className="p-8 border-b border-slate-50 flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+                  <Palette size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 font-outfit">Visual Core</h2>
+                  <p className="text-sm text-slate-400 font-medium">Theme engine settings</p>
+                </div>
+              </div>
+              
+              <div className="p-8 space-y-6">
+                <div className="flex items-center justify-between p-4 bg-slate-50/50 rounded-3xl border border-slate-100">
+                  <span className="text-sm font-bold text-slate-600">Adaptive Mode</span>
+                  <button
+                    onClick={toggleTheme}
+                    className={`relative w-14 h-8 rounded-full transition-colors duration-500 shadow-inner ${
+                      theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-200'
+                    }`}
+                  >
+                    <div className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-xl flex items-center justify-center transition-transform duration-500 ${
+                      theme === 'dark' ? 'translate-x-6' : 'translate-x-0'
+                    }`}>
+                      {theme === 'dark' ? <Moon size={12} className="text-indigo-600" /> : <Sun size={12} className="text-amber-500" />}
+                    </div>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => theme !== 'light' && toggleTheme()}
+                    className={`p-4 rounded-3xl border-2 transition-all flex flex-col gap-3 items-center ${
+                      theme === 'light' 
+                        ? 'border-indigo-600 bg-indigo-50/50' 
+                        : 'border-slate-50 bg-slate-50/30'
+                    }`}
+                  >
+                    <Sun size={20} className={theme === 'light' ? 'text-indigo-600' : 'text-slate-300'} />
+                    <span className={`text-xs font-black uppercase tracking-widest ${theme === 'light' ? 'text-indigo-600' : 'text-slate-400'}`}>Light</span>
+                  </button>
+                  <button
+                    onClick={() => theme !== 'dark' && toggleTheme()}
+                    className={`p-4 rounded-3xl border-2 transition-all flex flex-col gap-3 items-center ${
+                      theme === 'dark' 
+                        ? 'border-indigo-600 bg-indigo-50/50' 
+                        : 'border-slate-50 bg-slate-50/30'
+                    }`}
+                  >
+                    <Moon size={20} className={theme === 'dark' ? 'text-indigo-600' : 'text-slate-300'} />
+                    <span className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-indigo-600' : 'text-slate-400'}`}>Dark</span>
+                  </button>
+                </div>
+              </div>
+            </motion.section>
+
+            {/* Neural System */}
+            <motion.section 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-5xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden"
+            >
+              <div className="p-8 border-b border-slate-50 flex items-center gap-4">
+                <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
+                  <Bell size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 font-outfit">Neural Net</h2>
+                  <p className="text-sm text-slate-400 font-medium">Notification control</p>
+                </div>
+              </div>
+              <div className="p-8 flex flex-col items-center justify-center h-[200px] text-center space-y-4">
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 border border-slate-100">
+                  <Shield size={20} />
+                </div>
+                <p className="text-sm font-bold text-slate-400 leading-relaxed max-w-[200px]">
+                  Notification encryption & filters coming in v2.0
                 </p>
               </div>
-              {/* Toggle switch */}
-              <button
-                type="button"
-                onClick={toggleTheme}
-                aria-label="Toggle theme"
-                className={`relative flex items-center w-16 h-8 rounded-full transition-colors duration-300 focus:outline-none ${
-                  theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-200'
-                }`}
-              >
-                <span
-                  className={`absolute left-1 top-1 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center transition-transform duration-300 ${
-                    theme === 'dark' ? 'translate-x-8' : 'translate-x-0'
-                  }`}
-                >
-                  {theme === 'dark' ? (
-                    <Moon size={12} className="text-indigo-600" />
-                  ) : (
-                    <Sun size={12} className="text-amber-500" />
-                  )}
-                </span>
-              </button>
-            </div>
+            </motion.section>
+          </div>
 
-            {/* Visual theme preview chips */}
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => theme !== 'light' && toggleTheme()}
-                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                  theme === 'light'
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-(--border) bg-(--bg-surface-2)'
-                }`}
-              >
-                <Sun size={16} className={theme === 'light' ? 'text-indigo-600' : 'text-(--foreground) opacity-60'} />
-                <span className={`text-sm font-bold ${theme === 'light' ? 'text-indigo-600' : 'text-(--foreground) opacity-60'}`}>
-                  Light
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => theme !== 'dark' && toggleTheme()}
-                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                  theme === 'dark'
-                    ? 'border-indigo-500 bg-indigo-900/20'
-                    : 'border-(--border) bg-(--bg-surface-2)'
-                }`}
-              >
-                <Moon size={16} className={theme === 'dark' ? 'text-indigo-400' : 'text-(--foreground) opacity-60'} />
-                <span className={`text-sm font-bold ${theme === 'dark' ? 'text-indigo-400' : 'text-(--foreground) opacity-60'}`}>
-                  Dark
-                </span>
+          {/* Danger Zone */}
+          <motion.section 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="bg-rose-50/30 rounded-5xl border border-rose-100 overflow-hidden"
+          >
+            <div className="p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div>
+                <h3 className="text-lg font-black text-rose-900 font-outfit">Entropy Zone</h3>
+                <p className="text-sm text-rose-600 font-medium mt-1">Permanent data erasure protocol.</p>
+              </div>
+              <button className="px-8 py-4 bg-white border border-rose-100 text-rose-600 rounded-3xl font-black uppercase tracking-widest text-xs hover:bg-rose-600 hover:text-white transition-all shadow-lg shadow-rose-900/5 active:scale-95 flex items-center gap-2">
+                <Trash2 size={16} />
+                Terminate Account
               </button>
             </div>
-          </div>
-        </section>
+          </motion.section>
 
-        {/* Notifications placeholder */}
-        <section className="bg-(--bg-surface) rounded-2xl border border-(--border) overflow-hidden shadow-sm">
-          <div className="p-5 border-b border-(--border) flex items-center gap-3">
-            <div className="p-2 bg-rose-50 text-rose-500 dark:bg-rose-900/30 rounded-xl">
-              <Bell size={18} />
-            </div>
-            <h2 className="font-bold text-(--foreground)">Notifications</h2>
-          </div>
-          <div className="p-5">
-            <p className="text-sm text-(--foreground) opacity-60">
-              Notification preferences coming soon.
-            </p>
-          </div>
-        </section>
+        </div>
       </div>
     </div>
   );
