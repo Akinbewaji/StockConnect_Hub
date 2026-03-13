@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
+import OrderDetail from './pages/OrderDetail';
 import Chat from './pages/Chat';
 import ProductDetails from './pages/ProductDetails';
 import SellerProfile from './pages/SellerProfile';
@@ -56,6 +57,12 @@ function App() {
             <Route path="/orders" element={
               <ProtectedRoute>
                 <Orders />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/orders/:id" element={
+              <ProtectedRoute>
+                <OrderDetail />
               </ProtectedRoute>
             } />
             

@@ -14,6 +14,7 @@ import Messages from "./pages/admin/Messages";
 import Plans from "./pages/admin/Plans";
 import Settings from "./pages/admin/Settings";
 import Insights from "./pages/admin/Insights";
+import CashFlow from "./pages/admin/CashFlow";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -93,6 +94,7 @@ export default function App() {
             <Route path="plans" element={<Plans />} />
             <Route path="settings" element={<Settings />} />
             <Route path="insights" element={<Insights />} />
+            <Route path="cash-flow" element={<CashFlow />} />
           </Route>
         </Routes>
         </BrowserRouter>

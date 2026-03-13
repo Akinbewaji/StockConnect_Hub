@@ -1,11 +1,47 @@
-import { Moon, Sun, Palette, User, Bell } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Moon, Sun, Palette, User, Bell, Save, CheckCircle2 } from 'lucide-react';
 import { useTheme } from '../context/useTheme';
 import { authService } from '../services/auth.service';
+import api from '../services/api';
 import { Link } from 'react-router-dom';
 
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
-  const user = authService.getCurrentUser();
+  const currentUser = authService.getCurrentUser();
+  
+  const [profile, setProfile] = useState({
+    name: currentUser?.name || '',
+    email: currentUser?.email || '',
+    phone: currentUser?.phone || ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    // Fetch latest profile data
+    api.get('/customers/self/profile').then(res => {
+      setProfile(res.data);
+    }).catch(err => console.error("Failed to fetch profile"));
+  }, []);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccess(false);
+    try {
+      await api.put('/customers/self/profile', {
+        name: profile.name,
+        email: profile.email
+      });
+      setSuccess(true);
+      // Update local storage if needed (optional based on auth service implementation)
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (error) {
+      alert("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-(--background) text-(--foreground)">
@@ -21,26 +57,66 @@ export default function Settings() {
 
       <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
         {/* Account Info */}
-        {user && (
-          <section className="bg-(--bg-surface) rounded-2xl border border-(--border) overflow-hidden shadow-sm">
-            <div className="p-5 border-b border-(--border) flex items-center gap-3">
-              <div className="p-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 rounded-xl">
-                <User size={18} />
-              </div>
-              <h2 className="font-bold text-(--foreground)">Account</h2>
+        <section className="bg-(--bg-surface) rounded-2xl border border-(--border) overflow-hidden shadow-sm">
+          <div className="p-5 border-b border-(--border) flex items-center gap-3">
+            <div className="p-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 rounded-xl">
+              <User size={18} />
             </div>
-            <div className="p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-(--foreground) opacity-60">Name</span>
-                <span className="text-sm font-semibold text-(--foreground)">{user.name}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-(--foreground) opacity-60">Email</span>
-                <span className="text-sm font-semibold text-(--foreground)">{user.email}</span>
-              </div>
+            <h2 className="font-bold text-(--foreground)">Account Profile</h2>
+          </div>
+          <form onSubmit={handleUpdateProfile} className="p-5 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-(--foreground) opacity-50 uppercase tracking-wider">Full Name</label>
+              <input 
+                type="text"
+                value={profile.name}
+                onChange={e => setProfile({...profile, name: e.target.value})}
+                className="w-full bg-(--bg-surface-2) border border-(--border) rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+                placeholder="John Doe"
+                required
+              />
             </div>
-          </section>
-        )}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-(--foreground) opacity-50 uppercase tracking-wider">Email Address</label>
+              <input 
+                type="email"
+                value={profile.email}
+                onChange={e => setProfile({...profile, email: e.target.value})}
+                className="w-full bg-(--bg-surface-2) border border-(--border) rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+                placeholder="john@example.com"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-(--foreground) opacity-50 uppercase tracking-wider">Phone Number</label>
+              <input 
+                type="text"
+                value={profile.phone}
+                disabled
+                className="w-full bg-(--bg-surface-2) border border-(--border) rounded-xl px-4 py-3 text-sm opacity-50 cursor-not-allowed"
+              />
+              <p className="text-[10px] text-(--foreground) opacity-40 italic">Phone number is linked to your identity and cannot be changed.</p>
+            </div>
+            
+            <button 
+              type="submit"
+              disabled={loading}
+              className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+                success 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }`}
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : success ? (
+                <><CheckCircle2 size={18} /> Profile Updated</>
+              ) : (
+                <><Save size={18} /> Save Changes</>
+              )}
+            </button>
+          </form>
+        </section>
 
         {/* Appearance */}
         <section className="bg-(--bg-surface) rounded-2xl border border-(--border) overflow-hidden shadow-sm">

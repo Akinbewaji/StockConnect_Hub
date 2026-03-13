@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, Users, Megaphone, LogOut, Menu, X, Gift, ClipboardList, ShoppingCart, Settings, MessageSquare, Brain } from 'lucide-react';
+import { LayoutDashboard, Package, Users, Megaphone, LogOut, Menu, X, Gift, ClipboardList, ShoppingCart, Settings, MessageSquare, Brain, Banknote } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ChatBot from '../components/ChatBot';
@@ -12,6 +12,7 @@ export default function AdminLayout() {
   const navItems = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/insights', icon: Brain, label: 'AI Insights', pro: true },
+    { path: '/admin/cash-flow', icon: Banknote, label: 'Cash Flow' },
     { path: '/admin/inventory', icon: Package, label: 'Inventory' },
     { path: '/admin/stock', icon: ClipboardList, label: 'Stock' },
     { path: '/admin/pos', icon: ShoppingCart, label: 'New Sale' },

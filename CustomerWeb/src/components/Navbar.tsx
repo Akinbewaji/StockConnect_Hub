@@ -1,100 +1,146 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, MessageSquare, Bell, LogOut, Menu, X, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { ShoppingCart, Menu, X, Search, Heart, Store } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { authService } from '../services/auth.service';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
-  const user = authService.getCurrentUser();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const location = useLocation();
 
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navLinks = [
+    { name: 'Products', path: '/products' },
+    { name: 'Categories', path: '/#categories' },
+    { name: 'Vendors', path: '/#vendors' },
+    { name: 'Wholesale', path: '/#wholesale' },
+  ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-indigo-600 font-outfit">StockConnect</span>
-            </Link>
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
-              <Link to="/" className="text-slate-900 inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium">
-                Home
-              </Link>
-              <Link to="/products" className="text-slate-500 hover:text-slate-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-slate-300 text-sm font-medium transition-colors">
-                Products
-              </Link>
-            </div>
-          </div>
-
-          <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-6">
-            <Link to="/cart" className="p-2 text-slate-400 hover:text-indigo-600 relative transition-colors">
-              <ShoppingCart className="h-6 w-6" />
-              <span className="absolute top-0 right-0 flex h-4 w-4 rounded-full bg-red-500 text-white text-[10px] items-center justify-center font-bold">
-                0
-              </span>
-            </Link>
-
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <Link to="/chat" className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
-                  <MessageSquare className="h-6 w-6" />
-                </Link>
-                <Link to="/notifications" className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
-                  <Bell className="h-6 w-6" />
-                </Link>
-                <div className="flex items-center space-x-2 border-l pl-4 ml-4">
-                  <Link to="/settings" className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-sm font-bold hover:bg-indigo-200 transition-colors" title={user.name}>
-                    {user.name[0]}
-                  </Link>
-                  <Link to="/settings" className="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Settings">
-                    <Settings className="h-5 w-5" />
-                  </Link>
-                  <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
-                    <LogOut className="h-5 w-5" />
-                  </button>
-                </div>
+    <nav className={`fixed top-0 left-0 right-0 z-100 transition-all duration-500`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div className={`relative px-6 py-4 rounded-4xl border border-white/20 transition-all duration-500 ${
+          isScrolled 
+          ? 'bg-white/80 backdrop-blur-xl shadow-2xl shadow-slate-200/50 border border-white/50 px-6 py-2' 
+          : 'bg-white border border-slate-100 px-8 py-4 shadow-sm'
+        }`}>
+          <div className="flex justify-between items-center h-12">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2 group">
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 group-hover:rotate-12 transition-transform">
+                <Store size={22} />
               </div>
-            ) : (
-              <Link to="/login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-all">
-                Sign In
-              </Link>
-            )}
-          </div>
+              <span className="text-xl font-black text-slate-900 tracking-tighter">Stock<span className="text-indigo-600 underline decoration-indigo-200 underline-offset-4 decoration-4">Connect</span></span>
+            </Link>
 
-          <div className="-mr-2 flex items-center sm:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none"
-            >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                    location.pathname === link.path 
+                    ? 'text-indigo-600 bg-indigo-50' 
+                    : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+
+            {/* Search, Cart & Account */}
+            <div className="hidden md:flex items-center space-x-4">
+              <div className={`relative transition-all duration-500 ${searchFocused ? 'w-64' : 'w-48'}`}>
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Quick search..." 
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  className="w-full bg-slate-50 border-none rounded-xl py-2.5 pl-11 pr-4 text-sm font-medium focus:ring-4 focus:ring-indigo-100/50 transition-all outline-none"
+                />
+              </div>
+              
+              <div className="h-6 w-px bg-slate-100 mx-2" />
+
+              <Link to="/favorites" className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all relative group">
+                <Heart size={22} />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white transform scale-0 group-hover:scale-100 transition-transform"></span>
+              </Link>
+
+              <Link to="/cart" className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all relative group">
+                <ShoppingCart size={22} />
+                <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg shadow-indigo-100">0</span>
+              </Link>
+
+              {!authService.isAuthenticated() ? (
+                <Link 
+                  to="/login"
+                  className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-black shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-95 ml-2"
+                >
+                  Log In
+                </Link>
+              ) : (
+                <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+              )}
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-50 transition-all"
+              >
+                {isOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="sm:hidden bg-white border-b border-slate-100 animate-in slide-in-from-top duration-200">
-          <div className="pt-2 pb-3 space-y-1 px-4">
-            <Link to="/" className="block py-2 text-base font-medium text-slate-700">Home</Link>
-            <Link to="/products" className="block py-2 text-base font-medium text-slate-700">Products</Link>
-            <Link to="/cart" className="block py-2 text-base font-medium text-slate-700">Cart</Link>
-            {user && (
-              <>
-                <Link to="/orders" className="block py-2 text-base font-medium text-slate-700">Orders</Link>
-                <Link to="/chat" className="block py-2 text-base font-medium text-slate-700">Chat</Link>
-                <Link to="/settings" className="block py-2 text-base font-medium text-slate-700">Settings</Link>
-                <button onClick={handleLogout} className="block w-full text-left py-2 text-base font-medium text-red-600">Logout</button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="md:hidden mt-2 px-4"
+          >
+            <div className="bg-white/90 backdrop-blur-xl rounded-4xl border border-slate-100 p-6 shadow-2xl space-y-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className="block px-4 py-3 rounded-2xl text-lg font-bold text-slate-900 hover:bg-indigo-50 hover:text-indigo-600 transition-all"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              ))}
+              <div className="pt-4 border-t border-slate-50 flex gap-4">
+                <Link to="/cart" className="flex-1 bg-indigo-50 text-indigo-600 py-3 rounded-2xl font-black text-center" onClick={() => setIsOpen(false)}>
+                  Cart (0)
+                </Link>
+                <Link to="/login" className="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-center shadow-lg shadow-indigo-100" onClick={() => setIsOpen(false)}>
+                  Login
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

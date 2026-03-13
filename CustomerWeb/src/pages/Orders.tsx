@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { orderService } from '../services/order.service';
 import Navbar from '../components/Navbar';
 import { Package, Clock, CheckCircle, XCircle, ChevronRight, Loader2 } from 'lucide-react';
@@ -7,6 +8,7 @@ import { format } from 'date-fns';
 export default function Orders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadOrders();
@@ -69,6 +71,7 @@ export default function Orders() {
             {orders.map((order) => (
               <div 
                 key={order.id}
+                onClick={() => navigate(`/orders/${order.id}`)}
                 className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:border-indigo-200 transition-all group cursor-pointer"
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">

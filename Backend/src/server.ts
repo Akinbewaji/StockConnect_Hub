@@ -22,6 +22,7 @@ import notificationRoutes from "./routes/notification.routes.js";
 import subscriptionRoutes from "./routes/subscriptions.js";
 import maintenanceRoutes from "./routes/maintenance.routes.js";
 import insightRoutes from "./routes/insights.js";
+import expenseRoutes from "./routes/expense.routes.js";
 import { scheduleDailyReports } from "./services/report.service.js";
 
 // Load environment variables
@@ -116,6 +117,7 @@ async function startServer() {
   app.use("/api/settings", authenticateToken, checkRole(['owner']), settingsRoutes);
   app.use("/api/maintenance", authenticateToken, checkRole(['owner']), maintenanceRoutes);
   app.use("/api/insights", authenticateToken, checkRole(['owner']), insightRoutes);
+  app.use("/api/expenses", expenseRoutes);
 
   // Socket.io Connection
   io.on("connection", (socket: any) => {

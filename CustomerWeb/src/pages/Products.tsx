@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { productService } from '../services/product.service';
 import Navbar from '../components/Navbar';
-import { Search, Filter, Package, Truck, ChevronRight, Plus } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Search, Filter, Package, Truck, ChevronRight, ShoppingCart, Star, SlidersHorizontal, ArrowUpDown, XCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Product } from './Home';
 
 export default function Products() {
@@ -17,8 +17,10 @@ export default function Products() {
   const [category, setCategory] = useState('All');
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [showFilters, setShowFilters] = useState(false);
 
-  const categories = ['All', 'Cement', 'Nails', 'Tools', 'Electrical', 'Plumbing'];
+  const categories = ['All', 'Building', 'Tools', 'Electrical', 'Plumbing', 'Safety', 'Security'];
 
   useEffect(() => {
     // Debounce the search term to avoid hitting API too often
@@ -33,7 +35,7 @@ export default function Products() {
     setLoading(true);
     try {
       const data = await productService.getAll({ 
-        category: category === 'All' ? undefined : category.toLowerCase(),
+        category: category === 'All' ? undefined : category,
         search: search || undefined,
         minPrice: minPrice ? Number(minPrice) : undefined,
         maxPrice: maxPrice ? Number(maxPrice) : undefined
@@ -46,158 +48,220 @@ export default function Products() {
     }
   };
 
+  const sortedProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      if (sortBy === 'price-low') return a.price - b.price;
+      if (sortBy === 'price-high') return b.price - a.price;
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      return b.id - a.id; 
+    });
+  }, [products, sortBy]);
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#fcfcfc] pb-24">
       <Navbar />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold font-outfit text-slate-900">Product Catalog</h1>
-            <p className="text-slate-500 mt-1">Browse all available construction materials</p>
-          </div>
-          
-          <div className="relative max-w-md w-full">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-slate-400" />
+      {/* Header Section */}
+      <div className="pt-32 pb-12 bg-white border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <nav className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+                <Link to="/" className="hover:text-indigo-600 transition-colors">Home</Link>
+                <ChevronRight size={12} />
+                <span className="text-indigo-600">Product Catalog</span>
+              </nav>
+              <h1 className="text-4xl md:text-5xl font-black font-outfit text-slate-900 tracking-tight">Explore Materials</h1>
+              <p className="text-slate-500 mt-2 text-lg">Quality supplies from Nigeria's top-rated hardware stores.</p>
             </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all shadow-sm"
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            
+            <div className="flex items-center gap-3">
+              <div className="relative group">
+                <SlidersHorizontal className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-slate-50 border-none rounded-2xl py-3.5 pl-12 pr-10 text-sm font-bold text-slate-700 appearance-none focus:ring-4 focus:ring-indigo-100 transition-all cursor-pointer"
+                >
+                  <option value="newest">Newest Arrivals</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="name">Alphabetical</option>
+                </select>
+                <ArrowUpDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className="lg:hidden p-3.5 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700"
+              >
+                <Filter size={20} />
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filters */}
-          <aside className="w-full lg:w-64 space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-              <div className="flex items-center space-x-2 mb-4 text-slate-900 font-semibold">
-                <Filter className="h-5 w-5" />
-                <span>Categories</span>
-              </div>
-              <div className="space-y-1">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setCategory(cat)}
-                    className={`nav-item flex items-center justify-between p-2 rounded-lg text-sm w-full transition-all ${
-                      category === cat 
-                        ? 'bg-indigo-600 text-white font-medium shadow-md shadow-indigo-100' 
-                        : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-600'
-                    }`}
-                  >
-                    <span>{cat}</span>
-                    {category === cat && <ChevronRight className="h-4 w-4" />}
-                  </button>
-                ))}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Advanced Sidebar Filters */}
+          <aside className={`w-full lg:w-72 space-y-8 lg:block ${showFilters ? 'block' : 'hidden'}`}>
+            <div className="bg-white p-8 rounded-4xl shadow-2xl shadow-slate-200/40 border border-slate-50 overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 rounded-full -translate-y-12 translate-x-12 blur-2xl" />
+              
+              <div className="relative">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-lg font-black font-outfit text-slate-900">Filters</h3>
+                  {(category !== 'All' || minPrice || maxPrice || search) && (
+                    <button 
+                      onClick={() => {setCategory('All'); setSearch(''); setMinPrice(''); setMaxPrice('');}}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    >
+                      Reset <XCircle size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Categories */}
+                <div className="space-y-6 mb-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Category Select</p>
+                  <div className="flex flex-col gap-1">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setCategory(cat)}
+                        className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
+                          category === cat 
+                            ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100' 
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'
+                        }`}
+                      >
+                        <span>{cat}</span>
+                        {category === cat && <motion.div layoutId="cat-indicator"><ChevronRight size={16} /></motion.div>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Filter */}
+                <div className="space-y-6">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Price Range (₦)</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-xs font-bold focus:ring-4 focus:ring-indigo-100 transition-all"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-xs font-bold focus:ring-4 focus:ring-indigo-100 transition-all"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Price Filter */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mt-6">
-              <div className="flex items-center space-x-2 mb-4 text-slate-900 font-semibold">
-                <Filter className="h-5 w-5" />
-                <span>Price Range (₦)</span>
+            {/* Support Card */}
+            <div className="bg-slate-900 p-8 rounded-4xl shadow-2xl shadow-indigo-900/10 text-white relative overflow-hidden group">
+              <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-600/20 rounded-full blur-3xl transition-transform group-hover:scale-150 duration-700" />
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Package className="text-white" size={24} />
+                </div>
+                <h3 className="text-xl font-bold font-outfit mb-2">Bulk Orders?</h3>
+                <p className="text-slate-400 text-sm mb-6 leading-relaxed">Save up to 15% on construction materials for large-scale projects.</p>
+                <button className="w-full py-4 bg-white text-slate-900 rounded-2xl font-black text-sm hover:bg-indigo-50 transition-all active:scale-95 shadow-lg shadow-white/5">
+                  Get Wholesale Quote
+                </button>
               </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-                <span className="text-slate-400">-</span>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div className="bg-indigo-600 p-6 rounded-2xl shadow-lg text-white mt-6">
-              <h3 className="font-bold text-lg mb-2">Need Help?</h3>
-              <p className="text-indigo-100 text-sm mb-4">Can't find what you're looking for? Our experts can help.</p>
-              <button className="w-full bg-white text-indigo-600 py-2 rounded-xl font-bold text-sm hover:bg-indigo-50 transition-colors">
-                Contact Support
-              </button>
             </div>
           </aside>
 
-          {/* Main Content */}
+          {/* Product Grid Content */}
           <div className="flex-1">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[1, 2, 3, 4, 5, 6].map(i => (
-                  <div key={i} className="animate-pulse bg-white rounded-2xl h-80 shadow-sm border border-slate-100"></div>
+                  <div key={i} className="animate-pulse bg-white rounded-4xl h-[400px] shadow-sm border border-slate-50"></div>
                 ))}
               </div>
-            ) : products.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <motion.div 
-                    key={product.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 group transition-all"
-                  >
-                    <Link to={`/products/${product.id}`} className="block">
-                      <div className="aspect-square bg-slate-100 relative">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400">
-                            <Package className="h-12 w-12" />
-                          </div>
-                        )}
-                        <div className="absolute top-3 right-3">
-                          <span className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-indigo-600 uppercase tracking-wider shadow-sm">
-                            {product.category}
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                    <div className="p-4">
+            ) : sortedProducts.length > 0 ? (
+              <motion.div 
+                layout
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
+                <AnimatePresence>
+                  {sortedProducts.map((product) => (
+                    <motion.div 
+                      key={product.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      whileHover={{ y: -10 }}
+                      className="bg-white rounded-4xl overflow-hidden shadow-xl shadow-slate-200/30 border border-slate-100 group transition-all"
+                    >
                       <Link to={`/products/${product.id}`} className="block">
-                        <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{product.name}</h3>
-                        <p className="text-slate-500 text-sm mt-1 line-clamp-2">{product.description}</p>
+                        <div className="aspect-4/5 bg-slate-50 relative overflow-hidden">
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-200">
+                              <Package size={80} strokeWidth={1} />
+                            </div>
+                          )}
+                          <div className="absolute top-5 left-5">
+                            <span className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black text-slate-900 uppercase tracking-widest shadow-lg border border-white/50">
+                              {product.category}
+                            </span>
+                          </div>
+                        </div>
                       </Link>
-                      <div className="mt-4 flex items-center justify-between">
-                        <span className="text-xl font-bold text-slate-900">₦{(product.price || 0).toLocaleString()}</span>
-                        <div className="flex space-x-2">
-                          <button className="bg-white border border-slate-200 text-slate-600 p-2 rounded-xl hover:bg-slate-50 transition-all">
-                            <Plus className="h-5 w-5" />
-                          </button>
-                          <button className="bg-indigo-600 text-white p-2 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all">
-                            <Truck className="h-5 w-5" />
-                          </button>
+                      <div className="p-6">
+                        <div className="flex items-center gap-1 mb-3">
+                          {[1,2,3,4,5].map(s => <Star key={s} size={10} className="fill-amber-400 text-amber-400" />)}
+                          <span className="text-[10px] font-bold text-slate-400 ml-1">4.9 (120+)</span>
+                        </div>
+                        <Link to={`/products/${product.id}`} className="block group">
+                          <h3 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors mb-2 truncate">{product.name}</h3>
+                          <p className="text-slate-400 text-sm leading-relaxed line-clamp-2 h-10 mb-4">{product.description}</p>
+                        </Link>
+                        <div className="mt-6 flex items-center justify-between">
+                          <div>
+                            <span className="text-2xl font-black text-slate-900 tracking-tighter">₦{(product.price || 0).toLocaleString()}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button className="bg-slate-50 text-slate-600 p-3.5 rounded-2xl hover:bg-slate-100 transition-all active:scale-95 border border-slate-100">
+                              <Truck size={20} />
+                            </button>
+                            <button className="bg-slate-900 text-white p-3.5 rounded-2xl hover:bg-indigo-600 shadow-xl hover:shadow-indigo-600/30 transition-all active:scale-95">
+                              <ShoppingCart size={20} />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             ) : (
-              <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm">
-                <div className="inline-flex p-4 bg-slate-50 rounded-2xl text-slate-400 mb-4">
-                  <Package className="h-12 w-12" />
+              <div className="bg-white rounded-3xl p-24 text-center border border-slate-50 shadow-2xl shadow-slate-100/50">
+                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mx-auto mb-8 border border-slate-100">
+                  <Package size={48} strokeWidth={1} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No products found</h3>
-                <p className="text-slate-500">We couldn't find any products matching your search or category.</p>
+                <h3 className="text-3xl font-black font-outfit text-slate-900 mb-4">No results found</h3>
+                <p className="text-slate-400 text-lg max-w-sm mx-auto mb-10 leading-relaxed">
+                  We couldn't find any products matching your criteria. Try adjusting your filters or search term.
+                </p>
                 <button 
                   onClick={() => {setSearch(''); setCategory('All'); setMinPrice(''); setMaxPrice('');}}
-                  className="mt-6 text-indigo-600 font-semibold hover:underline"
+                  className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 transition-all active:scale-95 shadow-xl shadow-indigo-100"
                 >
-                  Clear all filters
+                  Reset All Filters
                 </button>
               </div>
             )}

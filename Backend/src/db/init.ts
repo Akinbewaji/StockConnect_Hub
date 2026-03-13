@@ -196,6 +196,20 @@ export async function initializeDatabase() {
       )
     `);
 
+    // Order Feedback
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS order_feedback (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL,
+        customer_id INTEGER NOT NULL,
+        rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+      )
+    `);
+
     // Quotes (Custom Order Negotiations)
     await db.exec(`
       CREATE TABLE IF NOT EXISTS quotes (
@@ -328,6 +342,20 @@ export async function initializeDatabase() {
         code VARCHAR(10) NOT NULL,
         expires_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Expenses
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS expenses (
+        id SERIAL PRIMARY KEY,
+        business_id INTEGER NOT NULL,
+        amount NUMERIC NOT NULL,
+        category VARCHAR(255) NOT NULL,
+        description TEXT,
+        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
 

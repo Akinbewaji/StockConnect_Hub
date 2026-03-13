@@ -127,4 +127,68 @@ router.get('/summary', async (req: any, res) => {
   });
 });
 
+router.get('/cash-flow', async (req: any, res) => {
+  const businessId = req.user.id;
+  
+  // We'll look at the last 30 days
+  const inflowStmt = db.prepare(`
+    SELECT 
+      o.created_at::date as date,
+      SUM(o.total_amount) as amount
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.id
+    WHERE c.business_id = ? 
+      AND o.created_at >= CURRENT_DATE - INTERVAL '29 days'
+      AND o.status != 'cancelled'
+    GROUP BY o.created_at::date
+  `);
+
+  const outflowStmt = db.prepare(`
+    SELECT 
+      date::date as date,
+      SUM(amount) as amount
+    FROM expenses
+    WHERE business_id = ? 
+      AND date >= CURRENT_DATE - INTERVAL '29 days'
+    GROUP BY date::date
+  `);
+
+  const inflowData = (await inflowStmt.all(businessId)) as { date: string, amount: number }[];
+  const outflowData = (await outflowStmt.all(businessId)) as { date: string, amount: number }[];
+
+  // Merge into a 30-day array
+  const history: any[] = [];
+  const today = new Date();
+  
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    
+    const inflow = inflowData.find(row => row.date === dateStr)?.amount || 0;
+    const outflow = outflowData.find(row => row.date === dateStr)?.amount || 0;
+    
+    history.push({
+      date: dateStr,
+      name: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      inflow: Number(inflow),
+      outflow: Number(outflow),
+      net: Number(inflow) - Number(outflow)
+    });
+  }
+
+  // Summary stats
+  const totalIn = history.reduce((sum, day) => sum + day.inflow, 0);
+  const totalOut = history.reduce((sum, day) => sum + day.outflow, 0);
+
+  res.json({
+    history,
+    summary: {
+      totalInflow: totalIn,
+      totalOutflow: totalOut,
+      netCashFlow: totalIn - totalOut
+    }
+  });
+});
+
 export default router;
