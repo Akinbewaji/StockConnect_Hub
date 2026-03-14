@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ShoppingCart, Menu, X, Search, Heart, Store } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,6 +9,13 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    authService.logout();
+    setIsOpen(false);
+    navigate('/login');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -135,9 +142,15 @@ export default function Navbar() {
                 <Link to="/cart" className="flex-1 bg-indigo-50 text-indigo-600 py-3 rounded-2xl font-black text-center" onClick={() => setIsOpen(false)}>
                   Cart (0)
                 </Link>
-                <Link to="/login" className="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-center shadow-lg shadow-indigo-100" onClick={() => setIsOpen(false)}>
-                  Login
-                </Link>
+                {!authService.isAuthenticated() ? (
+                  <Link to="/login" className="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-center shadow-lg shadow-indigo-100" onClick={() => setIsOpen(false)}>
+                    Login
+                  </Link>
+                ) : (
+                  <button onClick={handleLogout} className="flex-1 bg-rose-50 text-rose-600 py-3 rounded-2xl font-black text-center shadow-sm">
+                    Logout
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>

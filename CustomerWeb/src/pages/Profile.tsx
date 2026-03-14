@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import Navbar from '../components/Navbar';
 import SEO from '../components/SEO';
-import { User, Mail, Phone, MapPin, Package, Heart, CreditCard, Clock, ShieldCheck, Edit3, Camera, Map } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Package, Heart, CreditCard, Clock, ShieldCheck, Edit3, Camera, Map, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Customer {
@@ -21,6 +21,11 @@ interface Customer {
 export default function Profile() {
   const [user] = useState<Customer | null>(authService.getCurrentUser());
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -279,6 +284,10 @@ export default function Profile() {
                   <CreditCard size={20} className="text-slate-400" />
                   Billing Details
                 </Link>
+                <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 text-rose-600 hover:bg-rose-50 rounded-2xl transition-colors font-medium mt-2">
+                  <LogOut size={20} className="text-rose-400" />
+                  Sign Out
+                </button>
               </div>
             </motion.div>
           </div>
