@@ -71,7 +71,10 @@ export default function ChatWidget({ businessId, businessName, onClose }: ChatWi
       
       const handleNewMessage = (msg: ChatMessage) => {
         if (msg.chat_id === activeChatId) {
-          setMessages(prev => [...prev, msg]);
+          setMessages(prev => {
+            if (prev.find(m => m.id === msg.id)) return prev;
+            return [...prev, msg];
+          });
         }
       };
 
@@ -85,7 +88,10 @@ export default function ChatWidget({ businessId, businessName, onClose }: ChatWi
       const socket = chatService.initSocket(user.id);
       
       const handleNewChatMsg = (msg: ChatMessage) => {
-          setMessages(prev => [...prev, msg]);
+          setMessages(prev => {
+            if (prev.find(m => m.id === msg.id)) return prev;
+            return [...prev, msg];
+          });
           setActiveChatId(msg.chat_id);
       };
 

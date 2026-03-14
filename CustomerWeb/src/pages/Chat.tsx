@@ -69,7 +69,10 @@ export default function Chat() {
 
       const handleNewMessage = (msg: ChatMessage) => {
         if (msg.chat_id === selectedChat.id) {
-          setMessages(prev => [...prev, msg]);
+          setMessages(prev => {
+            if (prev.find(m => m.id === msg.id)) return prev;
+            return [...prev, msg];
+          });
         }
       };
 
