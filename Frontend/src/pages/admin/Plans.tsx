@@ -62,15 +62,14 @@ export default function Plans() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    // Load Paystack script
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v1/inline.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
+    // Load Paystack script securely, avoiding re-inserts in strict mode
+    if (!document.getElementById('paystack-inline-script')) {
+      const script = document.createElement('script');
+      script.id = 'paystack-inline-script';
+      script.src = 'https://js.paystack.co/v1/inline.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
   }, []);
 
   const handleUpgrade = (plan: any) => {
@@ -88,7 +87,16 @@ export default function Plans() {
 
     setLoading(plan.id);
     
-    const handler = PaystackPop.setup({
+    const paystackPopVar = (window as any).PaystackPop || PaystackPop;
+
+    if (!paystackPopVar) {
+      setMessage({ type: 'error', text: 'Payment gateway is still loading. Please try again.' });
+      setLoading(null);
+      return;
+    }
+
+    try {
+      const handler = paystackPopVar.setup({
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_placeholder',
       email: user?.email || `${user?.username}@stockconnect.com`,
       amount: plan.price * 100, // Amount in kobo
@@ -124,6 +132,10 @@ export default function Plans() {
     });
 
     handler.openIframe();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to initialize payment gateway' });
+      setLoading(null);
+    }
   };
 
   return (
