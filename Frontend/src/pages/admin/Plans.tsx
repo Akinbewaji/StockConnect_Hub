@@ -102,31 +102,33 @@ export default function Plans() {
       amount: plan.price * 100, // Amount in kobo
       currency: 'NGN',
       ref: `sub_${Math.floor((Math.random() * 1000000000) + 1)}`,
-      callback: async (response: any) => {
-        try {
-          const verifyRes = await authFetch('/api/subscriptions/verify', {
-            method: 'POST',
-            body: JSON.stringify({
-              reference: response.reference,
-              plan: plan.id
-            })
-          });
+      callback: function(response: any) {
+        (async () => {
+          try {
+            const verifyRes = await authFetch('/api/subscriptions/verify', {
+              method: 'POST',
+              body: JSON.stringify({
+                reference: response.reference,
+                plan: plan.id
+              })
+            });
 
-          const data = await verifyRes.json();
-          if (data.success) {
-            updateUser(data.user);
-            setMessage({ type: 'success', text: `Successfully upgraded to ${plan.name}!` });
-            setTimeout(() => navigate('/admin'), 2000);
-          } else {
-            throw new Error(data.error || 'Verification failed');
+            const data = await verifyRes.json();
+            if (data.success) {
+              updateUser(data.user);
+              setMessage({ type: 'success', text: `Successfully upgraded to ${plan.name}!` });
+              setTimeout(() => navigate('/admin'), 2000);
+            } else {
+              throw new Error(data.error || 'Verification failed');
+            }
+          } catch (error: any) {
+            setMessage({ type: 'error', text: error.message || 'Error verifying payment' });
+          } finally {
+            setLoading(null);
           }
-        } catch (error: any) {
-          setMessage({ type: 'error', text: error.message || 'Error verifying payment' });
-        } finally {
-          setLoading(null);
-        }
+        })();
       },
-      onClose: () => {
+      onClose: function() {
         setLoading(null);
       }
     });
