@@ -51,9 +51,15 @@ export default function Products() {
 
   const sortedProducts = useMemo(() => {
     return [...products].sort((a, b) => {
+      // Basic fallback since not all items might have category
+      const catA = a.category || '';
+      const catB = b.category || '';
+      
       if (sortBy === 'price-low') return a.price - b.price;
       if (sortBy === 'price-high') return b.price - a.price;
       if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'category') return catA.localeCompare(catB);
+      
       return b.id - a.id; 
     });
   }, [products, sortBy]);
@@ -89,6 +95,7 @@ export default function Products() {
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
                   <option value="name">Alphabetical</option>
+                  <option value="category">Category</option>
                 </select>
                 <ArrowUpDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>

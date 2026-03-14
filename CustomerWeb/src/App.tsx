@@ -16,6 +16,12 @@ import SellerProfile from './pages/SellerProfile';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import OrderConfirmation from './pages/OrderConfirmation';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import NotFound from './pages/NotFound';
+import Categories from './pages/Categories';
+import Vendors from './pages/Vendors';
+import Wholesale from './pages/Wholesale';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!authService.isAuthenticated()) {
@@ -82,6 +88,12 @@ function App() {
                 <Profile />
               </ProtectedRoute>
             } />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/vendors" element={<Vendors />} />
+            <Route path="/wholesale" element={<Wholesale />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </Router>

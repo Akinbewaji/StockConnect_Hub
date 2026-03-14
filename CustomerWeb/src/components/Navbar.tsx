@@ -27,9 +27,9 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Products', path: '/products' },
-    { name: 'Categories', path: '/#categories' },
-    { name: 'Vendors', path: '/#vendors' },
-    { name: 'Wholesale', path: '/#wholesale' },
+    { name: 'Categories', path: '/categories' },
+    { name: 'Vendors', path: '/vendors' },
+    { name: 'Wholesale', path: '/wholesale' },
   ];
 
   return (

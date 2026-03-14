@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../../utils/api';
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
   const [category, setCategory] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
     const url = category ? `${API_URL}/api/products?category=${category}` : `${API_URL}/api/products`;
@@ -12,6 +13,20 @@ export default function Home() {
       .then(res => res.json())
       .then(setProducts);
   }, [category]);
+
+  const sortedProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      const catA = a.category || '';
+      const catB = b.category || '';
+      
+      if (sortBy === 'price-low') return a.price - b.price;
+      if (sortBy === 'price-high') return b.price - a.price;
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'category') return catA.localeCompare(catB);
+      
+      return b.id - a.id; 
+    });
+  }, [products, sortBy]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -54,10 +69,29 @@ export default function Home() {
           </button>
         ))}
       </div>
+      
+      {/* Sort Section */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-slate-900">Featured Products</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-500">Sort By:</span>
+          <select 
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="border-slate-200 border rounded-lg py-1.5 px-3 text-sm font-medium focus:ring-2 focus:ring-indigo-100 outline-none"
+          >
+            <option value="newest">Newest Arrivals</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="name">Alphabetical</option>
+            <option value="category">Category</option>
+          </select>
+        </div>
+      </div>
 
       {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
+        {sortedProducts.map((product) => (
           <Link to={`/product/${product.id}`} key={product.id} className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
             <div className="aspect-square bg-slate-100 relative overflow-hidden">
               <img
