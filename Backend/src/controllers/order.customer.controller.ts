@@ -1,11 +1,14 @@
 import { Request, Response } from "express";
 import db from "../db/init.js";
 
+// Retrieve Paystack Secret Key from environment
+const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || "";
+
 /**
  * Place order from cart
  */
 export async function placeOrder(req: any, res: Response) {
-  const { deliveryMethod, deliveryAddressId, paymentMethod } = req.body;
+  const { deliveryMethod, deliveryAddressId, paymentMethod, paymentReference } = req.body;
   
   try {
     const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
@@ -29,13 +32,41 @@ export async function placeOrder(req: any, res: Response) {
     // Calculate total
     const totalAmount = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
+    // If payment method is card, verify with Paystack
+    let finalPaymentStatus = 'unpaid';
+    
+    if (paymentMethod === 'card') {
+      if (!paymentReference) {
+        return res.status(400).json({ error: "Payment reference required for card payments" });
+      }
+
+      const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${paymentReference}`, {
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        },
+      });
+
+      const data: any = await verifyRes.json();
+
+      if (!data.status || data.data.status !== "success") {
+        return res.status(400).json({ error: "Payment verification failed" });
+      }
+
+      // Verify amount
+      if (data.data.amount < totalAmount * 100) {
+        return res.status(400).json({ error: "Paid amount is less than order total" });
+      }
+
+      finalPaymentStatus = 'paid';
+    }
+
     // Start transaction (mocked as async block for now; PG Transactions will be implemented properly later)
-    const transaction = async (items: any[], totalAmount: number, dbCustomerId: number, paymentMethod: string, deliveryAddressId?: number, deliveryMethod?: string) => {
+    const transaction = async (items: any[], totalAmount: number, dbCustomerId: number, paymentMethod: string, paymentStatus: string, deliveryAddressId?: number, deliveryMethod?: string) => {
       // 1. Create order
       const orderResult = await db.prepare(`
         INSERT INTO orders (customer_id, total_amount, status, payment_status, payment_method, delivery_method, delivery_address_id)
-        VALUES (?, ?, 'pending', 'unpaid', ?, ?, ?)
-      `).run(customer.id, totalAmount, paymentMethod || 'cash', deliveryMethod || 'pickup', deliveryAddressId || null);
+        VALUES (?, ?, 'pending', ?, ?, ?, ?)
+      `).run(customer.id, totalAmount, paymentStatus, paymentMethod || 'cash', deliveryMethod || 'pickup', deliveryAddressId || null);
 
       const orderId = orderResult.lastInsertRowid;
 
@@ -62,7 +93,7 @@ export async function placeOrder(req: any, res: Response) {
       return orderId;
     };
 
-    const orderId = await transaction(cartItems, totalAmount, customer.id, paymentMethod, deliveryAddressId, deliveryMethod);
+    const orderId = await transaction(cartItems, totalAmount, customer.id, paymentMethod, finalPaymentStatus, deliveryAddressId, deliveryMethod);
 
     res.status(201).json({
       message: "Order placed successfully",

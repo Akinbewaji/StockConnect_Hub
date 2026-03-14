@@ -7,15 +7,31 @@ import SEO from '../components/SEO';
 import { Truck, CreditCard, ChevronLeft, Loader2, ShieldCheck, MapPin, Store, Calendar, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { authService } from '../services/auth.service';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const PaystackPop: any;
+
 export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'delivery'>('pickup');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'transfer'>('cash');
   const [cart, setCart] = useState<{ items: { price: number; quantity: number }[] } | null>(null);
+  const [user] = useState(authService.getCurrentUser());
   const navigate = useNavigate();
 
   useEffect(() => {
     loadCart();
+    
+    // Load Paystack script
+    const script = document.createElement('script');
+    script.src = 'https://js.paystack.co/v1/inline.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -33,17 +49,56 @@ export default function Checkout() {
 
   const handlePlaceOrder = async () => {
     setLoading(true);
-    try {
-      const response = await orderService.placeOrder({
-        deliveryMethod,
-        paymentMethod
-      });
-      const orderId = response?.orderId || response?.id || 'CONFIRMED';
-      navigate('/order-confirmation', { state: { orderId } });
-    } catch {
-      console.error("Order failed");
-    } finally {
-      setLoading(false);
+
+    const totalAmount = cart?.items.reduce((sum: number, item: { price: number; quantity: number }) => sum + (item.price * item.quantity), 0) || 0;
+
+    if (paymentMethod === 'card') {
+      try {
+        const handler = PaystackPop.setup({
+          key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_placeholder', // You should replace this with the real public key via env
+          email: user?.email || 'customer@stockconnect.com',
+          amount: totalAmount * 100, // Amount in kobo
+          currency: 'NGN',
+          ref: `order_${Math.floor((Math.random() * 1000000000) + 1)}`,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          callback: async (response: any) => {
+            try {
+              const res = await orderService.placeOrder({
+                deliveryMethod,
+                paymentMethod,
+                paymentReference: response.reference
+              });
+              const orderId = res?.orderId || res?.id || 'CONFIRMED';
+              navigate('/order-confirmation', { state: { orderId } });
+            } catch (err) {
+              console.error("Order verification/creation failed", err);
+              setLoading(false);
+            }
+          },
+          onClose: () => {
+            setLoading(false);
+            // User closed the popup
+          }
+        });
+
+        handler.openIframe();
+      } catch (err) {
+        console.error("Failed to initialize Paystack", err);
+        setLoading(false);
+      }
+    } else {
+      // Cash/Transfer flow
+      try {
+        const response = await orderService.placeOrder({
+          deliveryMethod,
+          paymentMethod
+        });
+        const orderId = response?.orderId || response?.id || 'CONFIRMED';
+        navigate('/order-confirmation', { state: { orderId } });
+      } catch {
+        console.error("Order failed");
+        setLoading(false);
+      }
     }
   };
 
@@ -193,20 +248,29 @@ export default function Checkout() {
                   </div>
                 </button>
 
-                <div className="w-full relative p-6 rounded-3xl border-2 border-slate-50 bg-slate-50/50 opacity-60 cursor-not-allowed grayscale">
+                <button
+                  onClick={() => setPaymentMethod('card')}
+                  className={`w-full group relative p-6 rounded-3xl border-2 text-left transition-all ${
+                    paymentMethod === 'card' 
+                    ? 'border-indigo-600 bg-indigo-50/30' 
+                    : 'border-slate-100 hover:border-slate-200 bg-white'
+                  }`}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="p-2 bg-white rounded-lg text-slate-300">
+                      <div className={`p-2 rounded-lg ${paymentMethod === 'card' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
                         <CreditCard size={20} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-400">Card / Digital Wallet</h3>
-                        <p className="text-xs text-slate-300 font-medium">Direct secure payment via Africa's Talking Link.</p>
+                        <h3 className={`font-bold transition-colors ${paymentMethod === 'card' ? 'text-slate-900' : 'text-slate-500'}`}>Card / Digital Wallet</h3>
+                        <p className="text-xs text-slate-400 font-medium">Direct secure payment via Africa's Talking Link.</p>
                       </div>
                     </div>
-                    <span className="text-[8px] font-black uppercase tracking-widest bg-slate-200 text-slate-500 px-2 py-1 rounded">Soon</span>
+                    <div className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${paymentMethod === 'card' ? 'border-indigo-600' : 'border-slate-200'}`}>
+                      {paymentMethod === 'card' && <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full" />}
+                    </div>
                   </div>
-                </div>
+                </button>
               </div>
             </motion.section>
           </div>

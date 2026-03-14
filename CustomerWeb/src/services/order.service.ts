@@ -4,7 +4,8 @@ export const orderService = {
   placeOrder: async (orderData: { 
     deliveryMethod: 'pickup' | 'delivery'; 
     deliveryAddressId?: number; 
-    paymentMethod: 'cash' | 'card' | 'transfer' 
+    paymentMethod: 'cash' | 'card' | 'transfer';
+    paymentReference?: string;
   }) => {
     const response = await api.post('/customers/self/orders', orderData);
     return response.data;
