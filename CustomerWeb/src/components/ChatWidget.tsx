@@ -72,7 +72,11 @@ export default function ChatWidget({ businessId, businessName, onClose }: ChatWi
       const handleNewMessage = (msg: ChatMessage) => {
         if (msg.chat_id === activeChatId) {
           setMessages(prev => {
-            if (prev.find(m => m.id === msg.id)) return prev;
+            const isDuplicate = prev.some(m => 
+              (msg.id && m.id === msg.id) || 
+              (m.text === msg.text && m.sender_type === msg.sender_type)
+            );
+            if (isDuplicate) return prev;
             return [...prev, msg];
           });
         }
@@ -89,7 +93,11 @@ export default function ChatWidget({ businessId, businessName, onClose }: ChatWi
       
       const handleNewChatMsg = (msg: ChatMessage) => {
           setMessages(prev => {
-            if (prev.find(m => m.id === msg.id)) return prev;
+            const isDuplicate = prev.some(m => 
+              (msg.id && m.id === msg.id) || 
+              (m.text === msg.text && m.sender_type === msg.sender_type)
+            );
+            if (isDuplicate) return prev;
             return [...prev, msg];
           });
           setActiveChatId(msg.chat_id);

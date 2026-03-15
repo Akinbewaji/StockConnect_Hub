@@ -32,7 +32,12 @@ export default function Messages() {
       const handleNewMessage = (msg: any) => {
         if (msg.chat_id === selectedChat.id) {
           setMessages(prev => {
-            if (prev.find(m => m.id === msg.id)) return prev;
+            // Check by ID or fallback to checking the exact same text for recent messages
+            const isDuplicate = prev.some(m => 
+              (msg.id && m.id === msg.id) || 
+              (m.text === msg.text && m.sender_type === msg.sender_type)
+            );
+            if (isDuplicate) return prev;
             return [...prev, msg];
           });
         }
