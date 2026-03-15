@@ -50,14 +50,15 @@ export default function Checkout() {
   const handlePlaceOrder = async () => {
     setLoading(true);
 
-    const totalAmount = cart?.items.reduce((sum: number, item: { price: number; quantity: number }) => sum + (item.price * item.quantity), 0) || 0;
+    const items = cart?.items || [];
+    const totalAmount = items.reduce((sum: number, item: { price: number; quantity: number }) => sum + (item.price * item.quantity), 0);
 
     if (paymentMethod === 'card') {
       try {
         const handler = PaystackPop.setup({
           key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_placeholder', // You should replace this with the real public key via env
           email: user?.email || 'customer@stockconnect.com',
-          amount: totalAmount * 100, // Amount in kobo
+          amount: Math.round(totalAmount * 100), // Amount in kobo
           currency: 'NGN',
           ref: `order_${Math.floor((Math.random() * 1000000000) + 1)}`,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

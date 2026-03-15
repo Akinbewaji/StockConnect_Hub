@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import axios from "axios";
 import db from "../db/init.js";
 
 // Retrieve Paystack Secret Key from environment
@@ -12,92 +13,106 @@ export async function placeOrder(req: any, res: Response) {
   
   try {
     const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
-    const cart = (await db.prepare("SELECT id FROM carts WHERE customer_id = ?").get(customer.id)) as any;
     
-    if (!cart) {
-      return res.status(400).json({ error: "Cart is empty" });
-    }
-
+    // Fetch all items across ALL active carts for this customer
     const cartItems = await db.prepare(`
-      SELECT ci.*, p.price, p.business_id, p.quantity as stock_quantity
+      SELECT ci.*, p.price, p.business_id, p.name as product_name
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
-      WHERE ci.cart_id = ?
-    `).all(cart.id);
+      JOIN carts c ON ci.cart_id = c.id
+      WHERE c.customer_id = ?
+    `).all(customer.id);
 
-    if (cartItems.length === 0) {
+    if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ error: "Cart is empty" });
     }
 
-    // Calculate total
+    // Calculate absolute total across all vendors
     const totalAmount = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
 
-    // If payment method is card, verify with Paystack
+    // 1. If payment method is card, verify with Paystack for the FULL amount
     let finalPaymentStatus = 'unpaid';
-    
     if (paymentMethod === 'card') {
       if (!paymentReference) {
         return res.status(400).json({ error: "Payment reference required for card payments" });
       }
 
-      const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${paymentReference}`, {
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-        },
-      });
+      try {
+        const verifyRes = await axios.get(`https://api.paystack.co/transaction/verify/${paymentReference}`, {
+          headers: {
+            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          },
+        });
 
-      const data: any = await verifyRes.json();
+        const data = verifyRes.data;
 
-      if (!data.status || data.data.status !== "success") {
-        return res.status(400).json({ error: "Payment verification failed" });
+        if (!data.status || data.data.status !== "success") {
+          return res.status(400).json({ error: "Payment verification failed" });
+        }
+
+        // Verify amount (Paystack amount is in kobo)
+        if (data.data.amount < totalAmount * 100) {
+          return res.status(400).json({ error: "Paid amount is less than order total" });
+        }
+
+        finalPaymentStatus = 'paid';
+      } catch (err: any) {
+        console.error("Paystack verification error:", err.response?.data || err.message);
+        return res.status(400).json({ error: "Failed to verify payment with Paystack" });
       }
-
-      // Verify amount
-      if (data.data.amount < totalAmount * 100) {
-        return res.status(400).json({ error: "Paid amount is less than order total" });
-      }
-
-      finalPaymentStatus = 'paid';
     }
 
-    // Start transaction (mocked as async block for now; PG Transactions will be implemented properly later)
-    const transaction = async (items: any[], totalAmount: number, dbCustomerId: number, paymentMethod: string, paymentStatus: string, deliveryAddressId?: number, deliveryMethod?: string) => {
-      // 1. Create order
-      const orderResult = await db.prepare(`
-        INSERT INTO orders (customer_id, total_amount, status, payment_status, payment_method, delivery_method, delivery_address_id)
-        VALUES (?, ?, 'pending', ?, ?, ?, ?)
-      `).run(customer.id, totalAmount, paymentStatus, paymentMethod || 'cash', deliveryMethod || 'pickup', deliveryAddressId || null);
-
-      const orderId = orderResult.lastInsertRowid;
-
-      // 2. Create order items and update stock
-      for (const item of cartItems as any[]) {
-        await db.prepare(`
-          INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-          VALUES (?, ?, ?, ?)
-        `).run(orderId, item.product_id, item.quantity, item.price);
-
-        await db.prepare(`
-          UPDATE products SET quantity = quantity - ? WHERE id = ?
-        `).run(item.quantity, item.product_id);
-
-        await db.prepare(`
-          INSERT INTO stock_movements (product_id, change_amount, reason)
-          VALUES (?, ?, ?)
-        `).run(item.product_id, -item.quantity, 'sale');
+    // 2. Group items by business_id (Vendor) to split orders
+    const itemsByBusiness: { [key: number]: any[] } = {};
+    cartItems.forEach((item: any) => {
+      if (!itemsByBusiness[item.business_id]) {
+        itemsByBusiness[item.business_id] = [];
       }
+      itemsByBusiness[item.business_id].push(item);
+    });
 
-      // 3. Clear cart
-      await db.prepare("DELETE FROM cart_items WHERE cart_id = ?").run(cart.id);
-      
-      return orderId;
-    };
+    const createdOrderIds: number[] = [];
 
-    const orderId = await transaction(cartItems, totalAmount, customer.id, paymentMethod, finalPaymentStatus, deliveryAddressId, deliveryMethod);
+    // 3. Process each vendor order
+    for (const businessIdStr in itemsByBusiness) {
+        const businessId = parseInt(businessIdStr);
+        const groupItems = itemsByBusiness[businessId];
+        const groupTotal = groupItems.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+
+        // Create the order for this specific vendor
+        const orderResult = await db.prepare(`
+          INSERT INTO orders (customer_id, total_amount, status, payment_status, payment_method, delivery_method, delivery_address_id)
+          VALUES (?, ?, 'pending', ?, ?, ?, ?)
+        `).run(customer.id, groupTotal, finalPaymentStatus, paymentMethod || 'cash', deliveryMethod || 'pickup', deliveryAddressId || null);
+
+        const orderId = orderResult.lastInsertRowid;
+        createdOrderIds.push(orderId);
+
+        // Add items to this order
+        for (const item of groupItems) {
+            await db.prepare(`
+                INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+                VALUES (?, ?, ?, ?)
+            `).run(orderId, item.product_id, item.quantity, item.price);
+
+            // Deduct stock
+            await db.prepare("UPDATE products SET quantity = quantity - ? WHERE id = ?").run(item.quantity, item.product_id);
+            
+            // Log stock movement
+            await db.prepare("INSERT INTO stock_movements (product_id, change_amount, reason) VALUES (?, ?, ?)").run(item.product_id, -item.quantity, 'sale');
+        }
+    }
+
+    // 4. Clear all cart items for this customer
+    await db.prepare(`
+        DELETE FROM cart_items 
+        WHERE cart_id IN (SELECT id FROM carts WHERE customer_id = ?)
+    `).run(customer.id);
 
     res.status(201).json({
-      message: "Order placed successfully",
-      orderId
+      message: "Order(s) placed successfully",
+      orderIds: createdOrderIds,
+      orderId: createdOrderIds[0] // Fallback for single-order UX compatibility
     });
   } catch (error: any) {
     console.error("Place order error:", error);
