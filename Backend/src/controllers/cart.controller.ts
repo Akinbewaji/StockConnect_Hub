@@ -8,10 +8,7 @@ export async function getCart(req: any, res: Response) {
   try {
     const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
     
-    // Find active cart for the customer and business (simplified for MVP: one cart)
-    let cart = (await db.prepare("SELECT * FROM carts WHERE customer_id = ?").get(customer.id)) as any;
-    
-    if (!cart) {
+    if (!customer) {
       return res.json({ items: [] });
     }
 
@@ -19,10 +16,11 @@ export async function getCart(req: any, res: Response) {
       SELECT ci.*, p.name, p.price, p.image_url 
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
-      WHERE ci.cart_id = ?
-    `).all(cart.id);
+      JOIN carts c ON ci.cart_id = c.id
+      WHERE c.customer_id = ?
+    `).all(customer.id);
 
-    res.json({ id: cart.id, items });
+    res.json({ id: customer.id, items: items || [] });
   } catch (error) {
     console.error("Get cart error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -106,10 +104,14 @@ export async function removeFromCart(req: any, res: Response) {
 export async function clearCart(req: any, res: Response) {
   try {
     const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
-    const cart = (await db.prepare("SELECT id FROM carts WHERE customer_id = ?").get(customer.id)) as any;
-    if (cart) {
-      await db.prepare("DELETE FROM cart_items WHERE cart_id = ?").run(cart.id);
+    
+    if (customer) {
+      await db.prepare(`
+        DELETE FROM cart_items 
+        WHERE cart_id IN (SELECT id FROM carts WHERE customer_id = ?)
+      `).run(customer.id);
     }
+    
     res.json({ message: "Cart cleared" });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
