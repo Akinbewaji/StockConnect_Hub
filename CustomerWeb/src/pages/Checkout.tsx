@@ -62,19 +62,18 @@ export default function Checkout() {
           currency: 'NGN',
           ref: `order_${Math.floor((Math.random() * 1000000000) + 1)}`,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          callback: async (response: any) => {
-            try {
-              const res = await orderService.placeOrder({
-                deliveryMethod,
-                paymentMethod,
-                paymentReference: response.reference
-              });
+          callback: (response: any) => {
+            orderService.placeOrder({
+              deliveryMethod,
+              paymentMethod,
+              paymentReference: response.reference
+            }).then((res) => {
               const orderId = res?.orderId || res?.id || 'CONFIRMED';
               navigate('/order-confirmation', { state: { orderId } });
-            } catch (err) {
+            }).catch((err) => {
               console.error("Order verification/creation failed", err);
               setLoading(false);
-            }
+            });
           },
           onClose: () => {
             setLoading(false);
