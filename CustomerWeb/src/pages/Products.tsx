@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { productService } from '../services/product.service';
+import { cartService } from '../services/cart.service';
+import { authService } from '../services/auth.service';
 import Navbar from '../components/Navbar';
 import SEO from '../components/SEO';
 import { Filter, Package, Truck, ChevronRight, ShoppingCart, Star, SlidersHorizontal, ArrowUpDown, XCircle } from 'lucide-react';
@@ -9,6 +11,7 @@ import type { Product } from './Home';
 
 export default function Products() {
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const initialSearch = queryParams.get('search') || '';
 
@@ -20,6 +23,7 @@ export default function Products() {
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [addingToCart, setAddingToCart] = useState<number | null>(null);
 
   const categories = ['All', 'Building', 'Tools', 'Electrical', 'Plumbing', 'Safety', 'Security'];
 
@@ -63,6 +67,26 @@ export default function Products() {
       return b.id - a.id; 
     });
   }, [products, sortBy]);
+
+  const handleAddToCart = async (e: React.MouseEvent, productId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    
+    setAddingToCart(productId);
+    try {
+      await cartService.addToCart(productId, 1);
+      navigate('/cart');
+    } catch {
+      console.error("Failed to add to cart");
+    } finally {
+      setAddingToCart(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fcfcfc] pb-24">
@@ -247,8 +271,12 @@ export default function Products() {
                             <button className="bg-slate-50 text-slate-600 p-3.5 rounded-2xl hover:bg-slate-100 transition-all active:scale-95 border border-slate-100">
                               <Truck size={20} />
                             </button>
-                            <button className="bg-slate-900 text-white p-3.5 rounded-2xl hover:bg-indigo-600 shadow-xl hover:shadow-indigo-600/30 transition-all active:scale-95">
-                              <ShoppingCart size={20} />
+                            <button 
+                              onClick={(e) => handleAddToCart(e, product.id)}
+                              disabled={addingToCart === product.id || product.quantity === 0}
+                              className="bg-slate-900 text-white p-3.5 rounded-2xl hover:bg-indigo-600 shadow-xl hover:shadow-indigo-600/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {addingToCart === product.id ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ShoppingCart size={20} />}
                             </button>
                           </div>
                         </div>
