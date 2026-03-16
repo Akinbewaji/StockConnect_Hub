@@ -43,20 +43,20 @@ export default function Orders() {
     }
   };
 
-  const handleUpdateStatus = async (orderId: number, status: string) => {
+  const handleUpdateOrder = async (orderId: number, data: any) => {
     setUpdatingId(orderId);
     try {
-      await authFetch(`/api/orders/${orderId}/status`, {
+      await authFetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        body: JSON.stringify(data)
       });
       fetchOrders();
       if (selectedOrder?.id === orderId) {
-        setSelectedOrder({ ...selectedOrder, status });
+        setSelectedOrder({ ...selectedOrder, ...data });
       }
     } catch (error) {
-      console.error('Failed to update status:', error);
+      console.error('Failed to update order:', error);
     } finally {
       setUpdatingId(null);
     }
@@ -71,7 +71,7 @@ export default function Orders() {
   });
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'confirmed': return 'bg-green-100 text-green-700 border-green-200';
       case 'shipped': return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'delivered': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
@@ -81,10 +81,11 @@ export default function Orders() {
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'confirmed': return <CheckCircle2 size={14} />;
       case 'shipped': return <Truck size={14} />;
       case 'delivered': return <CheckCircle2 size={14} />;
+      case 'cancelled': return <X size={14} />;
       default: return <Clock size={14} />;
     }
   };
@@ -116,7 +117,7 @@ export default function Orders() {
           />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-          {['all', 'pending', 'confirmed', 'shipped'].map((status) => (
+          {['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -168,6 +169,7 @@ export default function Orders() {
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
                        <span className={`text-[9px] font-black uppercase flex items-center gap-1 ${getStatusColor(order.status).split(' ')[1]}`}>
+                          {getStatusIcon(order.status)}
                           {order.status}
                        </span>
                        <span className="text-[10px] text-slate-300 font-bold">•</span>
@@ -202,49 +204,76 @@ export default function Orders() {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              className="fixed right-0 top-0 h-full w-full max-w-sm bg-white shadow-2xl z-[100] flex flex-col p-6 space-y-6"
+              className="fixed right-0 top-0 h-full w-full max-w-sm bg-white shadow-2xl z-100 flex flex-col p-6 space-y-6"
             >
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="text-xl font-black text-slate-900 tracking-tight">Order #{selectedOrder.id}</h2>
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{format(new Date(selectedOrder.created_at), 'PPP')}</p>
+                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                    {selectedOrder.created_at && !isNaN(new Date(selectedOrder.created_at).getTime()) 
+                      ? format(new Date(selectedOrder.created_at), 'PPP') 
+                      : 'N/A'}
+                  </p>
                 </div>
                 <button onClick={() => setShowDetails(false)} className="p-2 bg-slate-50 text-slate-400 rounded-xl">
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-6">
+              <div className="flex-1 overflow-y-auto space-y-6 scrollbar-hide">
                 <div className="p-4 bg-slate-50 rounded-2xl space-y-4">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-400 font-bold uppercase">Customer</span>
                     <span className="text-slate-900 font-black">{selectedOrder.customer_name}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-400 font-bold uppercase">Payment</span>
+                    <span className="text-slate-400 font-bold uppercase">Payment Status</span>
                     <span className={`font-black ${selectedOrder.payment_status === 'paid' ? 'text-green-600' : 'text-amber-600'}`}>
                       {selectedOrder.payment_status.toUpperCase()}
                     </span>
                   </div>
+                  {selectedOrder.payment_status !== 'paid' && (
+                    <button 
+                      onClick={() => handleUpdateOrder(selectedOrder.id, { paymentStatus: 'paid' })}
+                      className="w-full py-2 bg-green-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm"
+                    >
+                      Mark as Paid
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Verify & Process</h3>
+                  <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Update Lifecycle</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    {['confirmed', 'shipped'].map(s => (
+                    {['confirmed', 'shipped', 'delivered', 'cancelled'].map(s => (
                       <button
                         key={s}
-                        onClick={() => handleUpdateStatus(selectedOrder.id, s)}
+                        onClick={() => handleUpdateOrder(selectedOrder.id, { status: s })}
                         disabled={selectedOrder.status === s || updatingId === selectedOrder.id}
                         className={`py-3 rounded-xl text-[10px] font-black uppercase transition-all border-2 ${
                           selectedOrder.status === s 
                           ? 'bg-indigo-600 text-white border-indigo-600' 
-                          : 'bg-white border-slate-50 text-slate-500 hover:border-indigo-100'
-                        }`}
+                          : 'bg-white border-slate-50 text-slate-500 hover:border-indigo-100 disabled:opacity-50'
+                        } ${s === 'cancelled' && selectedOrder.status !== 'cancelled' ? 'hover:bg-red-50 hover:text-red-500' : ''}`}
                       >
                         {updatingId === selectedOrder.id ? '...' : s}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Tracking Info</h3>
+                  <div className="relative">
+                    <Truck className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input 
+                      type="text"
+                      placeholder="Enter tracking ID / Courier..."
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500"
+                      value={selectedOrder.tracking_info || ''}
+                      onChange={(e) => setSelectedOrder({ ...selectedOrder, tracking_info: e.target.value })}
+                      onBlur={() => handleUpdateOrder(selectedOrder.id, { trackingInfo: selectedOrder.tracking_info })}
+                    />
                   </div>
                 </div>
 

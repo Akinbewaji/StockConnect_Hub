@@ -6,9 +6,10 @@ import db from "../db/init.js";
  */
 export async function getCart(req: any, res: Response) {
   try {
-    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
+    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?::INTEGER").get(req.user.id)) as any;
     
     if (!customer) {
+      console.warn(`[CartController] No customer found for user_id: ${req.user.id}`);
       return res.json({ items: [] });
     }
 
@@ -17,7 +18,7 @@ export async function getCart(req: any, res: Response) {
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       JOIN carts c ON ci.cart_id = c.id
-      WHERE c.customer_id = ?
+      WHERE c.customer_id = ?::INTEGER
     `).all(customer.id);
 
     res.json({ id: customer.id, items: items || [] });
@@ -33,16 +34,16 @@ export async function getCart(req: any, res: Response) {
 export async function addToCart(req: any, res: Response) {
   const { productId, quantity } = req.body;
   try {
-    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
-    const product = (await db.prepare("SELECT business_id FROM products WHERE id = ?").get(productId)) as any;
+    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?::INTEGER").get(req.user.id)) as any;
+    const product = (await db.prepare("SELECT business_id FROM products WHERE id = ?::INTEGER").get(productId)) as any;
     
     if (!product) return res.status(404).json({ error: "Product not found" });
 
     // Ensure cart exists or create it
-    let cart = (await db.prepare("SELECT id FROM carts WHERE customer_id = ? AND business_id = ?").get(customer.id, product.business_id)) as any;
+    let cart = (await db.prepare("SELECT id FROM carts WHERE customer_id = ?::INTEGER AND business_id = ?::INTEGER").get(customer.id, product.business_id)) as any;
     
     if (!cart) {
-      const result = await (await db.prepare("INSERT INTO carts (customer_id, business_id) VALUES (?, ?)")).run(
+      const result = await (await db.prepare("INSERT INTO carts (customer_id, business_id) VALUES (?, ?) RETURNING id")).run(
         customer.id,
         product.business_id
       );
@@ -50,13 +51,13 @@ export async function addToCart(req: any, res: Response) {
     }
 
     // Add or update item
-    const existingItem = (await db.prepare("SELECT id FROM cart_items WHERE cart_id = ? AND product_id = ?").get(cart.id, productId)) as any;
+    const existingItem = (await db.prepare("SELECT id FROM cart_items WHERE cart_id = ?::INTEGER AND product_id = ?::INTEGER").get(cart.id, productId)) as any;
     
     if (existingItem) {
-      await db.prepare("UPDATE cart_items SET quantity = quantity + ? WHERE id = ?")
+      await db.prepare("UPDATE cart_items SET quantity = quantity + ? WHERE id = ?::INTEGER")
         .run(quantity || 1, existingItem.id);
     } else {
-      await db.prepare("INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, ?)")
+      await db.prepare("INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?::INTEGER, ?::INTEGER, ?)")
         .run(cart.id, productId, quantity || 1);
     }
 

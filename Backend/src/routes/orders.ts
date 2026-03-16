@@ -20,6 +20,22 @@ router.get('/', async (req: any, res) => {
   }
 });
 
+// Get single order
+router.get('/:id', async (req: any, res) => {
+  const { id } = req.params;
+  const businessId = req.user.id;
+
+  try {
+    const order = await OrderService.getById(id, businessId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch order details' });
+  }
+});
+
 // Create order
 router.post("/", async (req: any, res) => {
   const result = orderSchema.safeParse(req.body);
@@ -55,6 +71,23 @@ router.patch('/:id/status', async (req, res) => {
     res.json({ success: true, status });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// Update order (generic)
+router.patch('/:id', async (req: any, res) => {
+  const { id } = req.params;
+  const businessId = req.user.id;
+
+  try {
+    const success = await OrderService.update(id, req.body, businessId);
+    if (!success) {
+      return res.status(404).json({ error: 'Order not found or no changes made' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Order update error:', error);
+    res.status(500).json({ error: 'Failed to update order' });
   }
 });
 

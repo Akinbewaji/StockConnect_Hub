@@ -12,7 +12,7 @@ export async function placeOrder(req: any, res: Response) {
   const { deliveryMethod, deliveryAddressId, paymentMethod, paymentReference } = req.body;
   
   try {
-    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?").get(req.user.id)) as any;
+    const customer = (await db.prepare("SELECT id FROM customers WHERE user_id = ?::INTEGER").get(req.user.id)) as any;
     
     // Fetch all items across ALL active carts for this customer
     const cartItems = await db.prepare(`
@@ -20,7 +20,7 @@ export async function placeOrder(req: any, res: Response) {
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       JOIN carts c ON ci.cart_id = c.id
-      WHERE c.customer_id = ?
+      WHERE c.customer_id = ?::INTEGER
     `).all(customer.id);
 
     if (!cartItems || cartItems.length === 0) {
@@ -82,7 +82,8 @@ export async function placeOrder(req: any, res: Response) {
         // Create the order for this specific vendor
         const orderResult = await db.prepare(`
           INSERT INTO orders (customer_id, total_amount, status, payment_status, payment_method, delivery_method, delivery_address_id, business_id)
-          VALUES (?, ?, 'pending', ?, ?, ?, ?, ?)
+          VALUES (?::INTEGER, ?, 'pending', ?, ?, ?, ?::INTEGER, ?::INTEGER)
+          RETURNING id
         `).run(customer.id, groupTotal, finalPaymentStatus, paymentMethod || 'cash', deliveryMethod || 'pickup', deliveryAddressId || null, businessId);
 
         const orderId = orderResult.lastInsertRowid;
@@ -92,11 +93,11 @@ export async function placeOrder(req: any, res: Response) {
         for (const item of groupItems) {
             await db.prepare(`
                 INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-                VALUES (?, ?, ?, ?)
+                VALUES (?::INTEGER, ?::INTEGER, ?::INTEGER, ?)
             `).run(orderId, item.product_id, item.quantity, item.price);
 
             // Deduct stock
-            await db.prepare("UPDATE products SET quantity = quantity - ? WHERE id = ?").run(item.quantity, item.product_id);
+            await db.prepare("UPDATE products SET quantity = quantity - ?::INTEGER WHERE id = ?::INTEGER").run(item.quantity, item.product_id);
             
             // Log stock movement
             await db.prepare("INSERT INTO stock_movements (product_id, change_amount, reason) VALUES (?, ?, ?)").run(item.product_id, -item.quantity, 'sale');

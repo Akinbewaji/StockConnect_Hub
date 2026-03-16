@@ -23,6 +23,31 @@ export class OrderService {
     return { data, total };
   }
 
+  static async getById(id: number | string, businessId: number) {
+    console.log(`[OrderService] Fetching details for Order #${id} (Business: ${businessId})`);
+    const order = (await (await db.prepare(`
+        SELECT o.*, c.name as customer_name 
+        FROM orders o 
+        LEFT JOIN customers c ON o.customer_id = c.id 
+        WHERE o.id = ?::INTEGER AND o.business_id = ?::INTEGER
+    `)).get(id, businessId)) as any;
+
+    if (!order) {
+      console.warn(`[OrderService] Order #${id} not found for Business ${businessId}`);
+      return null;
+    }
+
+    const items = (await (await db.prepare(`
+        SELECT oi.*, p.name 
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?::INTEGER
+    `)).all(id)) as any[];
+
+    console.log(`[OrderService] Order #${id} items count: ${items.length}`);
+    return { ...order, items };
+  }
+
   static async create(data: any, businessId: number) {
     const { customerId, items, totalAmount } = data;
 
@@ -39,15 +64,21 @@ export class OrderService {
       const productStmt = await db.prepare('SELECT cost_price FROM products WHERE id = ?');
       
       for (const item of items) {
-        const product = (await productStmt.get(item.productId)) as any;
+        // Handle both camelCase and snake_case from incoming data
+        const prodId = item.productId || item.product_id;
+        const qty = item.quantity;
+        const price = item.unitPrice || item.unit_price;
+
+        console.log(`[OrderService] Processing item: Product #${prodId}, Qty: ${qty}`);
+        const product = (await productStmt.get(prodId)) as any;
         const unitCost = product?.cost_price || 0;
         
-        await itemStmt.run(orderId, item.productId, item.quantity, item.unitPrice, unitCost);
-        await stockStmt.run(item.quantity, item.productId);
-        await movementStmt.run(item.productId, -item.quantity, 'sale');
+        await itemStmt.run(orderId, prodId, qty, price, unitCost);
+        await stockStmt.run(qty, prodId);
+        await movementStmt.run(prodId, -qty, 'sale');
         
         // Trigger notification check asycnrhonously
-        NotificationService.checkLowStockAndNotify(item.productId, businessId).catch(console.error);
+        NotificationService.checkLowStockAndNotify(prodId, businessId).catch(console.error);
       }
 
       // 3. Update Loyalty Points (Pro Feature)
@@ -81,13 +112,74 @@ export class OrderService {
   }
 
   static async updateStatus(id: number | string, status: string) {
-    const stmt = await db.prepare('UPDATE orders SET status = ? WHERE id = ?');
-    const info = await stmt.run(status, id);
-    
-    if (info.changes && info.changes > 0 && io) {
-      io.emit("order_status_updated", { orderId: id, status });
+    const transaction = async () => {
+      // 1. Get current status to see if it's already cancelled
+      const currentOrder = (await (await db.prepare('SELECT status, business_id FROM orders WHERE id = ?')).get(id)) as any;
+      console.log(`[OrderService] Updating Order #${id} status from ${currentOrder?.status} to ${status}`);
+      
+      if (!currentOrder) return false;
+      if (currentOrder.status === status) return true;
+
+      // 2. Update status
+      const stmt = await db.prepare('UPDATE orders SET status = ? WHERE id = ?');
+      const info = await stmt.run(status, id);
+
+      // 3. Handle Restocking if cancelled
+      if (status?.toLowerCase() === 'cancelled' && currentOrder.status?.toLowerCase() !== 'cancelled') {
+        console.log(`[OrderService] Order #${id} cancelled. Restocking items...`);
+        const items = (await (await db.prepare('SELECT product_id, quantity FROM order_items WHERE order_id = ?::INTEGER')).all(id)) as any[];
+        console.log(`[OrderService] Found ${items.length} items to restock for Order #${id}`);
+        
+        const restockingStmt = await db.prepare('UPDATE products SET quantity = quantity + ? WHERE id = ?');
+        const movementStmt = await db.prepare('INSERT INTO stock_movements (product_id, change_amount, reason) VALUES (?, ?, ?)');
+
+        for (const item of items) {
+          console.log(`[OrderService] Restocking Product #${item.product_id}: +${item.quantity}`);
+          await restockingStmt.run(item.quantity, item.product_id);
+          await movementStmt.run(item.product_id, item.quantity, 'order_cancelled');
+        }
+      }
+
+      if (info.changes && info.changes > 0 && io) {
+        io.emit("order_status_updated", { orderId: id, status });
+      }
+
+      return info.changes && info.changes > 0;
+    };
+
+    return await transaction();
+  }
+
+  static async update(id: number | string, data: any, businessId: number) {
+    const { status, trackingInfo, paymentStatus } = data;
+    const fields: string[] = [];
+    const params: any[] = [];
+
+    if (status) {
+      // Use the logic in updateStatus if status is changing
+      await this.updateStatus(id, status);
     }
-    
-    return info.changes && info.changes > 0;
+
+    if (trackingInfo !== undefined) {
+      fields.push('tracking_info = ?');
+      params.push(trackingInfo);
+    }
+
+    if (paymentStatus !== undefined) {
+      fields.push('payment_status = ?');
+      params.push(paymentStatus);
+    }
+
+    if (fields.length === 0 && !status) return false;
+
+    if (fields.length > 0) {
+      const query = `UPDATE orders SET ${fields.join(', ')} WHERE id = ? AND business_id = ?`;
+      params.push(id, businessId);
+      const stmt = await db.prepare(query);
+      const info = await stmt.run(...params);
+      return info.changes && info.changes > 0;
+    }
+
+    return true;
   }
 }
