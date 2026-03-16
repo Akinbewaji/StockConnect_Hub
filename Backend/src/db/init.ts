@@ -194,7 +194,7 @@ export async function initializeDatabase() {
         unit_price NUMERIC NOT NULL,
         unit_cost NUMERIC DEFAULT 0,
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
       )
     `);
 
