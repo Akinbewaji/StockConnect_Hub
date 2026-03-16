@@ -81,9 +81,9 @@ export async function placeOrder(req: any, res: Response) {
 
         // Create the order for this specific vendor
         const orderResult = await db.prepare(`
-          INSERT INTO orders (customer_id, total_amount, status, payment_status, payment_method, delivery_method, delivery_address_id)
-          VALUES (?, ?, 'pending', ?, ?, ?, ?)
-        `).run(customer.id, groupTotal, finalPaymentStatus, paymentMethod || 'cash', deliveryMethod || 'pickup', deliveryAddressId || null);
+          INSERT INTO orders (customer_id, total_amount, status, payment_status, payment_method, delivery_method, delivery_address_id, business_id)
+          VALUES (?, ?, 'pending', ?, ?, ?, ?, ?)
+        `).run(customer.id, groupTotal, finalPaymentStatus, paymentMethod || 'cash', deliveryMethod || 'pickup', deliveryAddressId || null, businessId);
 
         const orderId = orderResult.lastInsertRowid;
         createdOrderIds.push(orderId);

@@ -15,6 +15,7 @@ import Plans from "./pages/admin/Plans";
 import Settings from "./pages/admin/Settings";
 import Insights from "./pages/admin/Insights";
 import CashFlow from "./pages/admin/CashFlow";
+import Orders from "./pages/admin/Orders";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -87,6 +88,7 @@ export default function App() {
             <Route path="inventory" element={<Inventory />} />
             <Route path="stock" element={<StockManagement />} />
             <Route path="pos" element={<POS />} />
+            <Route path="orders" element={<Orders />} />
             <Route path="customers" element={<Customers />} />
             <Route path="loyalty" element={<Loyalty />} />
             <Route path="campaigns" element={<Campaigns />} />

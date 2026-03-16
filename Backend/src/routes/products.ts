@@ -4,12 +4,12 @@ import { productSchema } from "../types/schemas.js";
 import { ProductService } from "../services/product.service.js";
 import { AuthRequest } from "../middleware/auth.js";
 
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken, optionalAuthenticateToken } from "../middleware/auth.js";
 
 const router = Router();
 
 // Get all products (Public for browsing)
-router.get("/", async (req: any, res) => {
+router.get("/", optionalAuthenticateToken, async (req: any, res) => {
   const { search, category, page, limit, businessId: queryBusinessId, minPrice, maxPrice } = req.query;
   
   // If owner, show only their products. If customer or not logged in, show all (or filtered by queryBusinessId)
@@ -76,11 +76,11 @@ router.delete("/:id", authenticateToken, async (req: AuthRequest, res) => {
   const businessId = req.user!.id;
 
   try {
-    const deleteRes = await ProductService.delete(id);
+    const deleteRes = await ProductService.delete(id, businessId);
     if (deleteRes) {
       res.json({ message: "Product deleted successfully" });
     } else {
-      res.status(404).json({ error: "Product not found" });
+      res.status(404).json({ error: "Product not found or unauthorized" });
     }
   } catch (error: any) {
     console.error("Failed to delete product:", error);
@@ -112,6 +112,12 @@ router.post("/:id/stock", authenticateToken, async (req, res) => {
   const { quantity, reason } = req.body; // quantity can be positive or negative
 
   try {
+    // Verify ownership first
+    const product = await ProductService.getById(id);
+    if (!product || (product as any).business_id !== (req as any).user.id) {
+       return res.status(403).json({ error: "Unauthorized or product not found" });
+    }
+
     const updateStmt = db.prepare(
       "UPDATE products SET quantity = quantity + ? WHERE id = ?",
     );
@@ -139,11 +145,12 @@ router.get("/movements", authenticateToken, async (req, res) => {
       SELECT sm.*, p.name as product_name 
       FROM stock_movements sm 
       JOIN products p ON sm.product_id = p.id 
+      WHERE p.business_id = ?
     `;
-    const params: any[] = [];
+    const params: any[] = [(req as any).user.id];
 
     if (productId) {
-      query += " WHERE sm.product_id = ?";
+      query += " AND sm.product_id = ?";
       params.push(productId);
     }
 

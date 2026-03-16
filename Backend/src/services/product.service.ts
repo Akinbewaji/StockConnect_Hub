@@ -67,7 +67,8 @@ export class ProductService {
   }
 
   static async create(data: any, businessId: number) {
-    const { name, category, description, price, quantity, reorderThreshold, costPrice, barcode, supplier, imageUrl } = data;
+    const { name, category, description, price, quantity, reorderThreshold, costPrice, barcode, supplier, supplierPhone, imageUrl } = data;
+    
     // Check plan limits
     const user = await (await db.prepare("SELECT plan FROM users WHERE id = ?")).get(businessId) as any;
     if (user && user.plan === 'free') {
@@ -77,24 +78,30 @@ export class ProductService {
       }
     }
 
-    const stmt = await db.prepare(`
-      INSERT INTO products (name, category, description, price, quantity, reorder_threshold, cost_price, barcode, supplier, image_url, business_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
-    `);
-    const info = await stmt.run(
-      name,
-      category,
-      description || "",
-      price,
-      quantity,
-      reorderThreshold || 5,
-      costPrice || 0,
-      barcode || null,
-      supplier || "",
-      imageUrl || "",
-      businessId
-    );
-    return info.lastInsertRowid;
+    try {
+      const stmt = await db.prepare(`
+        INSERT INTO products (name, category, description, price, quantity, reorder_threshold, cost_price, barcode, supplier, supplier_phone, image_url, business_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+      `);
+      const info = await stmt.run(
+        name,
+        category,
+        description || "",
+        Number(price) || 0,
+        Number(quantity) || 0,
+        Number(reorderThreshold) || 5,
+        Number(costPrice) || 0,
+        barcode || null,
+        supplier || "",
+        supplierPhone || "",
+        imageUrl || "",
+        businessId
+      );
+      return info.lastInsertRowid;
+    } catch (error) {
+      console.error("Error creating product in service:", error);
+      throw error;
+    }
   }
 
   static async update(id: number | string, data: any, businessId: number) {
@@ -144,8 +151,8 @@ export class ProductService {
     return await stmt.run(threshold, id, businessId);
   }
 
-  static async delete(id: number | string) {
-    const info = await db.prepare("DELETE FROM products WHERE id = ?").run(id);
+  static async delete(id: number | string, businessId: number) {
+    const info = await db.prepare("DELETE FROM products WHERE id = ? AND business_id = ?").run(id, businessId);
     return info.changes && info.changes > 0;
   }
 }

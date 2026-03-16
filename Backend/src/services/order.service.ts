@@ -9,7 +9,7 @@ export class OrderService {
         SELECT o.*, c.name as customer_name 
         FROM orders o 
         LEFT JOIN customers c ON o.customer_id = c.id 
-        WHERE c.business_id = ? OR o.customer_id IS NULL
+        WHERE o.business_id = ?
         ORDER BY o.created_at DESC
         LIMIT ? OFFSET ?
     `)).all(businessId, limit, offset);
@@ -17,8 +17,7 @@ export class OrderService {
     const { total } = (await (await db.prepare(`
         SELECT COUNT(*) as total 
         FROM orders o 
-        LEFT JOIN customers c ON o.customer_id = c.id 
-        WHERE c.business_id = ? OR o.customer_id IS NULL
+        WHERE o.business_id = ?
     `)).get(businessId)) as any;
     
     return { data, total };
@@ -29,8 +28,8 @@ export class OrderService {
 
     const transaction = async () => {
       // 1. Create Order
-      const stmt = await db.prepare('INSERT INTO orders (customer_id, total_amount, status) VALUES (?, ?, ?) RETURNING id');
-      const info = await stmt.run(customerId, totalAmount, 'confirmed');
+      const stmt = await db.prepare('INSERT INTO orders (customer_id, total_amount, status, business_id) VALUES (?, ?, ?, ?) RETURNING id');
+      const info = await stmt.run(customerId, totalAmount, 'confirmed', businessId);
       const orderId = info.lastInsertRowid;
       
       // 2. Process Items

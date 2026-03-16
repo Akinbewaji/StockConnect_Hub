@@ -16,6 +16,7 @@ export default function AdminLayout() {
     { path: '/admin/inventory', icon: Package, label: 'Inventory' },
     { path: '/admin/stock', icon: ClipboardList, label: 'Stock' },
     { path: '/admin/pos', icon: ShoppingCart, label: 'New Sale' },
+    { path: '/admin/orders', icon: ClipboardList, label: 'Customer Orders' },
     { path: '/admin/customers', icon: Users, label: 'Customers' },
     { path: '/admin/loyalty', icon: Gift, label: 'Loyalty', pro: true },
     { path: '/admin/campaigns', icon: Megaphone, label: 'Campaigns', pro: true },

@@ -176,9 +176,11 @@ export async function initializeDatabase() {
         delivery_method VARCHAR(50) DEFAULT 'pickup',
         delivery_address_id INTEGER,
         tracking_info TEXT,
+        business_id INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
-        FOREIGN KEY (delivery_address_id) REFERENCES addresses(id) ON DELETE SET NULL
+        FOREIGN KEY (delivery_address_id) REFERENCES addresses(id) ON DELETE SET NULL,
+        FOREIGN KEY (business_id) REFERENCES users(id) ON DELETE SET NULL
       )
     `);
 
