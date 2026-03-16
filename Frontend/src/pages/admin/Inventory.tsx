@@ -113,6 +113,24 @@ export default function Inventory() {
     });
   };
 
+  const handleDeleteProduct = async (id: number | string) => {
+    try {
+      const response = await authFetch(`/api/products/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        fetchProducts();
+      } else {
+        const error = await response.json();
+        alert(error.error || "Failed to delete product");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("An error occurred while deleting the product");
+    }
+  };
+
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -436,8 +454,7 @@ export default function Inventory() {
                   <button 
                     onClick={() => {
                       if(confirm("Are you sure you want to delete this product?")) {
-                        // Implement delete
-                        alert("Delete feature coming soon!");
+                        handleDeleteProduct(product.id);
                       }
                       setOpenMenuId(null);
                     }}
