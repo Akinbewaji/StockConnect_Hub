@@ -96,10 +96,10 @@ export async function sendMessage(req: any, res: Response) {
           .get(customer.id, businessIdValue) as any;
         
         if (!chat) {
-          const newChatId = (await (await db.prepare(
-      "INSERT INTO chats (customer_id, business_id) VALUES (?, ?)",
-    )).run(customer.id, businessIdValue)).lastInsertRowid;
-          activeChatId = newChatId;
+          const result = await (await db.prepare(
+            "INSERT INTO chats (customer_id, business_id) VALUES (?, ?) RETURNING id",
+          )).run(customer.id, businessIdValue);
+          activeChatId = result.lastInsertRowid;
         } else {
           activeChatId = chat.id;
         }
@@ -118,7 +118,7 @@ export async function sendMessage(req: any, res: Response) {
         let chat = (await (await db.prepare("SELECT id FROM chats WHERE customer_id = ? AND business_id = ?")).get(bodyCustomerId, businessIdValue)) as any;
           
         if (!chat) {
-          const result = await (await db.prepare("INSERT INTO chats (customer_id, business_id) VALUES (?, ?)")).run(bodyCustomerId, businessIdValue);
+          const result = await (await db.prepare("INSERT INTO chats (customer_id, business_id) VALUES (?, ?) RETURNING id")).run(bodyCustomerId, businessIdValue);
           activeChatId = result.lastInsertRowid;
         } else {
           activeChatId = chat.id;
@@ -131,7 +131,7 @@ export async function sendMessage(req: any, res: Response) {
     }
 
     const messageResult = await (await db.prepare(
-      "INSERT INTO messages (chat_id, sender_id, sender_type, text) VALUES (?, ?, ?, ?)",
+      "INSERT INTO messages (chat_id, sender_id, sender_type, text) VALUES (?, ?, ?, ?) RETURNING id",
     )).run(activeChatId, req.user.id, senderType, text);
     const messageId = messageResult.lastInsertRowid;
 

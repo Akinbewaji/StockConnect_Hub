@@ -43,6 +43,6 @@ export class CustomerService {
       "UPDATE customers SET name = ?, phone = ?, email = ? WHERE id = ?"
     );
     const info = await stmt.run(name, phone, email, id);
-    return (info.changes ?? 0) > 0;
+    return (info?.changes ?? 0) > 0;
   }
 }

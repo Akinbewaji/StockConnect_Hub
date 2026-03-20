@@ -31,7 +31,7 @@ export async function register(req: Request, res: Response) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userResult = await (await db.prepare(`
       INSERT INTO users (username, email, phone, password, name, business_name, role)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id
     `)).run(email, email, formattedPhone, hashedPassword, name, 'Customer', 'customer');
 
     const userId = userResult.lastInsertRowid;
@@ -40,7 +40,7 @@ export async function register(req: Request, res: Response) {
 
     // 2. Create customer entry linked to user
     const customerId = (await (await db.prepare(
-      "INSERT INTO customers (business_id, name, phone, email, user_id) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO customers (business_id, name, phone, email, user_id) VALUES (?, ?, ?, ?, ?) RETURNING id",
     )).run(
       defaultBusinessId,
       name,
@@ -52,7 +52,7 @@ export async function register(req: Request, res: Response) {
     // 3. Add address if provided
     if (address) {
       await (await db.prepare(
-        "INSERT INTO addresses (customer_id, label, address_line1, city, state) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO addresses (customer_id, label, address_line1, city, state) VALUES (?, ?, ?, ?, ?) RETURNING id",
       )).run(
         customerId,
         "Default",
@@ -180,7 +180,7 @@ export async function addAddress(req: any, res: Response) {
 
     await db.prepare(`
       INSERT INTO addresses (customer_id, label, address_line1, address_line2, city, state, postal_code, is_default)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     `).run(customer.id, label, address_line1, address_line2, city, state, postal_code, is_default ? 1 : 0);
 
     res.status(201).json({ message: "Address added successfully" });
