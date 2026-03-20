@@ -2,13 +2,20 @@ import axios from 'axios';
 
 let API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Ensure the URL correctly ends with /api
+// Ensure the URL is properly formatted for the API
 if (API_BASE_URL) {
+  // Remove trailing slash if present
   if (API_BASE_URL.endsWith('/')) {
     API_BASE_URL = API_BASE_URL.slice(0, -1);
   }
-  if (!API_BASE_URL.endsWith('/api')) {
-    API_BASE_URL += '/api';
+  
+  // Append /api if it's not already there and if we're not using a relative path that already includes it
+  // or if the user provided just the base domain
+  if (!API_BASE_URL.endsWith('/api') && !API_BASE_URL.startsWith('/')) {
+    // If it's a full URL without /api, append it
+    if (API_BASE_URL.startsWith('http')) {
+      API_BASE_URL += '/api';
+    }
   }
 }
 
