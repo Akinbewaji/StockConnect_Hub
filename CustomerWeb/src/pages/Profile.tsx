@@ -280,7 +280,7 @@ export default function Profile() {
                   </div>
                   Seller Communications
                 </Link>
-                <Link to="/settings" className="flex items-center gap-3 p-3 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-2xl transition-colors font-medium">
+                <Link to="/billing" className="flex items-center gap-3 p-3 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-2xl transition-colors font-medium">
                   <CreditCard size={20} className="text-slate-400" />
                   Billing Details
                 </Link>

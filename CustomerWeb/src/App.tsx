@@ -22,6 +22,8 @@ import NotFound from './pages/NotFound';
 import Categories from './pages/Categories';
 import Vendors from './pages/Vendors';
 import Wholesale from './pages/Wholesale';
+import SavedMaterials from './pages/SavedMaterials';
+import BillingDetails from './pages/BillingDetails';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!authService.isAuthenticated()) {
@@ -86,6 +88,16 @@ function App() {
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/favorites" element={
+              <ProtectedRoute>
+                <SavedMaterials />
+              </ProtectedRoute>
+            } />
+            <Route path="/billing" element={
+              <ProtectedRoute>
+                <BillingDetails />
               </ProtectedRoute>
             } />
             <Route path="/about" element={<About />} />
