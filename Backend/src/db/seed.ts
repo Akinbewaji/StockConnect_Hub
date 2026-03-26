@@ -1,4 +1,4 @@
-import db, { initializeDatabase } from "./init.js";
+import db, { initializeDatabase } from "./init";
 import bcrypt from "bcryptjs";
 
 async function seed() {
