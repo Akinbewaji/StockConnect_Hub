@@ -10,14 +10,19 @@ export function initializeDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE,
-      email TEXT UNIQUE,
+      username TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE NOT NULL,
       phone TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       name TEXT NOT NULL,
       business_name TEXT NOT NULL,
       role TEXT DEFAULT 'owner',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      CHECK (length(email) <= 255),
+      CHECK (length(username) >= 3 AND length(username) <= 30),
+      CHECK (length(phone) >= 7 AND length(phone) <= 15),
+      CHECK (length(name) <= 100),
+      CHECK (length(business_name) <= 100)
     )
   `);
 
