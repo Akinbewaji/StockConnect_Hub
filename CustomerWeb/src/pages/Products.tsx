@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { productService } from '../services/product.service';
+import { useProducts } from '../services/product.service';
 import { cartService } from '../services/cart.service';
 import { authService } from '../services/auth.service';
 import Navbar from '../components/Navbar';
 import SEO from '../components/SEO';
 import { Filter, Package, Truck, ChevronRight, ShoppingCart, Star, SlidersHorizontal, ArrowUpDown, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Product } from './Home';
+
 
 export default function Products() {
   const location = useLocation();
@@ -15,8 +15,6 @@ export default function Products() {
   const queryParams = new URLSearchParams(location.search);
   const initialSearch = queryParams.get('search') || '';
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState('All');
   const [minPrice, setMinPrice] = useState<string>('');
@@ -27,31 +25,13 @@ export default function Products() {
 
   const categories = ['All', 'Building', 'Tools', 'Electrical', 'Plumbing', 'Safety', 'Security'];
 
-  useEffect(() => {
-    // Debounce the search term to avoid hitting API too often
-    const timeoutId = setTimeout(() => {
-      loadProducts();
-    }, 300);
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, search, minPrice, maxPrice]);
+  const { data: products = [], isLoading: loading } = useProducts({
+    category: category === 'All' ? undefined : category,
+    search: search || undefined,
+    minPrice: minPrice ? Number(minPrice) : undefined,
+    maxPrice: maxPrice ? Number(maxPrice) : undefined
+  });
 
-  const loadProducts = async () => {
-    setLoading(true);
-    try {
-      const data = await productService.getAll({ 
-        category: category === 'All' ? undefined : category,
-        search: search || undefined,
-        minPrice: minPrice ? Number(minPrice) : undefined,
-        maxPrice: maxPrice ? Number(maxPrice) : undefined
-      });
-      setProducts(data);
-    } catch (error) {
-      console.error("Failed to load products", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const sortedProducts = useMemo(() => {
     return [...products].sort((a, b) => {

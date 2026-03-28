@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Plus,
   Search,
@@ -10,15 +10,16 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import { authFetch } from "../../utils/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api, { authFetch } from "../../utils/api";
 import { useAuth } from "../../context/AuthContext";
 import { ListSkeleton } from "../../components/Skeleton";
 import { Edit, Trash2 } from "lucide-react";
 
 export default function Inventory() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
+  const queryClient = useQueryClient();
+
+  // Local state for UI and filters
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [search, setSearch] = useState("");
@@ -43,41 +44,90 @@ export default function Inventory() {
   });
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
+  const { data: productsData, isLoading, refetch } = useQuery<any>({
+    queryKey: ["products", { search, filterCategory, page, limit }],
+    queryFn: async () => {
+      let url = `/api/products?search=${search}&page=${page}&limit=${limit}`;
+      if (filterCategory) url += `&category=${filterCategory}`;
+      const res = await api.get(url);
+      return res.data;
+    },
+  });
+
+  const products = productsData?.data || [];
+  const total = productsData?.total || 0;
+
+  const addProductMutation = useMutation({
+    mutationFn: (product: any) => api.post("/api/products", product),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setShowAddModal(false);
+      setNewProduct({
+        name: "",
+        category: "",
+        price: "",
+        quantity: "",
+        reorderThreshold: "5",
+        costPrice: "",
+        supplier: "",
+        supplierPhone: "",
+        barcode: "",
+        imageUrl: "",
+      });
+    },
+  });
+
+  const deleteProductMutation = useMutation({
+    mutationFn: (id: number | string) => api.delete(`/api/products/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.error || "Failed to delete product");
+    },
+  });
+
+  const bulkImportMutation = useMutation({
+    mutationFn: (products: any[]) => api.post("/api/products/bulk-import", { products }),
+    onSuccess: (res) => {
+      setImportResults(res.data);
+      if (res.data.success > 0) {
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      }
+    },
+    onError: (error: any) => {
+      console.error("Import error:", error);
+      setImportResults({
+        success: 0,
+        failed: 1,
+        errors: [{ error: error.response?.data || error.message || "Unknown error occurred" }],
+      });
+    },
+    onSettled: () => {
+      setImporting(false);
+    }
+  });
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setPage(1); // Reset to first page on search/filter
-      fetchProducts(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [search, filterCategory]);
 
-  useEffect(() => {
-    fetchProducts(page);
-  }, [page]);
+  const filteredProducts = useMemo(() => {
+    return products.filter((product: any) => {
+      if (filterStatus === "low")
+        return product.quantity <= product.reorder_threshold;
+      if (filterStatus === "healthy")
+        return product.quantity > product.reorder_threshold;
+      return true;
+    });
+  }, [products, filterStatus]);
 
-  const fetchProducts = (targetPage: number = page) => {
-    let url = `/api/products?search=${search}&page=${targetPage}&limit=${limit}`;
-    if (filterCategory) url += `&category=${filterCategory}`;
-
-    setLoading(true);
-    authFetch(url)
-      .then((res) => res.json())
-      .then((res) => {
-        setProducts(res.data || []);
-        setTotal(res.total || 0);
-        setLoading(false);
-      });
-  };
-
-  const filteredProducts = products.filter((product) => {
-    if (filterStatus === "low")
-      return product.quantity <= product.reorder_threshold;
-    if (filterStatus === "healthy")
-      return product.quantity > product.reorder_threshold;
-    return true;
-  });
-
-  const categories = Array.from(new Set(products.map((p) => p.category)));
+  const categories = useMemo(() => {
+    return Array.from(new Set(products.map((p: any) => p.category)));
+  }, [products]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,42 +142,11 @@ export default function Inventory() {
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    await authFetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newProduct),
-    });
-    setShowAddModal(false);
-    fetchProducts();
-    setNewProduct({
-      name: "",
-      category: "",
-      price: "",
-      quantity: "",
-      reorderThreshold: "5",
-      costPrice: "",
-      supplier: "",
-      supplierPhone: "",
-      barcode: "",
-      imageUrl: "",
-    });
+    addProductMutation.mutate(newProduct);
   };
 
   const handleDeleteProduct = async (id: number | string) => {
-    try {
-      const response = await authFetch(`/api/products/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        fetchProducts();
-      } else {
-        const error = await response.json();
-        alert(error.error || "Failed to delete product");
-      }
-    } catch (error) {
-      console.error("Delete error:", error);
-      alert("An error occurred while deleting the product");
-    }
+    deleteProductMutation.mutate(id);
   };
 
 
@@ -212,32 +231,7 @@ export default function Inventory() {
         throw new Error("Unsupported file format. Please use CSV or JSON.");
       }
 
-      const response = await authFetch("/api/products/bulk-import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ products: productsData }),
-      });
-
-      // Check if response is ok
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server error: ${errorText || response.statusText}`);
-      }
-
-      // Try to parse JSON response
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const results = await response.json();
-        setImportResults(results);
-
-        if (results.success > 0) {
-          fetchProducts();
-        }
-      } else {
-        // If not JSON, read as text
-        const text = await response.text();
-        throw new Error(`Unexpected response format: ${text}`);
-      }
+      bulkImportMutation.mutate(productsData);
     } catch (error: any) {
       console.error("Import error:", error);
       setImportResults({
@@ -245,7 +239,6 @@ export default function Inventory() {
         failed: 1,
         errors: [{ error: error.message || "Unknown error occurred" }],
       });
-    } finally {
       setImporting(false);
     }
   };
@@ -362,7 +355,7 @@ export default function Inventory() {
             onChange={(e) => setFilterCategory(e.target.value)}
           >
             <option value="">All Categories</option>
-            {categories.map((cat) => (
+            {categories.map((cat: any) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>
@@ -382,11 +375,11 @@ export default function Inventory() {
       </div>
 
       {/* Product List */}
-      {loading ? (
+      {isLoading ? (
         <ListSkeleton />
       ) : (
         <div className="space-y-3">
-          {filteredProducts.map((product) => (
+          {filteredProducts.map((product: any) => (
           <div
             key={product.id}
             className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center"
