@@ -2,24 +2,24 @@
 
 A comprehensive inventory management, point-of-sale (POS), and two-way business communication system built with React, Express, and SQLite.
 
-## ✨ New & Advanced Features
+## New & Advanced Features
 
-### 💬 Two-Way Business Messaging
+### Two-Way Business Messaging
 - **Customer Chat**: Customers can message businesses directly from the User site.
 - **Admin Inbox**: Dedicated "Messages" tab for business owners to view and reply to customer inquiries.
 - **Real-time Notifications**: Instant message delivery powered by Socket.io.
 
-### 🔐 Enhanced Authentication (Premium Flow)
+### Enhanced Authentication (Premium Flow)
 - **Mandatory Email**: All customer accounts now require a verified email address.
 - **Dual-Channel OTP**: Users can choose to receive verification codes via **SMS** (Africa's Talking) or **Email**.
 - **Resend OTP**: Built-in countdown timer and retry logic for verification codes.
 - **Extended Profiles**: Capture customer delivery addresses (Street, City, State) during registration.
 
-### 🌍 Global Product Visibility
+### Global Product Visibility
 - **Cross-Business Browsing**: Customers can browse products from all registered businesses on a single platform.
 - **Intelligent Routing**: Automatic filtering of inventory based on the selected business or global search.
 
-## 🏪 Core Functionality
+## Core Functionality
 
 - **Inventory Management**: Bulk import (CSV/JSON), low stock alerts, and supplier tracking.
 - **Point of Sale (POS)**: Fast checkout, real-time stock deduction, and receipt generation.
